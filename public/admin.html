@@ -3,77 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TerryEdu 管理員後台</title>
+    <title>系統管理後台</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: #f0f2f5; height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.3); }
+        body {
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+        .glass-input {
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.9);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+        .tab-btn.active {
+            background: rgba(255, 255, 255, 0.8);
+            color: #1e40af;
+            font-weight: bold;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
-<body>
-    <div class="glass p-10 w-full max-w-md shadow-2xl">
-        <h2 class="text-3xl font-extrabold text-slate-800 mb-8">解答上傳系統</h2>
-        
-        <div class="space-y-5">
-            <div>
-                <label class="block text-sm font-semibold text-slate-600 mb-2">選擇科目</label>
-                <select id="subject" class="w-full p-3 glass border-none ring-1 ring-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
-                    <option value="chinese">國文</option>
-                    <option value="math">數學</option>
-                    <option value="english">英文</option>
-                    <option value="history">歷史</option>
-                    <option value="geography">地理</option>
-                    <option value="civics">公民</option>
-                </select>
-            </div>
+<body class="p-6 md:p-12">
 
-            <div>
-                <label class="block text-sm font-semibold text-slate-600 mb-2">解答標題 (例如：L1 課後練習)</label>
-                <input type="text" id="title" class="w-full p-3 glass border-none ring-1 ring-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+    <div class="max-w-6xl mx-auto">
+        <div class="glass-panel rounded-3xl p-6 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <h1 class="text-2xl font-extrabold text-slate-800 tracking-wider">⚙️ 系統管理中心</h1>
+            <div class="flex space-x-2 bg-white/30 p-1 rounded-xl">
+                <button onclick="switchTab('answers')" id="tab-answers" class="tab-btn active px-6 py-2 rounded-lg text-slate-600 transition duration-200">📝 解答管理</button>
+                <button onclick="switchTab('students')" id="tab-students" class="tab-btn px-6 py-2 rounded-lg text-slate-600 transition duration-200">👥 學生管理</button>
+                <button onclick="switchTab('reports')" id="tab-reports" class="tab-btn px-6 py-2 rounded-lg text-slate-600 transition duration-200">📊 報表分析</button>
             </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-slate-600 mb-2">解答 URL</label>
-                <input type="url" id="ansUrl" placeholder="https://..." class="w-full p-3 glass border-none ring-1 ring-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
-            </div>
-
-            <button onclick="submitData()" id="subBtn" class="w-full bg-slate-800 text-white font-bold py-4 rounded-xl hover:bg-slate-900 transition duration-300 shadow-lg">
-                確認上傳
-            </button>
         </div>
-        <p id="status" class="mt-4 text-center font-medium"></p>
+
+        <div id="sec-answers" class="glass-panel rounded-3xl p-8 transition-opacity duration-300">
+            <h2 class="text-xl font-bold text-slate-800 mb-6">新增與管理解答</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="col-span-1 space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">科目</label>
+                        <select class="glass-input w-full p-3 rounded-xl">
+                            <option value="history">歷史</option>
+                            <option value="geography">地理</option>
+                            <option value="civics">公民</option>
+                            <option value="chinese">國文</option>
+                            <option value="math">數學</option>
+                            <option value="english">英文</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">解答標題</label>
+                        <input type="text" placeholder="例如：第一章 練習題" class="glass-input w-full p-3 rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">解答 URL</label>
+                        <input type="url" placeholder="https://..." class="glass-input w-full p-3 rounded-xl">
+                    </div>
+                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition duration-300 shadow-md">
+                        發布解答
+                    </button>
+                </div>
+                <div class="col-span-2 bg-white/40 rounded-2xl p-6 border border-white/50">
+                    <h3 class="font-semibold text-slate-700 mb-4">近期上傳紀錄</h3>
+                    <ul class="space-y-3">
+                        <li class="flex justify-between items-center bg-white/60 p-3 rounded-lg">
+                            <span class="font-medium text-slate-800">【歷史】第二章 課後測驗</span>
+                            <button class="text-red-500 hover:text-red-700 text-sm font-bold">刪除</button>
+                        </li>
+                        <li class="flex justify-between items-center bg-white/60 p-3 rounded-lg">
+                            <span class="font-medium text-slate-800">【地理】地形與氣候 解答</span>
+                            <button class="text-red-500 hover:text-red-700 text-sm font-bold">刪除</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="sec-students" class="glass-panel rounded-3xl p-8 hidden transition-opacity duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-slate-800">已綁定學生名單</h2>
+                <input type="text" placeholder="🔍 搜尋座號或姓名..." class="glass-input px-4 py-2 rounded-lg text-sm w-64">
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-white/50 text-slate-600">
+                            <th class="p-3">座號</th>
+                            <th class="p-3">姓名</th>
+                            <th class="p-3">LINE 綁定狀態</th>
+                            <th class="p-3">綁定時間</th>
+                            <th class="p-3">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-white/30 hover:bg-white/20 transition">
+                            <td class="p-3 font-medium">01</td>
+                            <td class="p-3">王大明</td>
+                            <td class="p-3"><span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-bold">已綁定</span></td>
+                            <td class="p-3 text-sm text-slate-600">2026-05-05 10:30</td>
+                            <td class="p-3"><button class="text-red-500 text-sm font-bold hover:underline">解除綁定</button></td>
+                        </tr>
+                        <tr class="border-b border-white/30 hover:bg-white/20 transition">
+                            <td class="p-3 font-medium">02</td>
+                            <td class="p-3">李小華</td>
+                            <td class="p-3"><span class="bg-slate-200 text-slate-500 px-2 py-1 rounded-full text-xs font-bold">未綁定</span></td>
+                            <td class="p-3 text-sm text-slate-600">-</td>
+                            <td class="p-3">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="sec-reports" class="glass-panel rounded-3xl p-8 hidden transition-opacity duration-300">
+            <h2 class="text-xl font-bold text-slate-800 mb-6">系統數據總覽</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white/50 border border-white/60 p-6 rounded-2xl flex items-center justify-between shadow-sm">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-500">總綁定人數</p>
+                        <p class="text-3xl font-extrabold text-blue-600 mt-1">32 <span class="text-base font-normal text-slate-500">/ 35</span></p>
+                    </div>
+                    <div class="text-4xl">👥</div>
+                </div>
+                <div class="bg-white/50 border border-white/60 p-6 rounded-2xl flex items-center justify-between shadow-sm">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-500">本週解答點擊次數</p>
+                        <p class="text-3xl font-extrabold text-purple-600 mt-1">128</p>
+                    </div>
+                    <div class="text-4xl">🖱️</div>
+                </div>
+                <div class="bg-white/50 border border-white/60 p-6 rounded-2xl flex items-center justify-between shadow-sm">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-500">平均觀看時長</p>
+                        <p class="text-3xl font-extrabold text-green-600 mt-1">4.5 <span class="text-base font-normal text-slate-500">分鐘</span></p>
+                    </div>
+                    <div class="text-4xl">⏱️</div>
+                </div>
+            </div>
+
+            <div class="bg-white/40 border border-white/50 p-6 rounded-2xl h-64 flex items-center justify-center">
+                <p class="text-slate-500 font-medium">此處未來可串接 Chart.js 顯示各科目點擊比例圓餅圖或長條圖</p>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        async function submitData() {
-            const btn = document.getElementById('subBtn');
-            const data = {
-                subject: document.getElementById('subject').value,
-                title: document.getElementById('title').value,
-                url: document.getElementById('ansUrl').value
-            };
+        // 頁籤切換邏輯
+        function switchTab(tabName) {
+            // 隱藏所有區塊
+            document.getElementById('sec-answers').classList.add('hidden');
+            document.getElementById('sec-students').classList.add('hidden');
+            document.getElementById('sec-reports').classList.add('hidden');
+            
+            // 移除所有按鈕的 active 狀態
+            document.getElementById('tab-answers').classList.remove('active');
+            document.getElementById('tab-students').classList.remove('active');
+            document.getElementById('tab-reports').classList.remove('active');
 
-            if (!data.title || !data.url) return alert('請填寫完整內容');
-
-            btn.disabled = true;
-            btn.innerText = '正在寫入資料庫...';
-
-            // 呼叫 Vercel 的管理員 API
-            const response = await fetch('/api/admin-upload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            const res = await response.json();
-            if (res.success) {
-                document.getElementById('status').innerText = "✅ 上傳成功！學生現在可以看到了。";
-                document.getElementById('status').className = "mt-4 text-center text-green-600 font-bold";
-                document.getElementById('title').value = '';
-                document.getElementById('ansUrl').value = '';
-            }
-            btn.disabled = false;
-            btn.innerText = '確認上傳';
+            // 顯示選擇的區塊與按鈕狀態
+            document.getElementById(`sec-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
         }
     </script>
 </body>
