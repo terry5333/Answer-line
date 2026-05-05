@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script>
+        let startTime = Date.now();
+        async function init() {
+            await liff.init({ liffId: "YOUR_LIFF_ID" });
+            const urlParams = new URLSearchParams(window.location.search);
+            const answerUrl = urlParams.get('url');
+            const subject = urlParams.get('sub');
+            
+            // 跳轉到真正的解答網址
+            window.location.href = answerUrl;
+
+            // 當網頁關閉或隱藏時（這在手機上較難精確，建議搭配心跳包或按鈕關閉）
+            window.onbeforeunload = function() {
+                const duration = Math.round((Date.now() - startTime) / 1000);
+                // 這裡呼叫您的 API 紀錄 duration
+            };
+        }
+        init();
+    </script>
+</head>
+<body></body>
+</html>
