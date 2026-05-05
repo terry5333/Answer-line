@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TerryEdu 學生登入</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #a8c0ff 0%, #f4433610 100%), url('你的背景圖');
+            background-size: cover;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="glass p-8 w-80 text-center text-gray-800">
+        <h1 class="text-2xl font-bold mb-6">學生身分綁定</h1>
+        
+        <div id="user-info" class="mb-4 hidden">
+            <img id="pictureUrl" class="w-16 h-16 rounded-full mx-auto mb-2 border-2 border-white">
+            <p id="displayName" class="font-medium"></p>
+        </div>
+
+        <input type="number" id="stuNo" placeholder="請輸入座號" 
+               class="w-full p-3 rounded-lg bg-white/50 border-none mb-4 focus:ring-2 focus:ring-blue-400 outline-none">
+        
+        <button onclick="handleBind()" id="bindBtn"
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition duration-300">
+            確認綁定
+        </button>
+        
+        <p id="msg" class="mt-4 text-sm text-red-500 font-medium"></p>
+    </div>
+
+    <script>
+        async function initLIFF() {
+            try {
+                await liff.init({ liffId: "你的_LIFF_ID" });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                } else {
+                    const profile = await liff.getProfile();
+                    document.getElementById('user-info').classList.remove('hidden');
+                    document.getElementById('displayName').innerText = profile.displayName;
+                    document.getElementById('pictureUrl').src = profile.pictureUrl;
+                }
+            } catch (err) {
+                console.error('LIFF 初始化失敗', err);
+            }
+        }
+
+        async function handleBind() {
+            const no = document.getElementById('stuNo').value;
+            const profile = await liff.getProfile();
+            const btn = document.getElementById('bindBtn');
+            
+            if (!no) return alert('請輸入座號');
+
+            btn.disabled = true;
+            btn.innerText = '處理中...';
+
+            // 呼叫你的 Vercel API 進行綁定
+            const response = await fetch('/api/bind', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: profile.userId,
+                    stuNo: no,
+                    displayName: profile.displayName
+                })
+            });
+
+            const result = await response.json();
+            if (result.success) {
+                document.getElementById('msg').innerText = "✅ 綁定成功！請關閉視窗。";
+                setTimeout(() => liff.closeWindow(), 2000);
+            } else {
+                document.getElementById('msg').innerText = "❌ 綁定失敗：" + result.message;
+                btn.disabled = false;
+                btn.innerText = '確認綁定';
+            }
+        }
+
+        initLIFF();
+    </script>
+</body>
+</html>
