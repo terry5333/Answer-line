@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TerryEdu 管理員後台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #f0f2f5; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="glass p-10 w-full max-w-md shadow-2xl">
+        <h2 class="text-3xl font-extrabold text-slate-800 mb-8">解答上傳系統</h2>
+        
+        <div class="space-y-5">
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-2">選擇科目</label>
+                <select id="subject" class="w-full p-3 glass border-none ring-1 ring-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <option value="chinese">國文</option>
+                    <option value="math">數學</option>
+                    <option value="english">英文</option>
+                    <option value="history">歷史</option>
+                    <option value="geography">地理</option>
+                    <option value="civics">公民</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-2">解答標題 (例如：L1 課後練習)</label>
+                <input type="text" id="title" class="w-full p-3 glass border-none ring-1 ring-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold text-slate-600 mb-2">解答 URL</label>
+                <input type="url" id="ansUrl" placeholder="https://..." class="w-full p-3 glass border-none ring-1 ring-slate-300 focus:ring-2 focus:ring-blue-500 outline-none">
+            </div>
+
+            <button onclick="submitData()" id="subBtn" class="w-full bg-slate-800 text-white font-bold py-4 rounded-xl hover:bg-slate-900 transition duration-300 shadow-lg">
+                確認上傳
+            </button>
+        </div>
+        <p id="status" class="mt-4 text-center font-medium"></p>
+    </div>
+
+    <script>
+        async function submitData() {
+            const btn = document.getElementById('subBtn');
+            const data = {
+                subject: document.getElementById('subject').value,
+                title: document.getElementById('title').value,
+                url: document.getElementById('ansUrl').value
+            };
+
+            if (!data.title || !data.url) return alert('請填寫完整內容');
+
+            btn.disabled = true;
+            btn.innerText = '正在寫入資料庫...';
+
+            // 呼叫 Vercel 的管理員 API
+            const response = await fetch('/api/admin-upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const res = await response.json();
+            if (res.success) {
+                document.getElementById('status').innerText = "✅ 上傳成功！學生現在可以看到了。";
+                document.getElementById('status').className = "mt-4 text-center text-green-600 font-bold";
+                document.getElementById('title').value = '';
+                document.getElementById('ansUrl').value = '';
+            }
+            btn.disabled = false;
+            btn.innerText = '確認上傳';
+        }
+    </script>
+</body>
+</html>
