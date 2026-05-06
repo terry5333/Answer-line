@@ -1,100 +1,110 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TerryEdu 學生登入</title>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            background: linear-gradient(135deg, #a8c0ff 0%, #f4433610 100%), url('你的背景圖');
-            background-size: cover;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .glass {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>學生系統綁定</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body {
+      display: flex; justify-content: center; align-items: center; min-height: 100vh;
+      background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 24px; padding: 40px 30px; width: 90%; max-width: 400px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); text-align: center;
+    }
+    h2 { color: #fff; margin-bottom: 24px; font-weight: 600; letter-spacing: 1px; }
+    input {
+      width: 100%; padding: 16px; margin-bottom: 24px;
+      background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 12px; font-size: 16px; color: #333; outline: none; transition: 0.3s;
+    }
+    input::placeholder { color: #666; }
+    input:focus { background: rgba(255, 255, 255, 0.8); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8); }
+    button {
+      width: 100%; padding: 16px; border: none; border-radius: 12px;
+      background: #ffffff; color: #4a90e2; font-size: 18px; font-weight: bold;
+      cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    button:active { transform: scale(0.98); }
+    button:disabled { background: #ccc; color: #888; cursor: not-allowed; }
+    #status { margin-top: 16px; color: #fff; font-size: 14px; min-height: 20px; }
+  </style>
 </head>
 <body>
-    <div class="glass p-8 w-80 text-center text-gray-800">
-        <h1 class="text-2xl font-bold mb-6">學生身分綁定</h1>
-        
-        <div id="user-info" class="mb-4 hidden">
-            <img id="pictureUrl" class="w-16 h-16 rounded-full mx-auto mb-2 border-2 border-white">
-            <p id="displayName" class="font-medium"></p>
-        </div>
+  <div class="glass-card">
+    <h2>系統帳號綁定</h2>
+    <input type="text" id="stuNo" placeholder="請輸入學號 (例: 112001)" />
+    <button id="bindBtn" onclick="bindAccount()" disabled>載入中...</button>
+    <div id="status">正在初始化 LINE 驗證...</div>
+  </div>
 
-        <input type="number" id="stuNo" placeholder="請輸入座號" 
-               class="w-full p-3 rounded-lg bg-white/50 border-none mb-4 focus:ring-2 focus:ring-blue-400 outline-none">
-        
-        <button onclick="handleBind()" id="bindBtn"
-                class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition duration-300">
-            確認綁定
-        </button>
-        
-        <p id="msg" class="mt-4 text-sm text-red-500 font-medium"></p>
-    </div>
-
-    <script>
-        async function initLIFF() {
-            try {
-                await liff.init({ liffId: "你的_LIFF_ID" });
-                if (!liff.isLoggedIn()) {
-                    liff.login();
-                } else {
-                    const profile = await liff.getProfile();
-                    document.getElementById('user-info').classList.remove('hidden');
-                    document.getElementById('displayName').innerText = profile.displayName;
-                    document.getElementById('pictureUrl').src = profile.pictureUrl;
-                }
-            } catch (err) {
-                console.error('LIFF 初始化失敗', err);
-            }
+  <script>
+    let userId = "";
+    
+    // 1. 初始化 LIFF
+    async function main() {
+      try {
+        // 請將 YOUR_LIFF_ID 替換成你的真實 LIFF ID
+        await liff.init({ liffId: "YOUR_LIFF_ID" });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
         }
+        const profile = await liff.getProfile();
+        userId = profile.userId;
+        
+        document.getElementById('bindBtn').disabled = false;
+        document.getElementById('bindBtn').innerText = "確認綁定";
+        document.getElementById('status').innerText = "驗證完成，請輸入學號";
+      } catch (err) {
+        document.getElementById('status').innerText = "LIFF 初始化失敗";
+      }
+    }
 
-        async function handleBind() {
-            const no = document.getElementById('stuNo').value;
-            const profile = await liff.getProfile();
-            const btn = document.getElementById('bindBtn');
-            
-            if (!no) return alert('請輸入座號');
+    // 2. 點擊綁定按鈕
+    async function bindAccount() {
+      const stuNo = document.getElementById('stuNo').value.trim();
+      const btn = document.getElementById('bindBtn');
+      const status = document.getElementById('status');
 
-            btn.disabled = true;
-            btn.innerText = '處理中...';
+      if (!stuNo) return status.innerText = "⚠️ 學號不能為空！";
 
-            // 呼叫你的 Vercel API 進行綁定
-            const response = await fetch('/api/bind', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    userId: profile.userId,
-                    stuNo: no,
-                    displayName: profile.displayName
-                })
-            });
+      btn.disabled = true;
+      btn.innerText = "綁定中...";
+      status.innerText = "";
 
-            const result = await response.json();
-            if (result.success) {
-                document.getElementById('msg').innerText = "✅ 綁定成功！請關閉視窗。";
-                setTimeout(() => liff.closeWindow(), 2000);
-            } else {
-                document.getElementById('msg').innerText = "❌ 綁定失敗：" + result.message;
-                btn.disabled = false;
-                btn.innerText = '確認綁定';
-            }
+      try {
+        // 呼叫我們的 Vercel API
+        const response = await fetch('/api/bind', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, stuNo })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          status.innerText = "✅ 綁定成功！請關閉此視窗查看選單。";
+          setTimeout(() => liff.closeWindow(), 2000);
+        } else {
+          status.innerText = "❌ 綁定失敗：" + result.message;
+          btn.disabled = false;
+          btn.innerText = "重新綁定";
         }
+      } catch (err) {
+        status.innerText = "❌ 網路連線錯誤";
+        btn.disabled = false;
+        btn.innerText = "重新綁定";
+      }
+    }
 
-        initLIFF();
-    </script>
+    main();
+  </script>
 </body>
 </html>
