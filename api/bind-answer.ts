@@ -7,12 +7,12 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  const { subject, title, url } = req.body;
+  var body = req.body;
 
-  // 嚴格使用 Callback 寫入資料
-  db.ref(`answers/${subject}`).push({
-    title: title,
-    url: url,
+  // 100% 純 Callback (.then) 寫入資料
+  db.ref('answers/' + body.subject).push({
+    title: body.title,
+    url: body.url,
     createdAt: new Date().toISOString()
   })
   .then(function() {
