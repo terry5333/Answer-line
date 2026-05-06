@@ -3,201 +3,157 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>教育管理系統後台</title>
+  <title>Student Binding</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f3f4f6; display: flex; min-height: 100vh; color: #111; }
+    body { background-color: #f5f5f5; display: flex; justify-content: center; min-height: 100vh; color: #000; }
     
-    /* 左側導覽列 */
-    .sidebar { width: 250px; background-color: #111; color: #fff; padding: 30px 0; display: flex; flex-direction: column; }
-    .logo { font-size: 20px; font-weight: 800; padding: 0 24px; margin-bottom: 40px; letter-spacing: 1px; }
-    .nav-item { padding: 16px 24px; font-size: 15px; color: #9ca3af; cursor: pointer; transition: 0.2s; border-left: 4px solid transparent; }
-    .nav-item:hover { background-color: #1f2937; color: #fff; }
-    .nav-item.active { background-color: #1f2937; color: #fff; border-left-color: #3b82f6; font-weight: 600; }
+    .app-container {
+      background-color: #ffffff; width: 100%; max-width: 400px; min-height: 100vh;
+      display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.05);
+    }
 
-    /* 右側主內容區 */
-    .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
-    .section { display: none; background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    .section.active { display: block; animation: fadeIn 0.3s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .header { display: flex; align-items: center; padding: 20px; border-bottom: 1px solid #eee; }
+    .header-icon { font-size: 20px; cursor: pointer; margin-right: 16px; }
+    .header-title { font-size: 18px; font-weight: 700; }
 
-    h2 { font-size: 24px; font-weight: 800; margin-bottom: 24px; border-bottom: 2px solid #f3f4f6; padding-bottom: 12px; }
+    .content { padding: 40px 24px; flex-grow: 1; display: flex; flex-direction: column; }
+    .card { width: 100%; border: 1px solid #eee; border-radius: 12px; padding: 40px 20px; text-align: center; }
 
-    /* 表單與按鈕 */
-    .flex-row { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-end; }
-    .form-group { flex-grow: 1; }
-    label { display: block; font-size: 13px; font-weight: 700; color: #4b5563; margin-bottom: 8px; }
-    input, select { width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; outline: none; }
-    input:focus { border-color: #111; }
-    .btn { padding: 12px 24px; background: #111; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    .btn:hover { background: #374151; }
-    .btn-secondary { background: #e5e7eb; color: #374151; }
-    .btn-secondary:hover { background: #d1d5db; }
+    .title { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: #888; margin-bottom: 40px; }
 
-    /* 表格設計 */
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { padding: 16px; text-align: left; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
-    th { background-color: #f9fafb; font-weight: 700; color: #4b5563; }
-    tr:hover { background-color: #f9fafb; }
-    .action-link { color: #3b82f6; cursor: pointer; margin-right: 12px; font-weight: 600; text-decoration: none; }
+    .input-group { text-align: left; margin-bottom: 30px; }
+    .input-label { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: block; }
+    .input-field {
+      width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ddd;
+      border-radius: 6px; outline: none; background: #fafafa;
+    }
 
-    /* 雲端檔案卡片 */
-    .file-card { border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-    .file-name { font-weight: 600; font-size: 15px; }
-    .file-date { font-size: 12px; color: #6b7280; }
+    .btn { width: 100%; padding: 16px; font-size: 16px; font-weight: 700; border-radius: 6px; cursor: pointer; border: none; transition: 0.2s; }
+    .btn-black { background-color: #000; color: #fff; margin-bottom: 12px; }
+    .btn-outline { background-color: #fff; color: #000; border: 1px solid #ddd; }
+    .btn:disabled { opacity: 0.3; }
+
+    .tag { display: inline-block; background-color: #f2f2f2; padding: 6px 14px; border-radius: 4px; font-size: 13px; margin-bottom: 30px; color: #666; }
+    .name-hint { font-size: 13px; color: #888; margin-bottom: 8px; }
+    .student-name { font-size: 32px; font-weight: 800; margin-bottom: 30px; letter-spacing: 2px; }
+    .confirm-text { font-size: 13px; color: #888; margin-bottom: 30px; }
+
+    .footer { padding: 30px; text-align: center; font-size: 11px; color: #bbb; letter-spacing: 0.5px; }
+    .footer a { color: #bbb; text-decoration: none; margin: 0 5px; }
+
+    .hidden { display: none !important; }
+    #msg { color: #d93025; font-size: 12px; margin-top: 10px; min-height: 18px; }
   </style>
 </head>
 <body>
-
-  <div class="sidebar">
-    <div class="logo">EDU ADMIN</div>
-    <div class="nav-item active" onclick="switchTab('answers', this)">📁 解答管理</div>
-    <div class="nav-item" onclick="switchTab('students', this)">🧑‍🎓 學生管理</div>
-    <div class="nav-item" onclick="switchTab('reports', this)">📊 報表分析</div>
-  </div>
-
-  <div class="main-content">
-    
-    <div id="answers" class="section active">
-      <h2>解答管理 (串接雲端硬碟)</h2>
-      <div class="flex-row">
-        <button class="btn btn-secondary" onclick="fetchDriveFiles()">從雲端硬碟抓取新檔案</button>
-      </div>
-      <div id="driveFilesContainer">
-        <p style="color:#6b7280; font-size:14px;">請點擊上方按鈕抓取尚未綁定的解答檔案。</p>
-      </div>
+  <div class="app-container">
+    <div class="header">
+      <div class="header-icon" id="backIcon" onclick="prevStep()" style="visibility:hidden">←</div>
+      <div class="header-title">Student Binding</div>
     </div>
 
-    <div id="students" class="section">
-      <h2>學生管理</h2>
-      <div class="flex-row">
-        <div class="form-group">
-          <label>座號</label>
-          <input type="text" id="newStuNo" placeholder="例：01">
+    <div class="content" id="step1">
+      <div class="card">
+        <div class="title">學生座號綁定</div>
+        <div class="subtitle">請輸入您的座號以完成身分驗證</div>
+        <div class="input-group">
+          <label class="input-label">座號</label>
+          <input type="text" id="stuNo" class="input-field" placeholder="例如：01">
+          <div id="msg"></div>
         </div>
-        <div class="form-group">
-          <label>姓名</label>
-          <input type="text" id="newStuName" placeholder="例：李泰睿">
-        </div>
-        <button class="btn" onclick="saveStudent()">新增 / 更新學生</button>
+        <button class="btn btn-black" id="nextBtn" onclick="fetchStudentName()" disabled>載入中...</button>
       </div>
-      
-      <table>
-        <thead>
-          <tr>
-            <th>座號</th>
-            <th>姓名</th>
-            <th>綁定狀態</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody id="studentTableBody">
-          </tbody>
-      </table>
     </div>
 
-    <div id="reports" class="section">
-      <h2>報表分析</h2>
-      <p style="color:#6b7280;">數據儀表板建置中... 未來將顯示各科目的點擊率與學生學習狀況。</p>
+    <div class="content hidden" id="step2">
+      <div class="card">
+        <div class="title">確認學生身分</div>
+        <div class="tag" id="displaySeat">座號 -- 號</div>
+        <div class="name-hint">系統帶出的姓名</div>
+        <div class="student-name" id="displayName">---</div>
+        <div class="confirm-text">請問這是您的姓名嗎？</div>
+        <button class="btn btn-black" id="confirmBtn" onclick="executeBinding()">確認綁定</button>
+        <button class="btn btn-outline" onclick="prevStep()">返回修改</button>
+      </div>
     </div>
 
+    <div class="footer">
+      <div>© 2024 Academic Registry</div>
+      <div style="margin-top:8px;"><a href="#">Privacy</a> | <a href="#">Terms</a> | <a href="#">Support</a></div>
+    </div>
   </div>
 
   <script>
-    // ⚠️ 貼上你剛才部署的 GAS Web App URL
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec";
+    let userId = "";
 
-    // 頁籤切換邏輯
-    function switchTab(tabId, el) {
-      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      el.classList.add('active');
-
-      if(tabId === 'students') loadStudents();
+    async function initLIFF() {
+      try {
+        await liff.init({ liffId: "你的_LIFF_ID" });
+        if (!liff.isLoggedIn()) { liff.login(); return; }
+        const profile = await liff.getProfile();
+        userId = profile.userId;
+        document.getElementById('nextBtn').disabled = false;
+        document.getElementById('nextBtn').innerText = "下一步：確認資訊 →";
+      } catch (e) { document.getElementById('msg').innerText = "LIFF 初始化失敗"; }
     }
 
-    // --- 解答管理邏輯 ---
-    async function fetchDriveFiles() {
-      const container = document.getElementById('driveFilesContainer');
-      container.innerHTML = "抓取中...";
+    // 第一步：去後端查姓名
+    async function fetchStudentName() {
+      const stuNo = document.getElementById('stuNo').value.trim();
+      const nextBtn = document.getElementById('nextBtn');
+      const msg = document.getElementById('msg');
+      if (!stuNo) { msg.innerText = "請輸入座號"; return; }
+
+      nextBtn.disabled = true;
+      nextBtn.innerText = "查詢中...";
+
       try {
-        const res = await fetch(GAS_URL);
+        const res = await fetch(`/api/get-student?stuNo=${stuNo}`);
         const data = await res.json();
-        if(data.success && data.files.length > 0) {
-          container.innerHTML = data.files.map(f => `
-            <div class="file-card">
-              <div>
-                <div class="file-name">${f.name}</div>
-                <div class="file-date">建立於：${new Date(f.date).toLocaleString()}</div>
-              </div>
-              <button class="btn btn-secondary" onclick="window.open('${f.url}')">查看/綁定</button>
-            </div>
-          `).join('');
+        if (data.success) {
+          document.getElementById('displaySeat').innerText = `座號 ${stuNo} 號`;
+          document.getElementById('displayName').innerText = data.name;
+          document.getElementById('step1').classList.add('hidden');
+          document.getElementById('step2').classList.remove('hidden');
+          document.getElementById('backIcon').style.visibility = "visible";
         } else {
-          container.innerHTML = "目前沒有未綁定的檔案。";
+          msg.innerText = data.message;
         }
-      } catch (err) {
-        container.innerHTML = "抓取失敗，請確認 GAS 網址是否正確。";
-      }
+      } catch (e) { msg.innerText = "連線失敗"; }
+      finally { nextBtn.disabled = false; nextBtn.innerText = "下一步：確認資訊 →"; }
     }
 
-    // --- 學生管理邏輯 ---
-    async function loadStudents() {
-      const tbody = document.getElementById('studentTableBody');
-      tbody.innerHTML = "<tr><td colspan='4'>載入中...</td></tr>";
-      try {
-        const res = await fetch('/api/students');
-        const result = await res.json();
-        
-        if (result.success && result.data) {
-          const students = result.data;
-          tbody.innerHTML = Object.keys(students).map(stuNo => `
-            <tr>
-              <td>${stuNo}</td>
-              <td>${students[stuNo].name}</td>
-              <td><span style="color: green;">已紀錄</span></td>
-              <td>
-                <span class="action-link" onclick="editStudent('${stuNo}', '${students[stuNo].name}')">編輯</span>
-                <span class="action-link">查看紀錄</span>
-              </td>
-            </tr>
-          `).join('');
-        } else {
-          tbody.innerHTML = "<tr><td colspan='4'>目前無學生資料</td></tr>";
-        }
-      } catch (err) {
-        tbody.innerHTML = "<tr><td colspan='4'>載入失敗</td></tr>";
-      }
-    }
-
-    async function saveStudent() {
-      const stuNo = document.getElementById('newStuNo').value.trim();
-      const name = document.getElementById('newStuName').value.trim();
-      if (!stuNo || !name) return alert("請輸入座號與姓名");
+    // 第二步：執行寫入綁定資料
+    async function executeBinding() {
+      const stuNo = document.getElementById('stuNo').value.trim();
+      const confirmBtn = document.getElementById('confirmBtn');
+      confirmBtn.disabled = true;
+      confirmBtn.innerText = "綁定中...";
 
       try {
-        const res = await fetch('/api/students', {
+        const res = await fetch('/api/bind', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ stuNo, name })
+          body: JSON.stringify({ userId, stuNo })
         });
-        const result = await res.json();
-        if (result.success) {
-          alert("儲存成功！");
-          document.getElementById('newStuNo').value = "";
-          document.getElementById('newStuName').value = "";
-          loadStudents(); // 重新載入列表
-        } else alert("失敗：" + result.message);
-      } catch (err) {
-        alert("連線錯誤");
-      }
+        const data = await res.json();
+        if (data.success) {
+          confirmBtn.innerText = "✅ 綁定成功";
+          setTimeout(() => liff.closeWindow(), 1500);
+        } else { alert("綁定失敗"); confirmBtn.disabled = false; }
+      } catch (e) { alert("連線錯誤"); confirmBtn.disabled = false; }
     }
 
-    function editStudent(stuNo, name) {
-      document.getElementById('newStuNo').value = stuNo;
-      document.getElementById('newStuName').value = name;
+    function prevStep() {
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step1').classList.remove('hidden');
+      document.getElementById('backIcon').style.visibility = "hidden";
     }
+
+    initLIFF();
   </script>
 </body>
 </html>
