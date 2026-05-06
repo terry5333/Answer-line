@@ -91,7 +91,7 @@
 
     async function initLIFF() {
       try {
-        await liff.init({ liffId: "你的_LIFF_ID" });
+        await liff.init({ liffId: "2009698922-Ili8ydt3" });
         if (!liff.isLoggedIn()) { liff.login(); return; }
         const profile = await liff.getProfile();
         userId = profile.userId;
