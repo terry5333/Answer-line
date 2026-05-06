@@ -240,7 +240,7 @@
     // 3. 雲端檔案同步 (串接 GAS)
     async function fetchDriveFiles() {
       const container = document.getElementById('driveFiles');
-      if (GAS_URL.includes("你的_GAS_部署網址")) {
+      if (GAS_URL.includes("https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec")) {
         return showMsg("請先在程式碼中填寫 GAS_URL", true);
       }
       
