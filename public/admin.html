@@ -1,64 +1,272 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <title>TerryEdu Admin Dashboard</title>
-    <style>
-        :root { --bg: #eef2f7; --glass: rgba(255, 255, 255, 0.4); }
-        body { background: linear-gradient(135deg, #cfd9df 0%, #e2ebf0 100%); display: flex; min-height: 100vh; margin: 0; }
-        .sidebar { width: 260px; background: rgba(255,255,255,0.2); backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.3); padding: 40px 20px; }
-        .main { flex: 1; padding: 40px; }
-        .section { display: none; background: var(--glass); backdrop-filter: blur(20px); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5); }
-        .active { display: block; }
-        .nav-btn { padding: 15px; cursor: pointer; border-radius: 10px; margin-bottom: 10px; font-weight: bold; }
-        .nav-btn:hover { background: rgba(255,255,255,0.4); }
-        .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .stat-card { background: rgba(255,255,255,0.6); padding: 20px; border-radius: 15px; text-align: center; }
-        .num { font-size: 40px; font-weight: 800; color: #4a90e2; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>雲端系統管理中心</title>
+  <style>
+    /* 極簡玻璃擬態風格 */
+    body { 
+      margin: 0; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      color: #333; display: flex; height: 100vh; overflow: hidden; 
+    }
+    
+    /* 左側選單 */
+    .sidebar { 
+      width: 250px; background: rgba(255, 255, 255, 0.6); 
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+      border-right: 1px solid rgba(255, 255, 255, 0.5); 
+      padding: 40px 20px; display: flex; flex-direction: column; 
+    }
+    .logo { font-size: 20px; font-weight: 700; margin-bottom: 40px; color: #111; text-align: center; letter-spacing: 1px; }
+    .nav-btn { 
+      padding: 14px 20px; margin-bottom: 12px; border-radius: 12px; cursor: pointer; 
+      font-weight: 500; color: #555; transition: all 0.2s ease; border: none; background: transparent; text-align: left; font-size: 15px;
+    }
+    .nav-btn:hover { background: rgba(255, 255, 255, 0.5); color: #000; }
+    .nav-btn.active { background: #fff; color: #000; box-shadow: 0 4px 15px rgba(0,0,0,0.05); font-weight: 600; }
+
+    /* 主內容區 */
+    .main { flex: 1; padding: 50px; overflow-y: auto; position: relative; }
+    
+    /* 內容卡片 */
+    .card { 
+      background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+      border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 20px; padding: 40px; 
+      box-shadow: 0 10px 30px rgba(0,0,0,0.03); display: none; 
+    }
+    .card.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    
+    h2 { margin-top: 0; font-size: 24px; font-weight: 700; margin-bottom: 30px; color: #111; }
+
+    /* 表單元件 */
+    .input-group { display: flex; gap: 15px; margin-bottom: 25px; align-items: flex-end; }
+    .input-field { flex: 1; }
+    label { display: block; font-size: 13px; color: #666; margin-bottom: 8px; font-weight: 600; }
+    input, select { 
+      width: 100%; padding: 14px; border: 1px solid rgba(255,255,255,0.8); border-radius: 12px; 
+      background: rgba(255,255,255,0.6); font-size: 15px; outline: none; transition: 0.2s; box-sizing: border-box;
+    }
+    input:focus, select:focus { background: #fff; border-color: #ccc; box-shadow: 0 0 0 3px rgba(0,0,0,0.03); }
+    
+    button.primary-btn { 
+      padding: 14px 28px; background: #111; color: #fff; border: none; 
+      border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; white-space: nowrap; 
+    }
+    button.primary-btn:hover { background: #333; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+
+    /* 表格 */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; background: rgba(255,255,255,0.4); border-radius: 12px; overflow: hidden; }
+    th, td { padding: 16px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.03); font-size: 15px; }
+    th { font-weight: 600; color: #555; font-size: 14px; background: rgba(255,255,255,0.6); }
+
+    /* 雲端檔案列表 */
+    .gas-file { padding: 15px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+    .gas-file a { color: #000; text-decoration: none; font-weight: 600; font-size: 14px; background: #fff; padding: 8px 16px; border-radius: 8px; border: 1px solid #eee; transition: 0.2s; }
+    .gas-file a:hover { background: #f9f9f9; }
+
+    /* 提示訊息 (Toast) */
+    .toast { 
+      position: fixed; top: 30px; right: 30px; padding: 16px 24px; border-radius: 12px; 
+      color: #fff; font-weight: 600; opacity: 0; transition: 0.3s; pointer-events: none; z-index: 1000; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .toast.success { background: #28a745; opacity: 1; }
+    .toast.error { background: #dc3545; opacity: 1; }
+  </style>
 </head>
 <body>
-    <div class="sidebar">
-        <h2 style="margin-bottom:40px;">系統管理</h2>
-        <div class="nav-btn" onclick="tab('ans')">📁 解答管理</div>
-        <div class="nav-btn" onclick="tab('stu')">🧑‍🎓 學生管理</div>
-        <div class="nav-btn" onclick="tab('rep')">📊 報表分析</div>
+
+  <div class="sidebar">
+    <div class="logo">管理系統</div>
+    <button class="nav-btn active" onclick="switchTab('stuTab', this)">🧑‍🎓 學生管理</button>
+    <button class="nav-btn" onclick="switchTab('ansTab', this)">📁 解答綁定</button>
+    <button class="nav-btn" onclick="switchTab('gasTab', this)">☁️ 雲端硬碟檔案</button>
+  </div>
+
+  <div class="main">
+    <div id="toast" class="toast">訊息</div>
+
+    <div id="stuTab" class="card active">
+      <h2>新增學生資料</h2>
+      <div class="input-group">
+        <div class="input-field">
+          <label>座號</label>
+          <input type="text" id="sNo" placeholder="例如：01">
+        </div>
+        <div class="input-field">
+          <label>姓名</label>
+          <input type="text" id="sName" placeholder="例如：王小明">
+        </div>
+        <button class="primary-btn" onclick="addStudent()">新增 / 更新</button>
+      </div>
+      
+      <h2 style="margin-top: 40px; font-size: 18px;">已建檔名單</h2>
+      <table>
+        <thead><tr><th>座號</th><th>姓名</th><th>狀態</th></tr></thead>
+        <tbody id="studentList">
+          <tr><td colspan="3" style="color: #888;">點擊右上方按鈕重新整理...</td></tr>
+        </tbody>
+      </table>
     </div>
-    <div class="main">
-        <div id="ans" class="section active">
-            <h2>解答管理 (GAS 雲端同步)</h2>
-            <button onclick="syncGas()">同步 Google Drive 檔案</button>
-            <div id="gasList" style="margin-top:20px;"></div>
+
+    <div id="ansTab" class="card">
+      <h2>新增解答連結</h2>
+      <div class="input-group">
+        <div class="input-field">
+          <label>科目</label>
+          <select id="aSub">
+            <option value="國文">國文</option><option value="英文">英文</option>
+            <option value="數學">數學</option><option value="社會">社會</option>
+          </select>
         </div>
-        <div id="stu" class="section">
-            <h2>學生管理</h2>
-            <input type="text" id="sNo" placeholder="座號"> <input type="text" id="sName" placeholder="姓名">
-            <button onclick="saveStu()">新增學生</button>
-            <table id="stuList" style="width:100%; margin-top:20px;"></table>
+        <div class="input-field">
+          <label>標題</label>
+          <input type="text" id="aTitle" placeholder="例如：第一章課後練習">
         </div>
-        <div id="rep" class="section">
-            <h2>數據報表</h2>
-            <div class="card-grid">
-                <div class="stat-card"><div class="num" id="r1">0</div>建檔學生</div>
-                <div class="stat-card"><div class="num" id="r2">85%</div>綁定率</div>
-                <div class="stat-card"><div class="num" id="r3">12</div>今日點擊</div>
+      </div>
+      <div class="input-group">
+        <div class="input-field">
+          <label>雲端檔案網址 (URL)</label>
+          <input type="url" id="aUrl" placeholder="https://drive.google.com/...">
+        </div>
+        <button class="primary-btn" onclick="addAnswer()">儲存解答</button>
+      </div>
+    </div>
+
+    <div id="gasTab" class="card">
+      <h2>雲端硬碟檔案同步</h2>
+      <p style="color: #666; font-size: 14px; margin-bottom: 20px;">從 Google Drive 抓取尚未處理的解答檔案。</p>
+      <button class="primary-btn" onclick="fetchDriveFiles()" style="margin-bottom: 20px;">開始同步檔案</button>
+      <div id="driveFiles" style="background: rgba(255,255,255,0.4); border-radius: 12px; overflow: hidden;">
+        </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ⚠️ 這裡填入你的 GAS 網頁應用程式網址
+    const GAS_URL = "你的_GAS_部署網址_請貼在這裡";
+
+    // 介面切換
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+      
+      if (tabId === 'stuTab') loadStudents();
+    }
+
+    // 提示訊息控制
+    function showMsg(text, isError = false) {
+      const toast = document.getElementById('toast');
+      toast.innerText = text;
+      toast.className = `toast ${isError ? 'error' : 'success'}`;
+      setTimeout(() => toast.className = 'toast', 3000);
+    }
+
+    // 1. 學生管理 (寫入 Firebase)
+    async function addStudent() {
+      const stuNo = document.getElementById('sNo').value.trim();
+      const name = document.getElementById('sName').value.trim();
+      if (!stuNo || !name) return showMsg("請輸入完整的座號與姓名！", true);
+
+      try {
+        const res = await fetch('/api/students', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stuNo: stuNo, name: name })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showMsg("學生資料新增成功！");
+          document.getElementById('sNo').value = "";
+          document.getElementById('sName').value = "";
+          loadStudents();
+        } else {
+          showMsg("寫入失敗：" + data.message, true);
+        }
+      } catch (e) {
+        showMsg("無法連線到伺服器，請檢查 Vercel 狀態", true);
+      }
+    }
+
+    // 讀取學生列表
+    async function loadStudents() {
+      const list = document.getElementById('studentList');
+      try {
+        const res = await fetch('/api/students');
+        const data = await res.json();
+        if (data.success && data.data) {
+          list.innerHTML = Object.keys(data.data).map(key => 
+            `<tr><td>${key}</td><td>${data.data[key].name}</td><td style="color:#28a745; font-weight:600;">已紀錄</td></tr>`
+          ).join('');
+        } else {
+          list.innerHTML = "<tr><td colspan='3'>目前沒有學生資料。</td></tr>";
+        }
+      } catch (e) {
+        list.innerHTML = "<tr><td colspan='3' style='color:#dc3545;'>讀取失敗，無法連線。</td></tr>";
+      }
+    }
+
+    // 2. 解答綁定 (寫入 Firebase)
+    async function addAnswer() {
+      const subject = document.getElementById('aSub').value;
+      const title = document.getElementById('aTitle').value.trim();
+      const url = document.getElementById('aUrl').value.trim();
+      if (!title || !url) return showMsg("請輸入標題與檔案網址！", true);
+
+      try {
+        const res = await fetch('/api/admin-upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subject: subject, title: title, url: url })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showMsg("解答檔案綁定成功！");
+          document.getElementById('aTitle').value = "";
+          document.getElementById('aUrl').value = "";
+        } else {
+          showMsg("綁定失敗：" + data.message, true);
+        }
+      } catch (e) {
+        showMsg("無法連線到伺服器", true);
+      }
+    }
+
+    // 3. 雲端檔案同步 (串接 GAS)
+    async function fetchDriveFiles() {
+      const container = document.getElementById('driveFiles');
+      if (GAS_URL.includes("你的_GAS_部署網址")) {
+        return showMsg("請先在程式碼中填寫 GAS_URL", true);
+      }
+      
+      container.innerHTML = "<div style='padding:15px; color:#666;'>連線至 Google 雲端硬碟中...</div>";
+      try {
+        const res = await fetch(GAS_URL);
+        const data = await res.json();
+        if (data.success && data.files.length > 0) {
+          container.innerHTML = data.files.map(f => `
+            <div class="gas-file">
+              <span style="font-weight:500; color:#333;">${f.name}</span>
+              <a href="${f.url}" target="_blank">預覽檔案</a>
             </div>
-        </div>
-    </div>
-    <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec";
-        function tab(id) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-        async function syncGas() {
-            const res = await fetch(GAS_URL);
-            const data = await res.json();
-            document.getElementById('gasList').innerHTML = data.files.map(f => `<div>${f.name} - <a href="${f.url}" target="_blank">預覽</a></div>`).join('');
+          `).join('');
+          showMsg("同步完成！");
+        } else {
+          container.innerHTML = "<div style='padding:15px; color:#666;'>資料夾內沒有檔案。</div>";
         }
-        async function saveStu() {
-            const stuNo = document.getElementById('sNo').value;
-            const name = document.getElementById('sName').value;
-            await fetch('/api/students', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({stuNo, name}) });
-            alert("已存入 Firebase");
-        }
-    </script>
+      } catch (e) {
+        container.innerHTML = "";
+        showMsg("GAS 連線失敗，請確認網址與權限", true);
+      }
+    }
+
+    // 網頁載入時自動讀取學生資料
+    loadStudents();
+  </script>
 </body>
 </html>
