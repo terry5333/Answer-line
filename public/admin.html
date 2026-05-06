@@ -67,7 +67,7 @@
 
   <script>
     // ⚠️ 請在這裡填寫你剛才部署的 GAS 網址 (Web App URL)
-    var GAS_URL = "你的_GAS_網頁應用程式網址_請貼在這裡";
+    var GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec";
 
     // 1. 使用純 Callback 抓取 GAS 檔案清單
     function fetchGasFiles() {
@@ -154,7 +154,7 @@
 
     // 網頁載入時自動執行一次抓取
     window.onload = function() {
-      if (!GAS_URL.includes("https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec")) {
+      if (!GAS_URL.includes("你的_GAS")) {
         fetchGasFiles();
       }
     };
