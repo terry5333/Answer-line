@@ -6,58 +6,124 @@
   <title>解答綁定管理</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-    .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 10px 40px rgba(0,0,0,0.03); }
+    body { background: #f8fafc; color: #1e293b; font-family: sans-serif; }
+    .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.9); }
+    .file-item { transition: all 0.2s ease; }
+    .file-item:hover { background: #f1f5f9; transform: translateX(4px); }
   </style>
 </head>
-<body class="p-6">
+<body class="p-6 md:p-10 flex justify-center min-h-screen items-center">
 
-  <div class="glass-card p-10 rounded-3xl w-full max-w-md">
-    <h1 class="text-2xl font-black text-slate-800 mb-2">雲端解答綁定</h1>
-    <p class="text-slate-500 text-sm mb-8">設定完成後，圖文選單將自動產生該解答按鈕</p>
+  <div class="w-full max-w-5xl">
+    <h1 class="text-3xl font-black text-slate-800 mb-2">雲端解答綁定系統</h1>
+    <p class="text-slate-500 text-sm mb-8">點擊左側雲端檔案，設定科目後即可寫入 LINE 機器人資料庫</p>
 
-    <div class="space-y-5">
-      <div>
-        <label class="block text-xs font-bold text-slate-400 mb-2">所屬科目</label>
-        <select id="subject" class="w-full p-4 rounded-xl bg-white/60 border-none outline-none focus:ring-2 focus:ring-slate-300 transition-all font-medium text-slate-700">
-          <option value="國文">國文</option>
-          <option value="英文">英文</option>
-          <option value="數學">數學</option>
-          <option value="社會">社會</option>
-          <option value="自然">自然</option>
-          <option value="其他">其他</option>
-        </select>
-      </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       
-      <div>
-        <label class="block text-xs font-bold text-slate-400 mb-2">按鈕顯示名稱</label>
-        <input type="text" id="title" placeholder="例如: 1-1 課後練習解答" class="w-full p-4 rounded-xl bg-white/60 border-none outline-none focus:ring-2 focus:ring-slate-300 transition-all font-medium">
+      <div class="glass p-8 rounded-3xl shadow-sm border border-slate-200">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-lg font-bold text-slate-700">1. 選取雲端檔案</h2>
+          <button onclick="fetchGasFiles()" class="text-xs font-bold bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-100">重新掃描</button>
+        </div>
+        <div id="gasList" class="space-y-2 h-[350px] overflow-y-auto pr-2">
+          <p class="text-sm text-slate-400">請點擊上方按鈕掃描 Google Drive 檔案...</p>
+        </div>
       </div>
 
-      <div>
-        <label class="block text-xs font-bold text-slate-400 mb-2">Google Drive 檔案網址</label>
-        <input type="url" id="url" placeholder="https://..." class="w-full p-4 rounded-xl bg-white/60 border-none outline-none focus:ring-2 focus:ring-slate-300 transition-all font-medium">
+      <div class="glass p-8 rounded-3xl shadow-lg border border-slate-200">
+        <h2 class="text-lg font-bold text-slate-700 mb-6">2. 確認並綁定</h2>
+        
+        <div class="space-y-5">
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">所屬科目</label>
+            <select id="subject" class="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none focus:ring-2 focus:ring-blue-400 font-medium">
+              <option value="國文">國文</option>
+              <option value="英文">英文</option>
+              <option value="數學">數學</option>
+              <option value="社會">社會</option>
+              <option value="自然">自然</option>
+              <option value="其他">其他</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">顯示標題 (由左側自動帶入)</label>
+            <input type="text" id="title" placeholder="例如: 1-1 課後練習解答" class="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none focus:ring-2 focus:ring-blue-400 font-medium">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wide">檔案網址 (由左側自動帶入)</label>
+            <input type="url" id="url" placeholder="https://..." class="w-full p-4 rounded-xl bg-slate-50 border border-slate-200 outline-none text-slate-500 text-sm" readonly>
+          </div>
+
+          <button id="submitBtn" onclick="bindAnswer()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all shadow-md mt-4">
+            確認寫入資料庫
+          </button>
+        </div>
       </div>
 
-      <button id="submitBtn" onclick="uploadAnswer()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all shadow-md mt-4">
-        確認寫入資料庫
-      </button>
     </div>
   </div>
 
   <script>
-    function uploadAnswer() {
+    // ⚠️ 請在這裡填寫你剛才部署的 GAS 網址 (Web App URL)
+    var GAS_URL = "你的_GAS_網頁應用程式網址_請貼在這裡";
+
+    // 1. 使用純 Callback 抓取 GAS 檔案清單
+    function fetchGasFiles() {
+      var listContainer = document.getElementById('gasList');
+      if (GAS_URL.includes("你的_GAS")) {
+        alert("請先在程式碼中填寫 GAS_URL！");
+        return;
+      }
+
+      listContainer.innerHTML = '<p class="text-sm text-slate-500">連線 Google Drive 中...</p>';
+
+      fetch(GAS_URL)
+        .then(function(res) {
+          return res.json();
+        })
+        .then(function(data) {
+          if (data.success && data.files.length > 0) {
+            var html = data.files.map(function(f) {
+              // 點擊檔案時，自動將檔名與網址帶入右側表單
+              return `
+                <div class="file-item p-4 border border-slate-100 rounded-xl cursor-pointer bg-white shadow-sm flex justify-between items-center" 
+                     onclick="autoFill('${f.name}', '${f.url}')">
+                  <span class="text-sm font-bold text-slate-700 truncate pr-4">${f.name}</span>
+                  <span class="text-[10px] bg-slate-800 text-white px-2 py-1 rounded-md">選取</span>
+                </div>
+              `;
+            }).join('');
+            listContainer.innerHTML = html;
+          } else {
+            listContainer.innerHTML = '<p class="text-sm text-slate-500">資料夾內沒有檔案。</p>';
+          }
+        })
+        .catch(function(err) {
+          listContainer.innerHTML = '<p class="text-sm text-red-500">GAS 連線失敗，請確認網址與權限。</p>';
+        });
+    }
+
+    // 將左側點擊的檔案資料自動填入右側
+    function autoFill(fileName, fileUrl) {
+      document.getElementById('title').value = fileName;
+      document.getElementById('url').value = fileUrl;
+    }
+
+    // 2. 使用純 Callback 將資料寫入 Vercel (Firebase)
+    function bindAnswer() {
       var subject = document.getElementById('subject').value;
       var title = document.getElementById('title').value.trim();
       var url = document.getElementById('url').value.trim();
       var btn = document.getElementById('submitBtn');
 
       if (!title || !url) {
-        alert('請填寫標題與網址');
+        alert('請先從左側選取檔案，或手動填寫標題與網址！');
         return;
       }
 
-      btn.innerText = '上傳中...';
+      btn.innerText = '寫入中...';
       btn.disabled = true;
 
       fetch('/api/bind-answer', {
@@ -70,7 +136,7 @@
       })
       .then(function(data) {
         if (data.success) {
-          alert('✅ 寫入成功！學生現在點擊圖文選單的「' + subject + '」就會跳出此解答按鈕。');
+          alert('✅ 寫入成功！LINE 機器人現在已經可以抓到這個解答了。');
           document.getElementById('title').value = '';
           document.getElementById('url').value = '';
         } else {
@@ -85,6 +151,13 @@
         btn.disabled = false;
       });
     }
+
+    // 網頁載入時自動執行一次抓取
+    window.onload = function() {
+      if (!GAS_URL.includes("https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec")) {
+        fetchGasFiles();
+      }
+    };
   </script>
 </body>
 </html>
