@@ -1,57 +1,89 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Binding</title>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <style>
-        body { background: #f0f2f5; display: flex; justify-content: center; min-height: 100vh; font-family: sans-serif; }
-        .card { background: #fff; width: 100%; max-width: 400px; padding: 40px 20px; text-align: center; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .hidden { display: none; }
-        input { width: 100%; padding: 15px; margin: 20px 0; border: 1px solid #ddd; border-radius: 4px; }
-        .btn-black { background: #000; color: #fff; width: 100%; padding: 15px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .name-display { font-size: 32px; font-weight: 800; margin: 30px 0; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Binding</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="card">
-        <div id="step1">
-            <h2>學生座號綁定</h2>
-            <input type="text" id="stuNo" placeholder="請輸入座號 (例: 01)">
-            <button class="btn-black" onclick="next()">下一步：確認資訊 →</button>
-        </div>
-        <div id="step2" class="hidden">
-            <h2>確認學生身分</h2>
-            <div id="dispSeat" style="color:#666">座號 -- 號</div>
-            <div class="name-display" id="dispName">---</div>
-            <button class="btn-black" onclick="bind()">確認綁定</button>
-        </div>
+<body class="bg-gradient-to-br from-slate-100 to-slate-200 min-h-screen flex items-center justify-center p-4">
+  
+  <div class="bg-white/70 backdrop-blur-xl border border-white shadow-xl rounded-3xl p-8 w-full max-w-sm text-center">
+    
+    <div id="step1">
+      <h2 class="text-2xl font-extrabold text-slate-800 mb-2">學生座號綁定</h2>
+      <p class="text-sm text-slate-500 mb-8">請輸入您的座號以完成身分驗證</p>
+      
+      <div class="text-left mb-6">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">學生座號</label>
+        <input type="text" id="stuNo" placeholder="例：01" class="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+      </div>
+      
+      <button id="nextBtn" onclick="nextStep()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl transition-all shadow-md">
+        下一步：確認資訊 →
+      </button>
     </div>
-    <script>
-        let uid = "";
-        async function init() {
-            await liff.init({ liffId: "2009698922-Ili8ydt3" });
-            if (!liff.isLoggedIn()) liff.login();
-            uid = (await liff.getProfile()).userId;
-        }
-        async function next() {
-            const no = document.getElementById('stuNo').value;
-            const res = await fetch(`/api/students?stuNo=${no}`);
-            const data = await res.json();
-            if(data.success) {
-                document.getElementById('dispSeat').innerText = `座號 ${no} 號`;
-                document.getElementById('dispName').innerText = data.name;
-                document.getElementById('step1').classList.add('hidden');
-                document.getElementById('step2').classList.remove('hidden');
-            } else alert("找不到該學生");
-        }
-        async function bind() {
-            const no = document.getElementById('stuNo').value;
-            const res = await fetch('/api/bind', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({userId:uid, stuNo:no}) });
-            if((await res.json()).success) { alert("綁定成功"); liff.closeWindow(); }
-        }
-        init();
-    </script>
+
+    <div id="step2" class="hidden">
+      <h2 class="text-2xl font-extrabold text-slate-800 mb-6">確認學生身分</h2>
+      <div id="dispSeat" class="inline-block bg-slate-100 text-slate-600 px-4 py-1.5 rounded-full text-sm font-semibold mb-6">座號 -- 號</div>
+      
+      <p class="text-sm text-slate-500">系統帶出的姓名</p>
+      <h3 id="dispName" class="text-3xl font-black text-slate-900 mt-2 mb-8 tracking-widest">---</h3>
+      
+      <button id="bindBtn" onclick="executeBind()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-md mb-3">確認綁定</button>
+      <button onclick="prevStep()" class="w-full bg-white hover:bg-slate-50 text-slate-600 font-bold py-3 rounded-xl border border-slate-200 transition-all">返回修改</button>
+    </div>
+
+  </div>
+
+  <script>
+    let userId = "";
+    
+    async function init() {
+      // ⚠️ 填入你的 LIFF ID
+      await liff.init({ liffId: "你的_LIFF_ID" });
+      if (!liff.isLoggedIn()) liff.login();
+      userId = (await liff.getProfile()).userId;
+    }
+
+    async function nextStep() {
+      const stuNo = document.getElementById('stuNo').value.trim();
+      if (!stuNo) return alert("請輸入座號");
+      const btn = document.getElementById('nextBtn');
+      btn.innerText = "查詢中..."; btn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/students?stuNo=${stuNo}`);
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('dispSeat').innerText = `座號 ${stuNo} 號`;
+          document.getElementById('dispName').innerText = data.name;
+          document.getElementById('step1').classList.add('hidden');
+          document.getElementById('step2').classList.remove('hidden');
+        } else alert("找不到該座號的學生資料");
+      } catch(e) { alert("伺服器連線失敗"); }
+      btn.innerText = "下一步：確認資訊 →"; btn.disabled = false;
+    }
+
+    async function executeBind() {
+      const stuNo = document.getElementById('stuNo').value;
+      const btn = document.getElementById('bindBtn');
+      btn.innerText = "綁定中..."; btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/bind', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ userId, stuNo }) });
+        if ((await res.json()).success) { alert("✅ 綁定成功"); liff.closeWindow(); } 
+        else { alert("綁定失敗"); btn.innerText = "確認綁定"; btn.disabled = false; }
+      } catch(e) { alert("連線錯誤"); btn.innerText = "確認綁定"; btn.disabled = false; }
+    }
+
+    function prevStep() {
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step1').classList.remove('hidden');
+    }
+    init();
+  </script>
 </body>
 </html>
