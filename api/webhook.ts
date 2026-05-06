@@ -2,13 +2,6 @@ import { VercelRequest, VercelResponse } from '@vercel/node';
 import axios from 'axios';
 import { db } from './firebase';
 
-const subjectMap: Record<string, string> = {
-  'chinese': '國文',
-  'math': '數學',
-  'english': '英文',
-  'others': '其他'
-};
-
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     res.status(200).send('OK');
@@ -27,76 +20,51 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     const replyToken = event.replyToken;
     const userId = event.source.userId;
 
-    // 處理圖文選單按下去的 Postback 事件
-    if (event.type === 'postback') {
-      const data = event.postback.data;
-      const params = new URLSearchParams(data);
-      const action = params.get('action');
-
-      if (action === 'listAnswers') {
-        const subjectKey = params.get('subject') || '';
-        const dbSubject = subjectMap[subjectKey] || subjectKey;
-
-        // 嚴格使用 Callback 讀取資料庫
-        db.ref(`answers/${dbSubject}`).once('value')
-          .then(function(snapshot) {
-            if (snapshot.exists()) {
-              const ansData = snapshot.val();
-              const answerList = Object.values(ansData);
-              sendFlexMessage(replyToken, LINE_TOKEN, dbSubject, answerList);
-            } else {
-              replyText(replyToken, LINE_TOKEN, `目前「${dbSubject}」還沒有上傳任何解答喔！`);
-            }
-          })
-          .catch(function(error) {
-            console.error('資料庫讀取失敗:', error);
-          });
-      } 
-      else if (action === 'switchMenu') {
-        const target = params.get('target');
-        let targetMenuId = '';
-        let menuName = '';
-
-        if (target === 'social') {
-          targetMenuId = process.env.MENU_SOCIAL || '';
-          menuName = '社會';
-        } else if (target === 'textbook') {
-          targetMenuId = process.env.MENU_TEXTBOOK || '';
-          menuName = '課本';
-        }
-
-        if (targetMenuId) {
-          switchRichMenu(userId, targetMenuId, LINE_TOKEN)
-            .then(function() {
-              replyText(replyToken, LINE_TOKEN, `✅ 已為您切換至「${menuName}」選單`);
-            })
-            .catch(function(err) {
-              console.error('切換選單失敗', err);
-            });
-        } else {
-          replyText(replyToken, LINE_TOKEN, `⚠️ 系統尚未在 Vercel 設定「${menuName}」選單的 ID (MENU_SOCIAL / MENU_TEXTBOOK)`);
-        }
-      }
-    }
-    // 備用：支援手動輸入文字
-    else if (event.type === 'message' && event.message.type === 'text') {
+    // 嚴格監聽使用者的「純文字」訊息
+    if (event.type === 'message' && event.message.type === 'text') {
       const text = event.message.text.trim();
-      const subjects = ['國文', '英文', '數學', '社會', '自然', '其他'];
 
-      if (subjects.includes(text)) {
-        db.ref(`answers/${text}`).once('value')
-          .then(function(snapshot) {
-            if (snapshot.exists()) {
-              const ansData = snapshot.val();
-              const answerList = Object.values(ansData);
-              sendFlexMessage(replyToken, LINE_TOKEN, text, answerList);
-            } else {
-              replyText(replyToken, LINE_TOKEN, `目前「${text}」還沒有上傳任何解答喔！`);
-            }
-          })
-          .catch(function(error) {
-            console.error('資料庫讀取失敗:', error);
-          });
+      // 👉 切換圖文選單邏輯
+      if (text === '社會' || text === '切換社會') {
+        if (process.env.MENU_SOCIAL) {
+          switchRichMenu(userId, process.env.MENU_SOCIAL, LINE_TOKEN)
+            .then(function() { replyText(replyToken, LINE_TOKEN, '✅ 已進入「社會」選單'); })
+            .catch(function(e) { console.error(e); });
+        }
+      } 
+      else if (text === '課本' || text === '切換課本') {
+        if (process.env.MENU_TEXTBOOK) {
+          switchRichMenu(userId, process.env.MENU_TEXTBOOK, LINE_TOKEN)
+            .then(function() { replyText(replyToken, LINE_TOKEN, '✅ 已進入「課本」選單'); })
+            .catch(function(e) { console.error(e); });
+        }
+      } 
+      else if (text === '主選單' || text === '回主選單') {
+        if (process.env.MENU_MAIN) {
+          switchRichMenu(userId, process.env.MENU_MAIN, LINE_TOKEN)
+            .then(function() { replyText(replyToken, LINE_TOKEN, '🏠 已回到主選單'); })
+            .catch(function(e) { console.error(e); });
+        }
+      } 
+      // 👉 科目解答撈取邏輯 (全新科目清單)
+      else {
+        const subjects = ['國文', '英文', '數學', '歷史', '地理', '公民', '其他'];
+        
+        if (subjects.includes(text)) {
+          db.ref(`answers/${text}`).once('value')
+            .then(function(snapshot) {
+              if (snapshot.exists()) {
+                const ansData = snapshot.val();
+                const answerList = Object.values(ansData);
+                sendFlexMessage(replyToken, LINE_TOKEN, text, answerList);
+              } else {
+                replyText(replyToken, LINE_TOKEN, `目前「${text}」還沒有上傳任何解答檔案喔！`);
+              }
+            })
+            .catch(function(error) {
+              console.error('資料庫讀取失敗:', error);
+            });
+        }
       }
     }
   });
@@ -104,6 +72,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   res.status(200).send('OK');
 }
 
+// 動態生成圖文卡片
 function sendFlexMessage(replyToken: string, token: string | undefined, subject: string, answers: any[]) {
   const buttons = answers.map(function(ans: any) {
     return {
@@ -124,10 +93,10 @@ function sendFlexMessage(replyToken: string, token: string | undefined, subject:
       header: {
         type: "box",
         layout: "vertical",
-        backgroundColor: "#111111",
+        backgroundColor: "#0f172a", // 旗艦深海藍
         contents: [
-          { type: "text", text: `${subject} 專區`, weight: "bold", color: "#ffffff", size: "xl" },
-          { type: "text", text: "點擊下方按鈕開啟解答檔案", color: "#aaaaaa", size: "xs", margin: "md" }
+          { type: "text", text: `${subject} 解答專區`, weight: "bold", color: "#ffffff", size: "xl" },
+          { type: "text", text: "請選擇對應的單元或課本", color: "#94a3b8", size: "xs", margin: "md" }
         ]
       },
       body: {
@@ -147,6 +116,7 @@ function sendFlexMessage(replyToken: string, token: string | undefined, subject:
   .catch(function(err) { console.error(err); });
 }
 
+// 傳送純文字
 function replyText(replyToken: string, token: string | undefined, text: string) {
   axios.post('https://api.line.me/v2/bot/message/reply', {
     replyToken: replyToken,
@@ -156,6 +126,7 @@ function replyText(replyToken: string, token: string | undefined, text: string) 
   .catch(function(err) { console.error(err); });
 }
 
+// 切換選單指令
 function switchRichMenu(userId: string, menuId: string, token: string | undefined) {
   return axios.post(`https://api.line.me/v2/bot/user/${userId}/richmenu/${menuId}`, {}, {
     headers: { Authorization: `Bearer ${token}` }
