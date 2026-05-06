@@ -10,4 +10,5 @@ if (!admin.apps.length) {
     databaseURL: process.env.FIREBASE_DATABASE_URL
   });
 }
+
 export const db = admin.database();
