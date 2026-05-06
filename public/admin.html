@@ -3,139 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EduSystem Admin</title>
+  <title>解答綁定管理</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #f8fafc; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .glass-card { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 10px 40px rgba(0,0,0,0.03); }
+  </style>
 </head>
-<body class="bg-gradient-to-br from-[#e0c3fc] to-[#8ec5fc] min-h-screen p-4 md:p-8 flex justify-center items-center font-sans">
+<body class="p-6">
 
-  <div class="w-full max-w-6xl h-[85vh] bg-white/40 backdrop-blur-2xl border border-white/60 shadow-2xl rounded-3xl overflow-hidden flex flex-col md:flex-row">
-    
-    <div class="w-full md:w-64 bg-white/30 border-r border-white/40 p-6 flex flex-col">
-      <h1 class="text-2xl font-extrabold text-slate-900 mb-10 tracking-tight">EduSystem</h1>
-      <nav class="space-y-2 flex-1">
-        <button onclick="tab('students')" id="btn-students" class="w-full text-left px-4 py-3 rounded-xl font-bold transition-all bg-white shadow-sm text-blue-600">🧑‍🎓 學生管理</button>
-        <button onclick="tab('answers')" id="btn-answers" class="w-full text-left px-4 py-3 rounded-xl font-semibold transition-all text-slate-600 hover:bg-white/50">📁 解答綁定</button>
-        <button onclick="tab('gas')" id="btn-gas" class="w-full text-left px-4 py-3 rounded-xl font-semibold transition-all text-slate-600 hover:bg-white/50">☁️ 雲端同步</button>
-      </nav>
-    </div>
+  <div class="glass-card p-10 rounded-3xl w-full max-w-md">
+    <h1 class="text-2xl font-black text-slate-800 mb-2">雲端解答綁定</h1>
+    <p class="text-slate-500 text-sm mb-8">設定完成後，圖文選單將自動產生該解答按鈕</p>
 
-    <div class="flex-1 p-8 overflow-y-auto relative">
+    <div class="space-y-5">
+      <div>
+        <label class="block text-xs font-bold text-slate-400 mb-2">所屬科目</label>
+        <select id="subject" class="w-full p-4 rounded-xl bg-white/60 border-none outline-none focus:ring-2 focus:ring-slate-300 transition-all font-medium text-slate-700">
+          <option value="國文">國文</option>
+          <option value="英文">英文</option>
+          <option value="數學">數學</option>
+          <option value="社會">社會</option>
+          <option value="自然">自然</option>
+          <option value="其他">其他</option>
+        </select>
+      </div>
       
-      <div id="toast" class="absolute top-4 right-8 px-6 py-3 rounded-xl text-white font-bold opacity-0 transition-opacity duration-300 pointer-events-none"></div>
-
-      <div id="students" class="section block">
-        <h2 class="text-3xl font-bold text-slate-900 mb-6">學生管理</h2>
-        <div class="bg-white/60 border border-white p-6 rounded-2xl shadow-sm mb-8 flex gap-4 items-end">
-          <div class="flex-1">
-            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">座號</label>
-            <input type="text" id="sNo" placeholder="例: 01" class="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-400">
-          </div>
-          <div class="flex-1">
-            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">姓名</label>
-            <input type="text" id="sName" placeholder="例: 王小明" class="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none focus:ring-2 focus:ring-blue-400">
-          </div>
-          <button onclick="addStudent()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-2 rounded-xl shadow-md transition-all">新增 / 更新</button>
-        </div>
-        
-        <div class="bg-white/50 rounded-2xl overflow-hidden border border-white">
-          <table class="w-full text-left">
-            <thead class="bg-white/50 border-b border-white">
-              <tr><th class="p-4 text-slate-500 font-bold">座號</th><th class="p-4 text-slate-500 font-bold">姓名</th><th class="p-4 text-slate-500 font-bold">狀態</th></tr>
-            </thead>
-            <tbody id="stuList" class="divide-y divide-white/40">
-              <tr><td colspan="3" class="p-4 text-slate-500">載入中...</td></tr>
-            </tbody>
-          </table>
-        </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-400 mb-2">按鈕顯示名稱</label>
+        <input type="text" id="title" placeholder="例如: 1-1 課後練習解答" class="w-full p-4 rounded-xl bg-white/60 border-none outline-none focus:ring-2 focus:ring-slate-300 transition-all font-medium">
       </div>
 
-      <div id="answers" class="section hidden">
-        <h2 class="text-3xl font-bold text-slate-900 mb-6">解答綁定</h2>
-        <div class="bg-white/60 border border-white p-6 rounded-2xl shadow-sm">
-          <div class="flex gap-4 mb-4">
-            <div class="flex-1">
-              <label class="block text-xs font-bold text-slate-500 uppercase mb-2">科目</label>
-              <select id="aSub" class="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none"><option>國文</option><option>英文</option><option>數學</option><option>社會</option></select>
-            </div>
-            <div class="flex-1">
-              <label class="block text-xs font-bold text-slate-500 uppercase mb-2">標題</label>
-              <input type="text" id="aTitle" placeholder="例: 第一章解答" class="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none">
-            </div>
-          </div>
-          <div class="mb-6">
-            <label class="block text-xs font-bold text-slate-500 uppercase mb-2">檔案網址 (URL)</label>
-            <input type="url" id="aUrl" placeholder="https://..." class="w-full px-4 py-2 rounded-xl border border-slate-200 outline-none">
-          </div>
-          <button onclick="addAnswer()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow-md transition-all">確認寫入題庫</button>
-        </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-400 mb-2">Google Drive 檔案網址</label>
+        <input type="url" id="url" placeholder="https://..." class="w-full p-4 rounded-xl bg-white/60 border-none outline-none focus:ring-2 focus:ring-slate-300 transition-all font-medium">
       </div>
 
-      <div id="gas" class="section hidden">
-        <div class="flex justify-between items-end mb-6">
-          <h2 class="text-3xl font-bold text-slate-900">雲端檔案同步</h2>
-          <button onclick="syncGas()" class="bg-slate-900 text-white font-bold px-5 py-2 rounded-xl shadow-md hover:bg-slate-800">開始同步</button>
-        </div>
-        <div id="gasList" class="grid grid-cols-1 gap-4">
-          <p class="text-slate-500 p-4">點擊右上角按鈕同步 Google Drive 資料。</p>
-        </div>
-      </div>
-
+      <button id="submitBtn" onclick="uploadAnswer()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-slate-800 transition-all shadow-md mt-4">
+        確認寫入資料庫
+      </button>
     </div>
   </div>
 
   <script>
-    // ⚠️ 填入你的 GAS 網頁應用程式網址
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec";
+    function uploadAnswer() {
+      var subject = document.getElementById('subject').value;
+      var title = document.getElementById('title').value.trim();
+      var url = document.getElementById('url').value.trim();
+      var btn = document.getElementById('submitBtn');
 
-    function showMsg(text, isErr = false) {
-      const t = document.getElementById('toast');
-      t.innerText = text; t.className = `absolute top-4 right-8 px-6 py-3 rounded-xl text-white font-bold transition-opacity duration-300 z-50 ${isErr ? 'bg-red-500' : 'bg-green-500'} opacity-100`;
-      setTimeout(() => t.classList.replace('opacity-100', 'opacity-0'), 3000);
+      if (!title || !url) {
+        alert('請填寫標題與網址');
+        return;
+      }
+
+      btn.innerText = '上傳中...';
+      btn.disabled = true;
+
+      fetch('/api/bind-answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject: subject, title: title, url: url })
+      })
+      .then(function(res) { 
+        return res.json(); 
+      })
+      .then(function(data) {
+        if (data.success) {
+          alert('✅ 寫入成功！學生現在點擊圖文選單的「' + subject + '」就會跳出此解答按鈕。');
+          document.getElementById('title').value = '';
+          document.getElementById('url').value = '';
+        } else {
+          alert('上傳失敗：' + data.message);
+        }
+      })
+      .catch(function(err) {
+        alert('連線失敗，請檢查網路或 Vercel 狀態');
+      })
+      .finally(function() {
+        btn.innerText = '確認寫入資料庫';
+        btn.disabled = false;
+      });
     }
-
-    function tab(id) {
-      document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-      document.getElementById(id).classList.remove('hidden');
-      document.querySelectorAll('nav button').forEach(b => { b.classList.remove('bg-white', 'shadow-sm', 'text-blue-600', 'font-bold'); b.classList.add('text-slate-600', 'font-semibold'); });
-      document.getElementById('btn-'+id).classList.add('bg-white', 'shadow-sm', 'text-blue-600', 'font-bold');
-      if(id === 'students') loadStu();
-    }
-
-    async function loadStu() {
-      try {
-        const res = await (await fetch('/api/students')).json();
-        const list = document.getElementById('stuList');
-        if (res.success && res.data) {
-          list.innerHTML = Object.keys(res.data).map(k => `<tr><td class="p-4 font-bold text-slate-700">${k}</td><td class="p-4">${res.data[k].name}</td><td class="p-4 text-green-600 font-bold">已建檔</td></tr>`).join('');
-        } else list.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-500">尚無資料</td></tr>`;
-      } catch (e) { document.getElementById('stuList').innerHTML = `<tr><td colspan="3" class="p-4 text-red-500">連線失敗</td></tr>`; }
-    }
-
-    async function addStudent() {
-      const stuNo = document.getElementById('sNo').value, name = document.getElementById('sName').value;
-      if (!stuNo || !name) return showMsg("請輸入完整資料", true);
-      const res = await (await fetch('/api/students', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({stuNo, name}) })).json();
-      res.success ? (showMsg("新增成功"), document.getElementById('sNo').value="", document.getElementById('sName').value="", loadStu()) : showMsg("寫入失敗", true);
-    }
-
-    async function addAnswer() {
-      const subject = document.getElementById('aSub').value, title = document.getElementById('aTitle').value, url = document.getElementById('aUrl').value;
-      if (!title || !url) return showMsg("資料不完整", true);
-      const res = await (await fetch('/api/admin-upload', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({subject, title, url}) })).json();
-      res.success ? (showMsg("綁定成功"), document.getElementById('aTitle').value="", document.getElementById('aUrl').value="") : showMsg("寫入失敗", true);
-    }
-
-    async function syncGas() {
-      if(GAS_URL.includes("你的")) return showMsg("請先設定 GAS 網址", true);
-      document.getElementById('gasList').innerHTML = '<p class="p-4 text-slate-500">掃描中...</p>';
-      try {
-        const res = await (await fetch(GAS_URL)).json();
-        document.getElementById('gasList').innerHTML = res.files.map(f => `<div class="bg-white/60 p-4 rounded-xl flex justify-between items-center border border-white shadow-sm"><span class="font-bold text-slate-700">${f.name}</span><a href="${f.url}" target="_blank" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-lg font-bold hover:bg-blue-200 transition">預覽</a></div>`).join('');
-        showMsg("同步完成");
-      } catch (e) { showMsg("同步失敗", true); }
-    }
-
-    loadStu();
   </script>
 </body>
 </html>
