@@ -3,108 +3,157 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>學生系統綁定</title>
+  <title>Student Binding</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body {
-      display: flex; justify-content: center; align-items: center; min-height: 100vh;
-      background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: #f5f5f5; display: flex; justify-content: center; min-height: 100vh; color: #000; }
+    
+    .app-container {
+      background-color: #ffffff; width: 100%; max-width: 400px; min-height: 100vh;
+      display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.05);
     }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      border-radius: 24px; padding: 40px 30px; width: 90%; max-width: 400px;
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15); text-align: center;
+
+    .header { display: flex; align-items: center; padding: 20px; border-bottom: 1px solid #eee; }
+    .header-icon { font-size: 20px; cursor: pointer; margin-right: 16px; }
+    .header-title { font-size: 18px; font-weight: 700; }
+
+    .content { padding: 40px 24px; flex-grow: 1; display: flex; flex-direction: column; }
+    .card { width: 100%; border: 1px solid #eee; border-radius: 12px; padding: 40px 20px; text-align: center; }
+
+    .title { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+    .subtitle { font-size: 13px; color: #888; margin-bottom: 40px; }
+
+    .input-group { text-align: left; margin-bottom: 30px; }
+    .input-label { font-size: 13px; font-weight: 700; margin-bottom: 8px; display: block; }
+    .input-field {
+      width: 100%; padding: 14px; font-size: 16px; border: 1px solid #ddd;
+      border-radius: 6px; outline: none; background: #fafafa;
     }
-    h2 { color: #fff; margin-bottom: 24px; font-weight: 600; letter-spacing: 1px; }
-    input {
-      width: 100%; padding: 16px; margin-bottom: 24px;
-      background: rgba(255, 255, 255, 0.5); border: 1px solid rgba(255, 255, 255, 0.6);
-      border-radius: 12px; font-size: 16px; color: #333; outline: none; transition: 0.3s;
-    }
-    input::placeholder { color: #666; }
-    input:focus { background: rgba(255, 255, 255, 0.8); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.8); }
-    button {
-      width: 100%; padding: 16px; border: none; border-radius: 12px;
-      background: #ffffff; color: #4a90e2; font-size: 18px; font-weight: bold;
-      cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    button:active { transform: scale(0.98); }
-    button:disabled { background: #ccc; color: #888; cursor: not-allowed; }
-    #status { margin-top: 16px; color: #fff; font-size: 14px; min-height: 20px; }
+
+    .btn { width: 100%; padding: 16px; font-size: 16px; font-weight: 700; border-radius: 6px; cursor: pointer; border: none; transition: 0.2s; }
+    .btn-black { background-color: #000; color: #fff; margin-bottom: 12px; }
+    .btn-outline { background-color: #fff; color: #000; border: 1px solid #ddd; }
+    .btn:disabled { opacity: 0.3; }
+
+    .tag { display: inline-block; background-color: #f2f2f2; padding: 6px 14px; border-radius: 4px; font-size: 13px; margin-bottom: 30px; color: #666; }
+    .name-hint { font-size: 13px; color: #888; margin-bottom: 8px; }
+    .student-name { font-size: 32px; font-weight: 800; margin-bottom: 30px; letter-spacing: 2px; }
+    .confirm-text { font-size: 13px; color: #888; margin-bottom: 30px; }
+
+    .footer { padding: 30px; text-align: center; font-size: 11px; color: #bbb; letter-spacing: 0.5px; }
+    .footer a { color: #bbb; text-decoration: none; margin: 0 5px; }
+
+    .hidden { display: none !important; }
+    #msg { color: #d93025; font-size: 12px; margin-top: 10px; min-height: 18px; }
   </style>
 </head>
 <body>
-  <div class="glass-card">
-    <h2>系統帳號綁定</h2>
-    <input type="text" id="stuNo" placeholder="請輸入學號 (例: 112001)" />
-    <button id="bindBtn" onclick="bindAccount()" disabled>載入中...</button>
-    <div id="status">正在初始化 LINE 驗證...</div>
+  <div class="app-container">
+    <div class="header">
+      <div class="header-icon" id="backIcon" onclick="prevStep()" style="visibility:hidden">←</div>
+      <div class="header-title">Student Binding</div>
+    </div>
+
+    <div class="content" id="step1">
+      <div class="card">
+        <div class="title">學生座號綁定</div>
+        <div class="subtitle">請輸入您的座號以完成身分驗證</div>
+        <div class="input-group">
+          <label class="input-label">座號</label>
+          <input type="text" id="stuNo" class="input-field" placeholder="例如：01">
+          <div id="msg"></div>
+        </div>
+        <button class="btn btn-black" id="nextBtn" onclick="fetchStudentName()" disabled>載入中...</button>
+      </div>
+    </div>
+
+    <div class="content hidden" id="step2">
+      <div class="card">
+        <div class="title">確認學生身分</div>
+        <div class="tag" id="displaySeat">座號 -- 號</div>
+        <div class="name-hint">系統帶出的姓名</div>
+        <div class="student-name" id="displayName">---</div>
+        <div class="confirm-text">請問這是您的姓名嗎？</div>
+        <button class="btn btn-black" id="confirmBtn" onclick="executeBinding()">確認綁定</button>
+        <button class="btn btn-outline" onclick="prevStep()">返回修改</button>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>© 2024 Academic Registry</div>
+      <div style="margin-top:8px;"><a href="#">Privacy</a> | <a href="#">Terms</a> | <a href="#">Support</a></div>
+    </div>
   </div>
 
   <script>
     let userId = "";
-    
-    // 1. 初始化 LIFF
-    async function main() {
+
+    async function initLIFF() {
       try {
-        // 請將 YOUR_LIFF_ID 替換成你的真實 LIFF ID
-        await liff.init({ liffId: "YOUR_LIFF_ID" });
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return;
-        }
+        await liff.init({ liffId: "你的_LIFF_ID" });
+        if (!liff.isLoggedIn()) { liff.login(); return; }
         const profile = await liff.getProfile();
         userId = profile.userId;
-        
-        document.getElementById('bindBtn').disabled = false;
-        document.getElementById('bindBtn').innerText = "確認綁定";
-        document.getElementById('status').innerText = "驗證完成，請輸入學號";
-      } catch (err) {
-        document.getElementById('status').innerText = "LIFF 初始化失敗";
-      }
+        document.getElementById('nextBtn').disabled = false;
+        document.getElementById('nextBtn').innerText = "下一步：確認資訊 →";
+      } catch (e) { document.getElementById('msg').innerText = "LIFF 初始化失敗"; }
     }
 
-    // 2. 點擊綁定按鈕
-    async function bindAccount() {
+    // 第一步：去後端查姓名
+    async function fetchStudentName() {
       const stuNo = document.getElementById('stuNo').value.trim();
-      const btn = document.getElementById('bindBtn');
-      const status = document.getElementById('status');
+      const nextBtn = document.getElementById('nextBtn');
+      const msg = document.getElementById('msg');
+      if (!stuNo) { msg.innerText = "請輸入座號"; return; }
 
-      if (!stuNo) return status.innerText = "⚠️ 學號不能為空！";
-
-      btn.disabled = true;
-      btn.innerText = "綁定中...";
-      status.innerText = "";
+      nextBtn.disabled = true;
+      nextBtn.innerText = "查詢中...";
 
       try {
-        // 呼叫我們的 Vercel API
-        const response = await fetch('/api/bind', {
+        const res = await fetch(`/api/get-student?stuNo=${stuNo}`);
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('displaySeat').innerText = `座號 ${stuNo} 號`;
+          document.getElementById('displayName').innerText = data.name;
+          document.getElementById('step1').classList.add('hidden');
+          document.getElementById('step2').classList.remove('hidden');
+          document.getElementById('backIcon').style.visibility = "visible";
+        } else {
+          msg.innerText = data.message;
+        }
+      } catch (e) { msg.innerText = "連線失敗"; }
+      finally { nextBtn.disabled = false; nextBtn.innerText = "下一步：確認資訊 →"; }
+    }
+
+    // 第二步：執行寫入綁定資料
+    async function executeBinding() {
+      const stuNo = document.getElementById('stuNo').value.trim();
+      const confirmBtn = document.getElementById('confirmBtn');
+      confirmBtn.disabled = true;
+      confirmBtn.innerText = "綁定中...";
+
+      try {
+        const res = await fetch('/api/bind', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId, stuNo })
         });
-        
-        const result = await response.json();
-        if (result.success) {
-          status.innerText = "✅ 綁定成功！請關閉此視窗查看選單。";
-          setTimeout(() => liff.closeWindow(), 2000);
-        } else {
-          status.innerText = "❌ 綁定失敗：" + result.message;
-          btn.disabled = false;
-          btn.innerText = "重新綁定";
-        }
-      } catch (err) {
-        status.innerText = "❌ 網路連線錯誤";
-        btn.disabled = false;
-        btn.innerText = "重新綁定";
-      }
+        const data = await res.json();
+        if (data.success) {
+          confirmBtn.innerText = "✅ 綁定成功";
+          setTimeout(() => liff.closeWindow(), 1500);
+        } else { alert("綁定失敗"); confirmBtn.disabled = false; }
+      } catch (e) { alert("連線錯誤"); confirmBtn.disabled = false; }
     }
 
-    main();
+    function prevStep() {
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step1').classList.remove('hidden');
+      document.getElementById('backIcon').style.visibility = "hidden";
+    }
+
+    initLIFF();
   </script>
 </body>
 </html>
