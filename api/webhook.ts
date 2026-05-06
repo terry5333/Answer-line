@@ -126,3 +126,18 @@ function switchRichMenu(userId: string, menuId: string, token: string | undefine
 function replyText(replyToken: string, token: string | undefined, text: string) {
   return axios.post('https://api.line.me/v2/bot/message/reply', { replyToken: replyToken, messages: [{ type: 'text', text: text }] }, { headers: { Authorization: `Bearer ${token}` } });
 }
+// ... 前面的 postback 判斷保留 ...
+
+    // 🟢 補上這段：監聽文字訊息
+    if (event.type === 'message' && event.message.type === 'text') {
+      if (event.message.text.trim() === '主選單') {
+        const mainId = process.env.MENU_MAIN || '';
+        if (mainId && userId) {
+          // 抓到「主選單」三個字，立刻切換底部圖文選單
+          return switchRichMenu(userId, mainId, LINE_TOKEN);
+        }
+      }
+    }
+    
+    // 如果沒有觸發任何動作，直接回傳
+    return Promise.resolve();
