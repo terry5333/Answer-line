@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>學生身分綁定</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { background: #f8fafc; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .card { background: white; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); padding: 30px; width: 100%; max-width: 400px; }
+  </style>
+</head>
+<body>
+
+  <div class="card" id="step1">
+    <h1 class="text-2xl font-black text-slate-800 mb-2">身分驗證</h1>
+    <p class="text-slate-500 text-sm mb-6">請輸入您的 5 碼座號 (例如：30125)</p>
+    <input type="number" id="seatInput" class="w-full p-4 rounded-xl border border-slate-200 outline-none text-lg text-center tracking-widest font-bold mb-4" placeholder="請輸入座號">
+    <button onclick="checkStudent()" id="checkBtn" class="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition">下一步</button>
+    <p id="errorMsg" class="text-red-500 text-sm font-bold mt-4 text-center hidden"></p>
+  </div>
+
+  <div class="card hidden" id="step2">
+    <h1 class="text-2xl font-black text-slate-800 mb-2">確認身分</h1>
+    <p class="text-slate-500 text-sm mb-6">請確認以下是否為您的正確資料：</p>
+    <div class="bg-slate-50 p-6 rounded-xl border border-slate-100 text-center mb-6">
+      <p class="text-slate-400 text-sm font-bold mb-1">您的姓名</p>
+      <p class="text-3xl font-black text-slate-800" id="studentNameDisplay"></p>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="backToStep1()" class="flex-1 bg-slate-200 text-slate-600 font-bold py-4 rounded-xl hover:bg-slate-300 transition">上一步</button>
+      <button onclick="confirmBind()" id="bindBtn" class="flex-1 bg-green-600 text-white font-bold py-4 rounded-xl hover:bg-green-700 transition">確認綁定</button>
+    </div>
+  </div>
+
+  <script>
+    // ⚠️ 請填入你的 LIFF ID
+    const myLiffId = "2009698922-Ili8ydt3";
+    let userLineId = "";
+    let userAvatar = "";
+    let currentSeat = "";
+
+    // 1. 初始化 LIFF
+    liff.init({ liffId: myLiffId }).then(function() {
+      if (!liff.isLoggedIn()) { liff.login(); }
+      liff.getProfile().then(function(profile) {
+        userLineId = profile.userId;
+        userAvatar = profile.pictureUrl;
+      });
+    });
+
+    // 2. 查詢座號
+    function checkStudent() {
+      const seat = document.getElementById('seatInput').value.trim();
+      const errObj = document.getElementById('errorMsg');
+      const btn = document.getElementById('checkBtn');
+
+      if (!seat) { errObj.innerText = "請輸入座號"; errObj.classList.remove('hidden'); return; }
+      
+      btn.innerText = "查詢中..."; btn.disabled = true; errObj.classList.add('hidden');
+
+      fetch('/api/liff-api', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'check', seat: seat })
+      }).then(function(res){ return res.json(); }).then(function(data){
+        btn.innerText = "下一步"; btn.disabled = false;
+        if (data.success) {
+          if (data.isBound) { errObj.innerText = "此座號已被其他 LINE 帳號綁定"; errObj.classList.remove('hidden'); } 
+          else {
+            currentSeat = seat;
+            document.getElementById('studentNameDisplay').innerText = data.name;
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+          }
+        } else { errObj.innerText = data.message; errObj.classList.remove('hidden'); }
+      }).catch(function(){ btn.innerText = "下一步"; btn.disabled = false; errObj.innerText = "網路錯誤"; errObj.classList.remove('hidden'); });
+    }
+
+    function backToStep1() {
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step1').classList.remove('hidden');
+    }
+
+    // 3. 確認綁定
+    function confirmBind() {
+      const btn = document.getElementById('bindBtn');
+      btn.innerText = "綁定中..."; btn.disabled = true;
+
+      fetch('/api/liff-api', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'bind', seat: currentSeat, lineId: userLineId, avatarUrl: userAvatar })
+      }).then(function(res){ return res.json(); }).then(function(data){
+        if (data.success) {
+          // 🏆 絕殺技：透過 LIFF 在聊天室自動幫學生傳送「隱藏文字」，觸發 Vercel 切換選單！
+          liff.sendMessages([{ type: 'text', text: '【系統指令：綁定成功】' }]).then(function() {
+            liff.closeWindow(); // 瞬間關閉視窗
+          });
+        } else { alert("綁定失敗: " + data.message); btn.innerText = "確認綁定"; btn.disabled = false; }
+      });
+    }
+  </script>
+</body>
+</html>
