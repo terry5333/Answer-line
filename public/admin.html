@@ -1,4 +1,4 @@
-admin_html_content = """<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
@@ -31,7 +31,6 @@ admin_html_content = """<!DOCTYPE html>
     }
     .type-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
     
-    /* 客製化滾動條 */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
@@ -50,14 +49,14 @@ admin_html_content = """<!DOCTYPE html>
         <p class="text-slate-500 text-sm font-medium mt-1">免登入安全通道 | 整合資源綁定、學生名單建檔與軌跡紀錄</p>
       </div>
       
-      <div class="flex bg-white/60 p-1.5 rounded-2xl border border-white/80 shadow-inner">
-        <button onclick="switchTab('tab-resource')" id="btn-resource" class="tab-btn active px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 transition duration-200 flex items-center gap-2">
+      <div class="flex bg-white/60 p-1.5 rounded-2xl border border-white/80 shadow-inner overflow-x-auto max-w-full">
+        <button onclick="switchTab('tab-resource')" id="btn-resource" class="tab-btn active px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 transition duration-200 flex items-center gap-2 whitespace-nowrap">
           <i class="fa-solid fa-folder-open"></i> 資源管理
         </button>
-        <button onclick="switchTab('tab-student')" id="btn-student" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 transition duration-200 flex items-center gap-2">
-          <i class="fa-solid fa-user-graduation"></i> 學生名單建檔
+        <button onclick="switchTab('tab-student')" id="btn-student" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 transition duration-200 flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-user-graduation"></i> 學生建檔
         </button>
-        <button onclick="switchTab('tab-logs')" id="btn-logs" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 transition duration-200 flex items-center gap-2">
+        <button onclick="switchTab('tab-logs')" id="btn-logs" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 transition duration-200 flex items-center gap-2 whitespace-nowrap">
           <i class="fa-solid fa-chart-line"></i> 開啟紀錄軌跡
         </button>
       </div>
@@ -70,6 +69,7 @@ admin_html_content = """<!DOCTYPE html>
           
           <div class="lg:col-span-5 flex flex-col h-full">
             <div class="glass-card rounded-3xl p-6 shadow-sm flex-1 flex flex-col">
+              
               <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200/50">
                 <h2 class="text-md font-black text-slate-700 flex items-center gap-2">
                   <i class="fa-brand fa-google-drive text-blue-500"></i> Drive 待綁定區
@@ -78,8 +78,8 @@ admin_html_content = """<!DOCTYPE html>
                   <i class="fa-solid fa-arrows-rotate mr-1"></i> 重新掃描
                 </button>
               </div>
-              <div id="gasList" class="space-y-2 overflow-y-auto pr-1 max-h-[500px] min-h-[350px] flex-1">
-                <p class="text-slate-400 text-center mt-20 text-sm font-medium">請先於 JavaScript 區塊填寫正確的 GAS_URL 網址</p>
+              <div id="gasList" class="space-y-2 overflow-y-auto pr-1 max-h-[500px] min-h-[400px] flex-1">
+                <p class="text-slate-400 text-center mt-20 text-sm font-medium"><i class="fa-solid fa-circle-notch fa-spin mr-2"></i>等候讀取中...</p>
               </div>
             </div>
           </div>
@@ -91,7 +91,7 @@ admin_html_content = """<!DOCTYPE html>
               </h2>
               
               <div class="flex gap-3 mb-5">
-                <button id="btn-answers" onclick="setResource AzadType('answers')" class="type-btn active flex-1 py-3 border border-slate-300/80 rounded-2xl font-bold text-sm transition duration-200">
+                <button id="btn-answers" onclick="setResourceDataType('answers')" class="type-btn active flex-1 py-3 border border-slate-300/80 rounded-2xl font-bold text-sm transition duration-200">
                   📝 解答專區發佈
                 </button>
                 <button id="btn-textbooks" onclick="setResourceDataType('textbooks')" class="type-btn flex-1 py-3 border border-slate-300/80 text-slate-500 rounded-2xl font-bold text-sm transition duration-200">
@@ -150,7 +150,7 @@ admin_html_content = """<!DOCTYPE html>
           </h2>
           <div class="flex flex-col md:flex-row gap-4 items-end">
             <div class="flex-1">
-              <label class="block text-xs font-bold text-slate-400 mb-1.5">學號/座號代碼 (建議5碼，例如: 30125)</label>
+              <label class="block text-xs font-bold text-slate-400 mb-1.5">學號/座號代碼 (例如: 30125)</label>
               <input type="text" id="newSeat" class="w-full p-3 rounded-xl bg-white border border-slate-200 outline-none focus:border-slate-900 font-bold font-mono text-sm" placeholder="請輸入學座號">
             </div>
             <div class="flex-1">
@@ -187,16 +187,22 @@ admin_html_content = """<!DOCTYPE html>
 
       <div id="tab-logs" class="hidden space-y-4">
         <div class="glass-card rounded-3xl p-6 shadow-sm border">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-2 border-b border-slate-200/50">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-4 border-b border-slate-200/50">
             <div>
               <h2 class="text-md font-black text-slate-800 flex items-center gap-2">
-                <i class="fa-solid fa-clock-rotate-left text-indigo-500"></i> 學生點擊查詢與解答開啟軌跡
+                <i class="fa-solid fa-clock-rotate-left text-indigo-500"></i> 學生點擊查詢軌跡
               </h2>
               <p class="text-xs text-slate-400 font-medium mt-0.5">即時紀錄全班看解答與課本的數位足跡</p>
             </div>
-            <button onclick="loadLogs()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition duration-200 flex items-center gap-1">
-              <i class="fa-solid fa-rotate mr-1"></i> 刷新追蹤紀錄
-            </button>
+            
+            <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <select id="studentLogFilter" onchange="renderLogs()" class="p-2.5 rounded-xl border border-slate-200 text-sm font-bold bg-slate-50 outline-none text-slate-700 min-w-[180px]">
+                <option value="all">📊 查看全班總紀錄</option>
+              </select>
+              <button onclick="loadLogs()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs shadow-md transition duration-200 flex items-center justify-center gap-1">
+                <i class="fa-solid fa-rotate mr-1"></i> 刷新
+              </button>
+            </div>
           </div>
           
           <div class="overflow-x-auto rounded-2xl border border-slate-200/60 bg-white">
@@ -221,14 +227,18 @@ admin_html_content = """<!DOCTYPE html>
   </div>
 
   <script>
-    // ⚠️ 貼心提示：請在此處填入你專屬的 Google Apps Script (GAS) Web App 網址
-    var GAS_URL = "YOUR_GAS_WEB_APP_URL";
-    
+    // =================================================================
+    // ⚠️ 老哥，把你的 GAS 網址貼在下面這行引號裡面！
+    // 例如：var GAS_URL = "https://script.google.com/macros/s/你的亂碼/exec";
+    // =================================================================
+    var GAS_URL = "https://script.google.com/macros/s/AKfycbxB_QrqsHTpyVjihAevLxkfNEMKqpL45WZ1o0veow5IbTMr5bpoFqMdGLdvkPPdqrfw8Q/exec"; 
+
     var currentResourceDataType = 'answers';
     var boundUrls = new Set();
     var currentFirebaseData = { answers: {}, textbooks: {} };
+    var globalLogs = []; 
 
-    // 1. 頁籤切換核心邏輯
+    // === 頁籤切換核心 ===
     function switchTab(tabId) {
       document.getElementById('tab-resource').classList.add('hidden');
       document.getElementById('tab-student').classList.add('hidden');
@@ -241,20 +251,18 @@ admin_html_content = """<!DOCTYPE html>
       document.getElementById(tabId).classList.remove('hidden');
       document.getElementById('btn-' + tabId.replace('tab-', '')).classList.add('active');
 
-      // 切換觸發自動加載，完全免人工重整
       if (tabId === 'tab-resource') fetchGasFiles();
       if (tabId === 'tab-student') loadStudents();
       if (tabId === 'tab-logs') loadLogs();
     }
 
-    // 2. 資源資料類型切換 (解答 / 課本)
     function setResourceDataType(type) {
       currentResourceDataType = type;
       document.getElementById('btn-answers').className = 'type-btn flex-1 py-3 border border-slate-300 rounded-2xl font-bold text-sm transition ' + (type === 'answers' ? 'active' : 'text-slate-500');
       document.getElementById('btn-textbooks').className = 'type-btn flex-1 py-3 border border-slate-300 rounded-2xl font-bold text-sm transition ' + (type === 'textbooks' ? 'active' : 'text-slate-500');
     }
 
-    // 3. 讀取 Firebase 既有檔案，達成「綁定後自動在左側隱藏」的最高級防呆
+    // === 資源管理 ===
     function loadBoundData() {
       return fetch('/api/admin-answers?action=list')
         .then(function(res) { return res.json(); })
@@ -262,13 +270,10 @@ admin_html_content = """<!DOCTYPE html>
           if (data.success) {
             currentFirebaseData = data;
             boundUrls.clear();
-            
             ['answers', 'textbooks'].forEach(function(type) {
               for (var subj in data[type]) {
                 for (var key in data[type][subj]) {
-                  if (data[type][subj][key].url) {
-                    boundUrls.add(data[type][subj][key].url);
-                  }
+                  if (data[type][subj][key].url) boundUrls.add(data[type][subj][key].url);
                 }
               }
             });
@@ -277,35 +282,35 @@ admin_html_content = """<!DOCTYPE html>
         });
     }
 
-    // 4. 掃描 Google Drive 檔案 (透過 GAS 橋接)
     function fetchGasFiles() {
       var list = document.getElementById('gasList');
-      if (GAS_URL.includes("YOUR_GAS_WEB_APP_URL")) {
-        list.innerHTML = "<p class='text-red-500 font-bold text-center mt-10 text-xs bg-red-50 p-4 rounded-xl border border-red-200'>⚠️ 請先於代碼第 167 行填寫您的 GAS 網址！</p>";
+      
+      if (!GAS_URL || !GAS_URL.includes("script.google.com/macros")) {
+        list.innerHTML = "<p class='text-red-500 font-bold text-center mt-10 text-xs bg-red-50 p-4 rounded-xl border border-red-200'>⚠️ 請先於代碼第 154 行填寫您的 GAS_URL 網址！</p>";
         return;
       }
       
-      list.innerHTML = "<p class='text-slate-500 text-center mt-10 text-sm font-bold flex items-center justify-center gap-2'><i class='fa-solid fa-spinner fa-spin'></i> 雲端硬碟精密掃描中...</p>";
+      list.innerHTML = "<p class='text-slate-500 text-center mt-10 text-sm font-bold flex items-center justify-center gap-2'><i class='fa-solid fa-spinner fa-spin'></i> 雲端硬碟掃描中...</p>";
       
       loadBoundData().then(function() {
         return fetch(GAS_URL);
       })
       .then(function(res) { return res.json(); })
       .then(function(data) {
+        if(data.error) throw new Error(data.error);
         var html = '';
         data.forEach(function(file) {
-          // 💡 智慧核心：比對網址，如果 Firebase 裡已經有了，直接隱藏、絕不重複出現！
           if (!boundUrls.has(file.url)) {
-            html += `<div class="p-4 bg-white hover:bg-slate-50 rounded-2xl mb-2.5 cursor-pointer border border-slate-100 hover:border-slate-300 shadow-sm transition duration-150 flex justify-between items-center group" onclick="autoFill('${file.name}','${file.url}')">
-                      <span class="text-sm font-bold text-slate-700 truncate pr-4 group-hover:text-slate-900"><i class="fa-regular fa-file-pdf text-red-500 mr-1.5"></i>${file.name}</span>
-                      <span class="text-[10px] bg-slate-100 group-hover:bg-slate-900 group-hover:text-white text-slate-500 px-2.5 py-1.5 rounded-lg font-black tracking-wider transition">選取</span>
+            html += `<div class="p-4 bg-white hover:bg-slate-50 rounded-2xl mb-2.5 cursor-pointer border border-slate-100 hover:border-slate-300 shadow-sm transition flex justify-between items-center group" onclick="autoFill('${file.name}','${file.url}')">
+                      <span class="text-sm font-bold text-slate-700 truncate pr-4 group-hover:text-slate-900"><i class="fa-regular fa-file-lines text-red-500 mr-1.5"></i>${file.name}</span>
+                      <span class="text-[10px] bg-slate-100 group-hover:bg-slate-900 group-hover:text-white text-slate-500 px-2.5 py-1.5 rounded-lg font-black transition">選取</span>
                      </div>`;
           }
         });
-        list.innerHTML = html === '' ? "<div class='text-center mt-16 p-6 bg-emerald-50 rounded-2xl border border-emerald-100'><p class='text-emerald-700 font-bold text-sm'>🎉 所有 Drive 檔案皆已成功綁定！</p><p class='text-emerald-500 text-xs mt-1'>目前無剩餘待處理文件。</p></div>" : html;
+        list.innerHTML = html === '' ? "<div class='text-center mt-16 p-6 bg-emerald-50 rounded-2xl border border-emerald-100'><p class='text-emerald-700 font-bold text-sm'>🎉 所有 Drive 檔案皆已成功綁定！</p></div>" : html;
       })
-      .catch(function() {
-        list.innerHTML = "<p class='text-red-500 font-bold text-center mt-10 text-xs'>連線 GAS 失敗，請確認 CORS 或部署身分是否為「所有人」</p>";
+      .catch(function(e) {
+        list.innerHTML = `<p class='text-red-500 font-bold text-center mt-10 text-xs'>掃描失敗，請確認 GAS 部署權限為「所有人」。<br>錯誤訊息：${e.message}</p>`;
       });
     }
 
@@ -314,48 +319,43 @@ admin_html_content = """<!DOCTYPE html>
       document.getElementById('url').value = url;
     }
 
-    // 5. 將選定資源寫入 Firebase
     function bindFile() {
       var subject = document.getElementById('subject').value.trim();
       var title = document.getElementById('title').value.trim();
       var url = document.getElementById('url').value.trim();
       var btn = document.getElementById('submitBtn');
 
-      if (!subject || !title || !url) return alert('請完整選取雲端檔案並填寫對應科目！');
+      if (!subject || !title || !url) return alert('請完整選取雲端檔案並填寫科目！');
 
-      btn.innerText = '正在寫入資料庫大腦...'; btn.disabled = true;
+      btn.innerText = '寫入資料庫...'; btn.disabled = true;
 
       fetch('/api/bind-answer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: currentResourceDataType, subject: subject, title: title, url: url })
       })
       .then(function(res) { return res.json(); })
       .then(function(data) {
         if (data.success) {
-          alert('✅ 資源同步成功！');
+          alert('✅ 資源發佈成功！');
           document.getElementById('title').value = '';
           document.getElementById('url').value = '';
-          fetchGasFiles(); // 重新整理，已綁定檔案自動消失
+          fetchGasFiles(); 
         } else alert('錯誤：' + data.message);
       })
-      .catch(function() { alert('網路不穩，寫入失敗'); })
-      .finally(function() { btn.innerText = '確認綁定至 LINE 機器人大腦'; btn.disabled = false; });
+      .catch(function() { alert('網路寫入失敗'); })
+      .finally(function() { btn.innerText = '確認發佈至 LINE 機器人大腦'; btn.disabled = false; });
     }
 
-    // 6. 下架刪除連動選單引擎
     function renderDeleteSelects() {
       var type = document.getElementById('delType').value;
       var subjSelect = document.getElementById('delSubject');
       var itemSelect = document.getElementById('delItem');
       
-      subjSelect.innerHTML = '<option value="">請選擇科目...</option>';
-      itemSelect.innerHTML = '<option value="">請選擇要下架的單一檔案 (留空則刪除整個科目分類)</option>';
+      subjSelect.innerHTML = '<option value="">請先選擇科目...</option>';
+      itemSelect.innerHTML = '<option value="">請選擇要下架的單一檔案 (留空刪除整科)</option>';
       
       var subjects = currentFirebaseData[type] || {};
-      for (var subj in subjects) {
-        subjSelect.innerHTML += `<option value="${subj}">${subj}</option>`;
-      }
+      for (var subj in subjects) { subjSelect.innerHTML += `<option value="${subj}">${subj}</option>`; }
     }
 
     function onSubjectChange() {
@@ -363,14 +363,12 @@ admin_html_content = """<!DOCTYPE html>
       var subj = document.getElementById('delSubject').value;
       var itemSelect = document.getElementById('delItem');
       
-      itemSelect.innerHTML = '<option value="">請選擇要下架的單一檔案 (留空則刪除整個科目分類)</option>';
+      itemSelect.innerHTML = '<option value="">請選擇要下架的單一檔案 (留空刪除整科)</option>';
       if (!subj) return;
       
       var items = currentFirebaseData[type][subj] || {};
       for (var key in items) {
-        if (items[key].title) {
-          itemSelect.innerHTML += `<option value="${key}">${items[key].title}</option>`;
-        }
+        if (items[key].title) itemSelect.innerHTML += `<option value="${key}">${items[key].title}</option>`;
       }
     }
 
@@ -379,29 +377,24 @@ admin_html_content = """<!DOCTYPE html>
       var subj = document.getElementById('delSubject').value;
       var key = document.getElementById('delItem').value;
       
-      if (!subj) return alert('請先明確選擇科目！');
-      
-      var msg = key ? `確定要將此檔案從 LINE 下架移除嗎？` : `⚠️ 致命警告！確定要將整個【${subj}】科目及旗下所有解答、課本檔案全部刪除嗎？學生端選單將同步失效！`;
+      if (!subj) return alert('請選擇科目！');
+      var msg = key ? `確定下架此檔案嗎？` : `⚠️ 確定刪除【${subj}】旗下所有檔案嗎？`;
       if (!confirm(msg)) return;
       
       fetch('/api/admin-answers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', type: type, subject: subj, key: key })
       })
       .then(function(res) { return res.json(); })
       .then(function(data) {
-        if (data.success) {
-          alert('🗑️ 下架與刪除完畢！');
-          fetchGasFiles();
-        } else alert('下架失敗: ' + data.message);
+        if (data.success) { alert('🗑️ 刪除完畢！'); fetchGasFiles(); }
       });
     }
 
-    // 7. 學生名單預建檔與管理模組
+    // === 學生建檔 ===
     function loadStudents() {
       var container = document.getElementById('studentListContainer');
-      container.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 font-medium"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>讀取最新名單中...</td></tr>';
+      container.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 font-medium">讀取名單中...</td></tr>';
       
       fetch('/api/admin-students?action=list')
         .then(function(res) { return res.json(); })
@@ -418,8 +411,8 @@ admin_html_content = """<!DOCTYPE html>
               : `<span class="inline-flex items-center bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full text-xs font-bold border border-slate-200">未認證</span>`;
             
             var actionBtn = isBound 
-              ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-red-500 text-xs font-bold hover:bg-red-50 px-3 py-1.5 rounded-xl border border-transparent hover:border-red-100 transition shadow-sm bg-white">解除 LINE 綁定</button>` 
-              : `<span class="text-xs text-slate-400 font-medium pr-3">等候學生操作</span>`;
+              ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-red-500 text-xs font-bold hover:bg-red-50 px-3 py-1.5 rounded-xl border border-transparent hover:border-red-100 transition shadow-sm bg-white">解除綁定</button>` 
+              : `<span class="text-xs text-slate-400 font-medium pr-3">等候操作</span>`;
 
             html += `<tr class="hover:bg-slate-50/80 transition">
               <td class="p-4 font-bold font-mono text-slate-700">${seat}</td>
@@ -428,18 +421,17 @@ admin_html_content = """<!DOCTYPE html>
               <td class="p-4 text-right">${actionBtn}</td>
             </tr>`;
           }
-          container.innerHTML = count === 0 ? '<tr><td colspan="4" class="p-8 text-center text-slate-400 font-medium">目前名單完全空白，請於上方新增學生建檔</td></tr>' : html;
+          container.innerHTML = count === 0 ? '<tr><td colspan="4" class="p-8 text-center text-slate-400 font-medium">名單空白，請先新增</td></tr>' : html;
         });
     }
 
     function addStudent() {
       var seat = document.getElementById('newSeat').value.trim();
       var name = document.getElementById('newName').value.trim();
-      if (!seat || !name) return alert('請確實填寫座號代碼與姓名！');
+      if (!seat || !name) return alert('請填寫座號與姓名！');
       
       fetch('/api/admin-students', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'add', seat: seat, name: name })
       })
       .then(function(res) { return res.json(); })
@@ -453,61 +445,14 @@ admin_html_content = """<!DOCTYPE html>
     }
 
     function unbindStudent(seat, lineId) {
-      if (!confirm(`安全防護警告！\n您確定要強制解除座號【${seat}】學生的 LINE 身分綁定嗎？\n解除後該生手機底下的功能選單將退回原始認證狀態！`)) return;
-      
+      if (!confirm(`確定要解除座號【${seat}】的 LINE 綁定嗎？`)) return;
       fetch('/api/admin-students', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'unbind', seat: seat, lineId: lineId })
-      })
-      .then(function(res) { return res.json(); })
-      .then(function(data) {
-        if (data.success) {
-          alert('已強行斷開綁定連線！');
-          loadStudents();
-        }
+      }).then(res => res.json()).then(data => {
+        if (data.success) loadStudents();
       });
     }
 
-    // 8. 學生開啟解答紀錄軌跡日誌讀取
-    function loadLogs() {
-      var container = document.getElementById('logsContainer');
-      container.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 font-medium"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>正在分析全班數位日誌中...</td></tr>';
-      
-      fetch('/api/admin-logs')
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-          if (data.success && data.logs.length > 0) {
-            var html = '';
-            data.logs.forEach(function(log) {
-              var badge = log.type === '解答' 
-                ? '<span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-lg font-black text-xs border border-amber-200">查解答</span>' 
-                : '<span class="bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-lg font-black text-xs border border-indigo-200">讀課本</span>';
-                
-              html += `<tr class="hover:bg-slate-50 transition">
-                <td class="p-4 text-slate-400 font-mono text-xs">${log.time}</td>
-                <td class="p-4 text-slate-700 font-black"><i class="fa-solid fa-id-badge text-slate-400 mr-1.5"></i>${log.seat} ${log.name !== '未知' ? `(${log.name})` : ''}</td>
-                <td class="p-4">${badge}</td>
-                <td class="p-4 font-black text-slate-900">${log.subject}</td>
-              </tr>`;
-            });
-            container.innerHTML = html;
-          } else {
-            container.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 font-bold">📂 目前尚無任何查詢與開啟文件紀錄</td></tr>';
-          }
-        })
-        .catch(function() {
-          container.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-red-400 font-bold">軌跡日誌讀取失敗，請確認 api/admin-logs 端點連線</td></tr>';
-        });
-    }
-
-    // 網頁初始載入首發第一動
-    window.onload = function() {
-      switchTab('tab-resource');
-    };
-  </script>
-</body>
-</html>"""
-
-with open("admin.html", "w", encoding="utf-8") as f:
-    f.write(admin_html_content)
+    // === 日誌軌跡 ===
+    function loadLogs()
