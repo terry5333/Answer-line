@@ -1,155 +1,513 @@
-<!DOCTYPE html>
+admin_html_content = """<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>雲端中樞系統</title>
+  <title>Smart Education | 雲端中樞控制台</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { background: #f0f4f8; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; }
-    .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,1); border-radius: 32px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
-    .type-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
+    body { 
+      background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); 
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .glass-panel { 
+      background: rgba(255, 255, 255, 0.45); 
+      backdrop-filter: blur(20px); 
+      -webkit-backdrop-filter: blur(20px); 
+      border: 1px solid rgba(255, 255, 255, 0.6); 
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    .tab-btn.active {
+      background-color: #0f172a;
+      color: #ffffff;
+      box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1);
+    }
+    .type-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
+    
+    /* 客製化滾動條 */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
   </style>
 </head>
-<body>
+<body class="p-4 md:p-8">
 
-  <div class="glass w-full max-w-6xl p-8 md:p-10 relative">
+  <div class="max-w-7xl mx-auto glass-panel rounded-[40px] shadow-2xl shadow-slate-900/5 overflow-hidden border">
     
-    <button onclick="fetchLineMenus()" class="absolute top-8 right-10 bg-green-100 text-green-700 font-bold px-4 py-2 rounded-xl text-sm hover:bg-green-200 transition">
-      <i class="fa-brands fa-line"></i> 獲取 LINE 選單 ID
-    </button>
-
-    <header class="mb-10">
-      <h1 class="text-3xl font-black text-slate-800 mb-2">檔案綁定中樞</h1>
-      <p class="text-slate-500 font-medium">支援雙模式：解答上傳 / 課本上傳</p>
+    <header class="p-6 md:p-8 border-b border-white/40 flex flex-col md:flex-row justify-between items-center gap-4 bg-white/20">
+      <div>
+        <h1 class="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-2">
+          <span>⚙️</span> Smart Education 中樞控制台
+        </h1>
+        <p class="text-slate-500 text-sm font-medium mt-1">免登入安全通道 | 整合資源綁定、學生名單建檔與軌跡紀錄</p>
+      </div>
+      
+      <div class="flex bg-white/60 p-1.5 rounded-2xl border border-white/80 shadow-inner">
+        <button onclick="switchTab('tab-resource')" id="btn-resource" class="tab-btn active px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 transition duration-200 flex items-center gap-2">
+          <i class="fa-solid fa-folder-open"></i> 資源管理
+        </button>
+        <button onclick="switchTab('tab-student')" id="btn-student" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 transition duration-200 flex items-center gap-2">
+          <i class="fa-solid fa-user-graduation"></i> 學生名單建檔
+        </button>
+        <button onclick="switchTab('tab-logs')" id="btn-logs" class="tab-btn px-5 py-2.5 rounded-xl text-sm font-bold text-slate-600 transition duration-200 flex items-center gap-2">
+          <i class="fa-solid fa-chart-line"></i> 開啟紀錄軌跡
+        </button>
+      </div>
     </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+    <main class="p-6 md:p-8 min-h-[600px]">
       
-      <div class="bg-white/50 rounded-3xl p-8 border border-slate-200">
-        <h2 class="text-lg font-bold text-slate-700 mb-4 flex justify-between">
-          <span><i class="fa-solid fa-cloud"></i> Google Drive 檔案</span>
-          <button onclick="fetchGasFiles()" class="text-sm text-blue-600 bg-blue-50 px-3 py-1 rounded-lg">重整</button>
-        </h2>
-        <div id="gasList" class="space-y-3 h-[400px] overflow-y-auto pr-2">
-          <p class="text-slate-400 text-sm mt-10 text-center">掃描中...</p>
+      <div id="tab-resource" class="block space-y-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          <div class="lg:col-span-5 flex flex-col h-full">
+            <div class="glass-card rounded-3xl p-6 shadow-sm flex-1 flex flex-col">
+              <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-200/50">
+                <h2 class="text-md font-black text-slate-700 flex items-center gap-2">
+                  <i class="fa-brand fa-google-drive text-blue-500"></i> Drive 待綁定區
+                </h2>
+                <button onclick="fetchGasFiles()" class="text-xs bg-white hover:bg-slate-50 text-blue-600 px-3 py-1.5 rounded-xl font-bold shadow-sm border border-slate-200 transition">
+                  <i class="fa-solid fa-arrows-rotate mr-1"></i> 重新掃描
+                </button>
+              </div>
+              <div id="gasList" class="space-y-2 overflow-y-auto pr-1 max-h-[500px] min-h-[350px] flex-1">
+                <p class="text-slate-400 text-center mt-20 text-sm font-medium">請先於 JavaScript 區塊填寫正確的 GAS_URL 網址</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 flex flex-col gap-6">
+            <div class="glass-card rounded-3xl p-6 shadow-sm">
+              <h2 class="text-md font-black text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-circle-plus text-emerald-500"></i> 新增資源綁定
+              </h2>
+              
+              <div class="flex gap-3 mb-5">
+                <button id="btn-answers" onclick="setResource AzadType('answers')" class="type-btn active flex-1 py-3 border border-slate-300/80 rounded-2xl font-bold text-sm transition duration-200">
+                  📝 解答專區發佈
+                </button>
+                <button id="btn-textbooks" onclick="setResourceDataType('textbooks')" class="type-btn flex-1 py-3 border border-slate-300/80 text-slate-500 rounded-2xl font-bold text-sm transition duration-200">
+                  📚 電子課本發佈
+                </button>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">歸屬科目名稱</label>
+                  <input type="text" id="subject" class="w-full p-3.5 rounded-xl bg-white/80 border border-slate-200 outline-none focus:border-slate-900 font-bold text-slate-800 text-sm transition" placeholder="例如：國文、歷史、數學">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">LINE 卡片按鈕標題</label>
+                  <input type="text" id="title" class="w-full p-3.5 rounded-xl bg-white/80 border border-slate-200 outline-none focus:border-slate-900 font-medium text-slate-800 text-sm transition" placeholder="點擊左側檔案自動帶入">
+                </div>
+              </div>
+              <div class="mb-5">
+                <label class="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-wider">雲端硬碟唯讀網址 (URL)</label>
+                <input type="url" id="url" readonly class="w-full p-3.5 rounded-xl bg-slate-100/80 border border-slate-200 text-slate-400 text-xs font-mono outline-none" placeholder="選取左側檔案後自動帶入">
+              </div>
+              
+              <button id="submitBtn" onclick="bindFile()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-xl shadow-xl shadow-slate-900/10 transition duration-200 transform active:translate-y-0.5">
+                確認發佈至 LINE 機器人大腦
+              </button>
+            </div>
+
+            <div class="bg-red-50/40 backdrop-blur-md rounded-3xl p-6 border border-red-100 shadow-sm">
+              <h2 class="text-md font-black text-red-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-trash-can"></i> 資源下架與科目刪除管理
+              </h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <select id="delType" onchange="renderDeleteSelects()" class="p-3.5 rounded-xl border border-red-100 outline-none font-bold text-sm bg-white text-red-900 shadow-inner">
+                  <option value="answers">📝 解答資料庫 (answers)</option>
+                  <option value="textbooks">📚 課本資料庫 (textbooks)</option>
+                </select>
+                <select id="delSubject" onchange="onSubjectChange()" class="p-3.5 rounded-xl border border-red-100 outline-none font-bold text-sm bg-white text-red-900 shadow-inner">
+                  <option value="">請先選擇科目...</option>
+                </select>
+              </div>
+              <select id="delItem" class="w-full p-3.5 rounded-xl border border-red-100 outline-none font-medium text-sm bg-white text-red-900 mb-4 shadow-inner">
+                <option value="">請選擇要下架的單一檔案 (留空則刪除整個科目分類)</option>
+              </select>
+              <button onclick="executeDelete()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl shadow-md shadow-red-600/10 transition duration-200">
+                執行安全下架
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="flex flex-col">
-        <div class="bg-white/60 rounded-3xl p-8 border border-slate-200 flex-1">
-          
-          <div class="flex gap-4 mb-8">
-            <button id="btn-answers" onclick="setType('answers')" class="type-btn active flex-1 py-3 border border-slate-300 rounded-xl font-bold transition">📝 解答模式</button>
-            <button id="btn-textbooks" onclick="setType('textbooks')" class="type-btn flex-1 py-3 border border-slate-300 text-slate-600 rounded-xl font-bold transition">📚 課本模式</button>
-          </div>
-
-          <div class="space-y-6">
-            <div>
-              <label class="block text-xs font-bold text-slate-400 uppercase mb-2">所屬科目</label>
-              <select id="subject" class="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none font-bold">
-                <option value="國文">國文</option><option value="英文">英文</option>
-                <option value="數學">數學</option><option value="歷史">歷史</option>
-                <option value="地理">地理</option><option value="公民">公民</option><option value="其他">其他</option>
-              </select>
+      <div id="tab-student" class="hidden space-y-6">
+        <div class="glass-card rounded-3xl p-6 shadow-sm border">
+          <h2 class="text-md font-black text-slate-800 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-user-plus text-blue-500"></i> 新增預建檔學生名單
+          </h2>
+          <div class="flex flex-col md:flex-row gap-4 items-end">
+            <div class="flex-1">
+              <label class="block text-xs font-bold text-slate-400 mb-1.5">學號/座號代碼 (建議5碼，例如: 30125)</label>
+              <input type="text" id="newSeat" class="w-full p-3 rounded-xl bg-white border border-slate-200 outline-none focus:border-slate-900 font-bold font-mono text-sm" placeholder="請輸入學座號">
             </div>
-            
-            <div>
-              <label class="block text-xs font-bold text-slate-400 uppercase mb-2">圖文按鈕標題</label>
-              <input type="text" id="title" class="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none font-medium">
+            <div class="flex-1">
+              <label class="block text-xs font-bold text-slate-400 mb-1.5">學生真實姓名</label>
+              <input type="text" id="newName" class="w-full p-3 rounded-xl bg-white border border-slate-200 outline-none focus:border-slate-900 font-bold text-sm" placeholder="請輸入姓名">
             </div>
-
-            <div>
-              <label class="block text-xs font-bold text-slate-400 uppercase mb-2">檔案網址</label>
-              <input type="url" id="url" readonly class="w-full p-4 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 text-sm">
-            </div>
-
-            <button id="submitBtn" onclick="bindFile()" class="w-full bg-slate-900 text-white font-bold py-5 rounded-xl shadow-xl hover:bg-slate-800 transition">
-              <i class="fa-solid fa-cloud-arrow-up"></i> 確認上傳
+            <button onclick="addStudent()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-xl shadow-lg shadow-blue-600/10 transition duration-200">
+              確認建檔
             </button>
           </div>
         </div>
+
+        <div class="glass-card rounded-3xl p-6 shadow-sm border overflow-hidden">
+          <h2 class="text-md font-black text-slate-800 mb-4 flex items-center gap-2">
+            <i class="fa-solid fa-address-book text-slate-600"></i> 目前已建檔學生清單及 LINE 認證狀態
+          </h2>
+          <div class="overflow-x-auto rounded-2xl border border-slate-200/60 bg-white">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th class="p-4 text-xs font-bold text-slate-400 uppercase">座號/代碼</th>
+                  <th class="p-4 text-xs font-bold text-slate-400 uppercase">學生姓名</th>
+                  <th class="p-4 text-xs font-bold text-slate-400 uppercase">LINE 綁定狀態</th>
+                  <th class="p-4 text-xs font-bold text-slate-400 uppercase text-right">安全操作</th>
+                </tr>
+              </thead>
+              <tbody id="studentListContainer" class="text-sm divide-y divide-slate-100">
+                <tr><td colspan="4" class="p-8 text-center text-slate-400 font-medium">資料載入中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-    </div>
+
+      <div id="tab-logs" class="hidden space-y-4">
+        <div class="glass-card rounded-3xl p-6 shadow-sm border">
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-2 border-b border-slate-200/50">
+            <div>
+              <h2 class="text-md font-black text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-indigo-500"></i> 學生點擊查詢與解答開啟軌跡
+              </h2>
+              <p class="text-xs text-slate-400 font-medium mt-0.5">即時紀錄全班看解答與課本的數位足跡</p>
+            </div>
+            <button onclick="loadLogs()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition duration-200 flex items-center gap-1">
+              <i class="fa-solid fa-rotate mr-1"></i> 刷新追蹤紀錄
+            </button>
+          </div>
+          
+          <div class="overflow-x-auto rounded-2xl border border-slate-200/60 bg-white">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th class="p-4 text-xs font-bold text-slate-400 uppercase">查詢時間點</th>
+                  <th class="p-4 text-xs font-bold text-slate-400 uppercase">對應學座號</th>
+                  <th class="p-4 text-xs font-bold text-slate-400 uppercase">動作類型</th>
+                  <th class="p-4 text-xs font-bold text-slate-400 uppercase">查詢科目 / 單元內容</th>
+                </tr>
+              </thead>
+              <tbody id="logsContainer" class="text-sm divide-y divide-slate-100 font-medium">
+                <tr><td colspan="4" class="p-8 text-center text-slate-400 font-medium">請點擊右上方按鈕加載即時日誌</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
   </div>
 
   <script>
-    // ⚠️ 請填寫 GAS 網址 (務必確認結尾是 /exec)
-    var GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec";
-    var currentType = 'answers';
+    // ⚠️ 貼心提示：請在此處填入你專屬的 Google Apps Script (GAS) Web App 網址
+    var GAS_URL = "YOUR_GAS_WEB_APP_URL";
+    
+    var currentResourceDataType = 'answers';
+    var boundUrls = new Set();
+    var currentFirebaseData = { answers: {}, textbooks: {} };
 
-    function setType(type) {
-      currentType = type;
-      document.getElementById('btn-answers').classList.remove('active', 'text-white', 'bg-slate-900');
-      document.getElementById('btn-answers').classList.add('text-slate-600');
-      document.getElementById('btn-textbooks').classList.remove('active', 'text-white', 'bg-slate-900');
-      document.getElementById('btn-textbooks').classList.add('text-slate-600');
+    // 1. 頁籤切換核心邏輯
+    function switchTab(tabId) {
+      document.getElementById('tab-resource').classList.add('hidden');
+      document.getElementById('tab-student').classList.add('hidden');
+      document.getElementById('tab-logs').classList.add('hidden');
       
-      document.getElementById('btn-' + type).classList.add('active', 'text-white', 'bg-slate-900');
-      document.getElementById('btn-' + type).classList.remove('text-slate-600');
+      document.getElementById('btn-resource').classList.remove('active');
+      document.getElementById('btn-student').classList.remove('active');
+      document.getElementById('btn-logs').classList.remove('active');
+
+      document.getElementById(tabId).classList.remove('hidden');
+      document.getElementById('btn-' + tabId.replace('tab-', '')).classList.add('active');
+
+      // 切換觸發自動加載，完全免人工重整
+      if (tabId === 'tab-resource') fetchGasFiles();
+      if (tabId === 'tab-student') loadStudents();
+      if (tabId === 'tab-logs') loadLogs();
     }
 
+    // 2. 資源資料類型切換 (解答 / 課本)
+    function setResourceDataType(type) {
+      currentResourceDataType = type;
+      document.getElementById('btn-answers').className = 'type-btn flex-1 py-3 border border-slate-300 rounded-2xl font-bold text-sm transition ' + (type === 'answers' ? 'active' : 'text-slate-500');
+      document.getElementById('btn-textbooks').className = 'type-btn flex-1 py-3 border border-slate-300 rounded-2xl font-bold text-sm transition ' + (type === 'textbooks' ? 'active' : 'text-slate-500');
+    }
+
+    // 3. 讀取 Firebase 既有檔案，達成「綁定後自動在左側隱藏」的最高級防呆
+    function loadBoundData() {
+      return fetch('/api/admin-answers?action=list')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.success) {
+            currentFirebaseData = data;
+            boundUrls.clear();
+            
+            ['answers', 'textbooks'].forEach(function(type) {
+              for (var subj in data[type]) {
+                for (var key in data[type][subj]) {
+                  if (data[type][subj][key].url) {
+                    boundUrls.add(data[type][subj][key].url);
+                  }
+                }
+              }
+            });
+            renderDeleteSelects();
+          }
+        });
+    }
+
+    // 4. 掃描 Google Drive 檔案 (透過 GAS 橋接)
     function fetchGasFiles() {
       var list = document.getElementById('gasList');
-      if(GAS_URL.includes("你的")) { list.innerHTML = "<p class='text-red-500 text-center font-bold mt-10'>請先填寫 GAS 網址</p>"; return; }
-
-      fetch(GAS_URL)
-        .then(function(res){ return res.json(); })
-        .then(function(data){
-          if(data && data.length > 0) {
-            list.innerHTML = data.map(function(f){
-              return `<div class="p-4 bg-white rounded-xl mb-2 cursor-pointer border border-transparent hover:border-blue-400 shadow-sm flex justify-between items-center transition" onclick="autoFill('${f.name}','${f.url}')">
-                        <span class="text-sm font-bold text-slate-700 truncate pr-4">${f.name}</span>
-                        <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded">選擇</span>
-                      </div>`;
-            }).join('');
-          } else { list.innerHTML = "<p class='text-slate-500 text-center mt-10'>沒有檔案</p>"; }
-        })
-        .catch(function(err){ list.innerHTML = "<p class='text-red-500 text-center mt-10'>GAS 抓取失敗，請確認你的 GAS 有發布為『所有人皆可存取』，並且是用純文字輸出 JSON。</p>"; });
+      if (GAS_URL.includes("YOUR_GAS_WEB_APP_URL")) {
+        list.innerHTML = "<p class='text-red-500 font-bold text-center mt-10 text-xs bg-red-50 p-4 rounded-xl border border-red-200'>⚠️ 請先於代碼第 167 行填寫您的 GAS 網址！</p>";
+        return;
+      }
+      
+      list.innerHTML = "<p class='text-slate-500 text-center mt-10 text-sm font-bold flex items-center justify-center gap-2'><i class='fa-solid fa-spinner fa-spin'></i> 雲端硬碟精密掃描中...</p>";
+      
+      loadBoundData().then(function() {
+        return fetch(GAS_URL);
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        var html = '';
+        data.forEach(function(file) {
+          // 💡 智慧核心：比對網址，如果 Firebase 裡已經有了，直接隱藏、絕不重複出現！
+          if (!boundUrls.has(file.url)) {
+            html += `<div class="p-4 bg-white hover:bg-slate-50 rounded-2xl mb-2.5 cursor-pointer border border-slate-100 hover:border-slate-300 shadow-sm transition duration-150 flex justify-between items-center group" onclick="autoFill('${file.name}','${file.url}')">
+                      <span class="text-sm font-bold text-slate-700 truncate pr-4 group-hover:text-slate-900"><i class="fa-regular fa-file-pdf text-red-500 mr-1.5"></i>${file.name}</span>
+                      <span class="text-[10px] bg-slate-100 group-hover:bg-slate-900 group-hover:text-white text-slate-500 px-2.5 py-1.5 rounded-lg font-black tracking-wider transition">選取</span>
+                     </div>`;
+          }
+        });
+        list.innerHTML = html === '' ? "<div class='text-center mt-16 p-6 bg-emerald-50 rounded-2xl border border-emerald-100'><p class='text-emerald-700 font-bold text-sm'>🎉 所有 Drive 檔案皆已成功綁定！</p><p class='text-emerald-500 text-xs mt-1'>目前無剩餘待處理文件。</p></div>" : html;
+      })
+      .catch(function() {
+        list.innerHTML = "<p class='text-red-500 font-bold text-center mt-10 text-xs'>連線 GAS 失敗，請確認 CORS 或部署身分是否為「所有人」</p>";
+      });
     }
 
-    function autoFill(name, url) { document.getElementById('title').value = name; document.getElementById('url').value = url; }
+    function autoFill(name, url) {
+      document.getElementById('title').value = name;
+      document.getElementById('url').value = url;
+    }
 
+    // 5. 將選定資源寫入 Firebase
     function bindFile() {
-      var subject = document.getElementById('subject').value;
+      var subject = document.getElementById('subject').value.trim();
       var title = document.getElementById('title').value.trim();
       var url = document.getElementById('url').value.trim();
       var btn = document.getElementById('submitBtn');
 
-      if(!title || !url) return alert('請先選擇檔案');
-      btn.innerText = '上傳中...'; btn.disabled = true;
+      if (!subject || !title || !url) return alert('請完整選取雲端檔案並填寫對應科目！');
+
+      btn.innerText = '正在寫入資料庫大腦...'; btn.disabled = true;
 
       fetch('/api/bind-answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: currentType, subject: subject, title: title, url: url })
+        body: JSON.stringify({ type: currentResourceDataType, subject: subject, title: title, url: url })
       })
-      .then(function(res){ return res.json(); })
-      .then(function(data){
-        if(data.success) { alert('✅ 上傳成功！'); document.getElementById('title').value = ''; document.getElementById('url').value = ''; }
-        else { alert('失敗：' + data.message); }
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) {
+          alert('✅ 資源同步成功！');
+          document.getElementById('title').value = '';
+          document.getElementById('url').value = '';
+          fetchGasFiles(); // 重新整理，已綁定檔案自動消失
+        } else alert('錯誤：' + data.message);
       })
-      .catch(function(err){ alert('網路錯誤'); })
-      .finally(function(){ btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> 確認上傳'; btn.disabled = false; });
+      .catch(function() { alert('網路不穩，寫入失敗'); })
+      .finally(function() { btn.innerText = '確認綁定至 LINE 機器人大腦'; btn.disabled = false; });
     }
 
-    // 🏆 神級功能：取得 LINE Rich Menu ID
-    function fetchLineMenus() {
-      alert("正在呼叫 LINE API...");
-      fetch('/api/get-menus')
-        .then(function(res){ return res.json(); })
-        .then(function(data){
-          if(data.success) {
-            var msg = "【您的選單清單】\n\n";
-            data.menus.forEach(function(m) { msg += m.name + " :\n" + m.richMenuId + "\n\n"; });
-            prompt("請複製您需要的 ID 到 Vercel 設定：", msg);
-          } else { alert("獲取失敗：" + data.message); }
+    // 6. 下架刪除連動選單引擎
+    function renderDeleteSelects() {
+      var type = document.getElementById('delType').value;
+      var subjSelect = document.getElementById('delSubject');
+      var itemSelect = document.getElementById('delItem');
+      
+      subjSelect.innerHTML = '<option value="">請選擇科目...</option>';
+      itemSelect.innerHTML = '<option value="">請選擇要下架的單一檔案 (留空則刪除整個科目分類)</option>';
+      
+      var subjects = currentFirebaseData[type] || {};
+      for (var subj in subjects) {
+        subjSelect.innerHTML += `<option value="${subj}">${subj}</option>`;
+      }
+    }
+
+    function onSubjectChange() {
+      var type = document.getElementById('delType').value;
+      var subj = document.getElementById('delSubject').value;
+      var itemSelect = document.getElementById('delItem');
+      
+      itemSelect.innerHTML = '<option value="">請選擇要下架的單一檔案 (留空則刪除整個科目分類)</option>';
+      if (!subj) return;
+      
+      var items = currentFirebaseData[type][subj] || {};
+      for (var key in items) {
+        if (items[key].title) {
+          itemSelect.innerHTML += `<option value="${key}">${items[key].title}</option>`;
+        }
+      }
+    }
+
+    function executeDelete() {
+      var type = document.getElementById('delType').value;
+      var subj = document.getElementById('delSubject').value;
+      var key = document.getElementById('delItem').value;
+      
+      if (!subj) return alert('請先明確選擇科目！');
+      
+      var msg = key ? `確定要將此檔案從 LINE 下架移除嗎？` : `⚠️ 致命警告！確定要將整個【${subj}】科目及旗下所有解答、課本檔案全部刪除嗎？學生端選單將同步失效！`;
+      if (!confirm(msg)) return;
+      
+      fetch('/api/admin-answers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', type: type, subject: subj, key: key })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) {
+          alert('🗑️ 下架與刪除完畢！');
+          fetchGasFiles();
+        } else alert('下架失敗: ' + data.message);
+      });
+    }
+
+    // 7. 學生名單預建檔與管理模組
+    function loadStudents() {
+      var container = document.getElementById('studentListContainer');
+      container.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 font-medium"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>讀取最新名單中...</td></tr>';
+      
+      fetch('/api/admin-students?action=list')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (!data.success) return;
+          var html = '';
+          var count = 0;
+          for (var seat in data.students) {
+            count++;
+            var stu = data.students[seat];
+            var isBound = !!stu.lineId;
+            var statusBadge = isBound 
+              ? `<span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-black border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>已綁定</span>` 
+              : `<span class="inline-flex items-center bg-slate-100 text-slate-500 px-2.5 py-1 rounded-full text-xs font-bold border border-slate-200">未認證</span>`;
+            
+            var actionBtn = isBound 
+              ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-red-500 text-xs font-bold hover:bg-red-50 px-3 py-1.5 rounded-xl border border-transparent hover:border-red-100 transition shadow-sm bg-white">解除 LINE 綁定</button>` 
+              : `<span class="text-xs text-slate-400 font-medium pr-3">等候學生操作</span>`;
+
+            html += `<tr class="hover:bg-slate-50/80 transition">
+              <td class="p-4 font-bold font-mono text-slate-700">${seat}</td>
+              <td class="p-4 font-black text-slate-800">${stu.name}</td>
+              <td class="p-4">${statusBadge}</td>
+              <td class="p-4 text-right">${actionBtn}</td>
+            </tr>`;
+          }
+          container.innerHTML = count === 0 ? '<tr><td colspan="4" class="p-8 text-center text-slate-400 font-medium">目前名單完全空白，請於上方新增學生建檔</td></tr>' : html;
+        });
+    }
+
+    function addStudent() {
+      var seat = document.getElementById('newSeat').value.trim();
+      var name = document.getElementById('newName').value.trim();
+      if (!seat || !name) return alert('請確實填寫座號代碼與姓名！');
+      
+      fetch('/api/admin-students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add', seat: seat, name: name })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) {
+          document.getElementById('newSeat').value = '';
+          document.getElementById('newName').value = '';
+          loadStudents();
+        } else alert('建檔失敗');
+      });
+    }
+
+    function unbindStudent(seat, lineId) {
+      if (!confirm(`安全防護警告！\n您確定要強制解除座號【${seat}】學生的 LINE 身分綁定嗎？\n解除後該生手機底下的功能選單將退回原始認證狀態！`)) return;
+      
+      fetch('/api/admin-students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'unbind', seat: seat, lineId: lineId })
+      })
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (data.success) {
+          alert('已強行斷開綁定連線！');
+          loadStudents();
+        }
+      });
+    }
+
+    // 8. 學生開啟解答紀錄軌跡日誌讀取
+    function loadLogs() {
+      var container = document.getElementById('logsContainer');
+      container.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 font-medium"><i class="fa-solid fa-circle-notch fa-spin mr-1"></i>正在分析全班數位日誌中...</td></tr>';
+      
+      fetch('/api/admin-logs')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.success && data.logs.length > 0) {
+            var html = '';
+            data.logs.forEach(function(log) {
+              var badge = log.type === '解答' 
+                ? '<span class="bg-amber-100 text-amber-800 px-2.5 py-1 rounded-lg font-black text-xs border border-amber-200">查解答</span>' 
+                : '<span class="bg-indigo-100 text-indigo-800 px-2.5 py-1 rounded-lg font-black text-xs border border-indigo-200">讀課本</span>';
+                
+              html += `<tr class="hover:bg-slate-50 transition">
+                <td class="p-4 text-slate-400 font-mono text-xs">${log.time}</td>
+                <td class="p-4 text-slate-700 font-black"><i class="fa-solid fa-id-badge text-slate-400 mr-1.5"></i>${log.seat} ${log.name !== '未知' ? `(${log.name})` : ''}</td>
+                <td class="p-4">${badge}</td>
+                <td class="p-4 font-black text-slate-900">${log.subject}</td>
+              </tr>`;
+            });
+            container.innerHTML = html;
+          } else {
+            container.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-slate-400 font-bold">📂 目前尚無任何查詢與開啟文件紀錄</td></tr>';
+          }
         })
-        .catch(function(){ alert("連線錯誤"); });
+        .catch(function() {
+          container.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-red-400 font-bold">軌跡日誌讀取失敗，請確認 api/admin-logs 端點連線</td></tr>';
+        });
     }
 
-    window.onload = function() { if(!GAS_URL.includes("你的")) fetchGasFiles(); };
+    // 網頁初始載入首發第一動
+    window.onload = function() {
+      switchTab('tab-resource');
+    };
   </script>
 </body>
-</html>
+</html>"""
+
+with open("admin.html", "w", encoding="utf-8") as f:
+    f.write(admin_html_content)
