@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>極簡檔案綁定中樞</title>
+  <title>雲端學習中樞</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { 
@@ -11,63 +11,75 @@
       min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 2rem; 
       font-family: sans-serif;
     }
-    /* 玻璃擬態與大圓角 */
     .glass { 
-      background: rgba(255, 255, 255, 0.6); 
+      background: rgba(255, 255, 255, 0.7); 
       backdrop-filter: blur(20px); 
       -webkit-backdrop-filter: blur(20px); 
       border: 1px solid rgba(255, 255, 255, 0.8); 
-      box-shadow: 0 15px 35px rgba(0,0,0,0.05); 
+      box-shadow: 0 20px 40px rgba(0,0,0,0.05); 
       border-radius: 32px; 
     }
-    .type-btn.active { background: #1e293b; color: white; border-color: #1e293b; }
+    .type-btn.active { background: #0f172a; color: white; border-color: #0f172a; }
   </style>
 </head>
 <body>
 
-  <div class="glass w-full max-w-5xl p-10">
-    <header class="mb-8 border-b border-slate-300/50 pb-4">
-      <h1 class="text-3xl font-black text-slate-800">雲端檔案綁定</h1>
-      <p class="text-slate-500 font-medium mt-1">從 Drive 讀取檔案，寫入 Firebase</p>
-    </header>
+  <div class="glass w-full max-w-6xl p-10 grid grid-cols-1 lg:grid-cols-12 gap-10">
+    
+    <div class="lg:col-span-5 flex flex-col">
+      <header class="mb-6 border-b border-slate-300/50 pb-4">
+        <h1 class="text-3xl font-black text-slate-800">學習資源中樞</h1>
+        <p class="text-slate-500 font-medium mt-1">智慧過濾已綁定檔案</p>
+      </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-      
-      <div class="bg-white/40 rounded-3xl p-6 border border-white">
+      <div class="bg-white/50 rounded-3xl p-6 border border-white flex-1 flex flex-col shadow-sm">
         <div class="flex justify-between items-center mb-4">
-          <h2 class="text-lg font-bold text-slate-700">Google Drive 檔案</h2>
-          <button onclick="fetchGasFiles()" class="text-xs bg-white text-blue-600 px-3 py-1.5 rounded-xl font-bold shadow-sm">重新掃描</button>
+          <h2 class="text-lg font-bold text-slate-700">Drive 待綁定區</h2>
+          <button onclick="fetchGasFiles()" class="text-xs bg-white text-blue-600 px-3 py-1.5 rounded-xl font-bold shadow-sm border border-slate-100 hover:bg-slate-50 transition">重新掃描</button>
         </div>
-        <div id="gasList" class="space-y-2 h-[350px] overflow-y-auto pr-2">
-          <p class="text-slate-500 text-center mt-10">等候讀取中...</p>
+        <div id="gasList" class="space-y-2 flex-1 overflow-y-auto pr-2 min-h-[400px]">
+          <p class="text-slate-400 text-center mt-20 font-bold">資料讀取中...</p>
         </div>
       </div>
+    </div>
 
-      <div class="bg-white/60 rounded-3xl p-6 border border-white flex flex-col">
-        
-        <div class="flex gap-3 mb-6">
-          <button id="btn-answers" onclick="setType('answers')" class="type-btn active flex-1 py-3 border border-slate-300 rounded-2xl font-bold transition">解答</button>
-          <button id="btn-textbooks" onclick="setType('textbooks')" class="type-btn flex-1 py-3 border border-slate-300 text-slate-600 rounded-2xl font-bold transition">課本</button>
+    <div class="lg:col-span-7 flex flex-col gap-6">
+      
+      <div class="bg-white/70 rounded-3xl p-6 border border-white shadow-sm">
+        <h2 class="text-lg font-black text-slate-800 mb-4">✨ 新增資源綁定</h2>
+        <div class="flex gap-3 mb-4">
+          <button id="btn-answers" onclick="setType('answers')" class="type-btn active flex-1 py-3 border border-slate-300 rounded-2xl font-bold transition">📝 解答區</button>
+          <button id="btn-textbooks" onclick="setType('textbooks')" class="type-btn flex-1 py-3 border border-slate-300 text-slate-500 rounded-2xl font-bold transition">📚 課本區</button>
         </div>
-
-        <div class="space-y-4 flex-1">
+        <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
             <label class="block text-xs font-bold text-slate-500 mb-1">歸屬科目</label>
-            <input type="text" id="subject" class="w-full p-4 rounded-2xl bg-white border border-slate-200 outline-none font-bold" placeholder="例如：國文、歷史">
+            <input type="text" id="subject" class="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 outline-none font-bold text-slate-700" placeholder="例如：國文、歷史">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-500 mb-1">檔案標題</label>
-            <input type="text" id="title" class="w-full p-4 rounded-2xl bg-white border border-slate-200 outline-none font-medium" placeholder="點擊左側檔案自動帶入">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-500 mb-1">檔案網址</label>
-            <input type="url" id="url" readonly class="w-full p-4 rounded-2xl bg-slate-100 border border-slate-200 text-slate-400 text-sm outline-none">
+            <input type="text" id="title" class="w-full p-3 rounded-xl bg-slate-50 border border-slate-200 outline-none font-medium text-slate-700" placeholder="點擊左側自動帶入">
           </div>
         </div>
+        <input type="url" id="url" readonly class="w-full p-3 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 text-xs outline-none mb-4" placeholder="檔案網址 (唯讀)">
+        <button id="submitBtn" onclick="bindFile()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl shadow-lg hover:bg-slate-800 transition">確認綁定至 LINE</button>
+      </div>
 
-        <button id="submitBtn" onclick="bindFile()" class="w-full bg-slate-900 text-white font-bold py-4 rounded-2xl shadow-xl hover:bg-slate-800 transition mt-6">
-          確認綁定
-        </button>
+      <div class="bg-red-50/50 rounded-3xl p-6 border border-red-100 shadow-sm">
+        <h2 class="text-lg font-black text-red-800 mb-4">🗑️ 資源下架與刪除</h2>
+        <div class="flex gap-4 mb-4">
+          <select id="delType" onchange="renderDeleteSelects()" class="w-1/3 p-3 rounded-xl border border-red-200 outline-none font-bold text-sm bg-white text-red-900">
+            <option value="answers">解答庫</option>
+            <option value="textbooks">課本庫</option>
+          </select>
+          <select id="delSubject" onchange="onSubjectChange()" class="w-2/3 p-3 rounded-xl border border-red-200 outline-none font-bold text-sm bg-white text-red-900">
+            <option value="">請先選擇科目...</option>
+          </select>
+        </div>
+        <select id="delItem" class="w-full p-3 rounded-xl border border-red-200 outline-none font-medium text-sm bg-white text-red-900 mb-4">
+          <option value="">請選擇要下架的檔案 (若不選，將刪除整個科目)</option>
+        </select>
+        <button onclick="executeDelete()" class="w-full bg-red-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-red-700 transition">執行下架</button>
       </div>
 
     </div>
@@ -75,40 +87,64 @@
 
   <script>
     // ⚠️ 替換成你的 GAS 網址
-    var GAS_URL = "https://script.google.com/macros/s/AKfycbxB_QrqsHTpyVjihAevLxkfNEMKqpL45WZ1o0veow5IbTMr5bpoFqMdGLdvkPPdqrfw8Q/exec";
+    var GAS_URL = "YOUR_GAS_WEB_APP_URL";
     var currentType = 'answers';
+    var boundUrls = new Set();
+    var currentFirebaseData = { answers: {}, textbooks: {} };
 
+    // --- 初始化與資料撈取 ---
     function setType(type) {
       currentType = type;
-      document.getElementById('btn-answers').className = 'type-btn flex-1 py-3 border border-slate-300 rounded-2xl font-bold transition ' + (type === 'answers' ? 'active' : 'text-slate-600');
-      document.getElementById('btn-textbooks').className = 'type-btn flex-1 py-3 border border-slate-300 rounded-2xl font-bold transition ' + (type === 'textbooks' ? 'active' : 'text-slate-600');
+      document.getElementById('btn-answers').className = 'type-btn flex-1 py-3 border border-slate-300 rounded-2xl font-bold transition ' + (type === 'answers' ? 'active' : 'text-slate-500');
+      document.getElementById('btn-textbooks').className = 'type-btn flex-1 py-3 border border-slate-300 rounded-2xl font-bold transition ' + (type === 'textbooks' ? 'active' : 'text-slate-500');
+    }
+
+    function loadBoundData() {
+      return fetch('/api/admin-answers?action=list')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+          if (data.success) {
+            currentFirebaseData = data;
+            boundUrls.clear();
+            ['answers', 'textbooks'].forEach(function(type) {
+              for (var subj in data[type]) {
+                for (var key in data[type][subj]) {
+                  if (data[type][subj][key].url) boundUrls.add(data[type][subj][key].url);
+                }
+              }
+            });
+            renderDeleteSelects();
+          }
+        });
     }
 
     function fetchGasFiles() {
       var list = document.getElementById('gasList');
       if(GAS_URL.includes("YOUR_GAS")) { list.innerHTML = "<p class='text-red-500 text-center font-bold mt-10'>請先填寫 GAS 網址</p>"; return; }
       
-      list.innerHTML = "<p class='text-blue-500 text-center font-bold mt-10'>掃描雲端硬碟中...</p>";
+      list.innerHTML = "<p class='text-blue-500 text-center font-bold mt-10'>雲端掃描中...</p>";
       
-      fetch(GAS_URL)
-        .then(function(res){ return res.json(); })
-        .then(function(data){
-          if(data && data.length > 0) {
-            list.innerHTML = data.map(function(f){
-              return `<div class="p-4 bg-white/80 rounded-2xl mb-2 cursor-pointer hover:bg-white shadow-sm transition flex justify-between items-center" onclick="autoFill('${f.name}','${f.url}')">
-                        <span class="text-sm font-bold text-slate-700 truncate pr-4">${f.name}</span>
-                        <span class="text-[10px] bg-slate-200 text-slate-600 px-2 py-1 rounded-lg font-bold">選取</span>
-                      </div>`;
-            }).join('');
-          } else { list.innerHTML = "<p class='text-slate-500 text-center mt-10'>資料夾內沒有檔案</p>"; }
-        })
-        .catch(function(){ list.innerHTML = "<p class='text-red-500 text-center mt-10'>連線 GAS 失敗，請確認網址與存取權限</p>"; });
+      loadBoundData().then(function() {
+        return fetch(GAS_URL);
+      })
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        var html = '';
+        data.forEach(function(f){
+          if (!boundUrls.has(f.url)) {
+            html += `<div class="p-4 bg-white rounded-xl mb-3 cursor-pointer border border-transparent hover:border-blue-300 shadow-sm transition flex justify-between items-center" onclick="autoFill('${f.name}','${f.url}')">
+                      <span class="text-sm font-bold text-slate-700 truncate pr-4">${f.name}</span>
+                      <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold">選取</span>
+                     </div>`;
+          }
+        });
+        list.innerHTML = html === '' ? "<p class='text-emerald-500 font-bold text-center mt-10'>🎉 所有檔案皆已綁定完畢！</p>" : html;
+      })
+      .catch(function(){ list.innerHTML = "<p class='text-red-500 text-center mt-10'>讀取失敗</p>"; });
     }
 
-    function autoFill(name, url) {
-      document.getElementById('title').value = name;
-      document.getElementById('url').value = url;
-    }
+    // --- 寫入與下架邏輯 ---
+    function autoFill(name, url) { document.getElementById('title').value = name; document.getElementById('url').value = url; }
 
     function bindFile() {
       var subject = document.getElementById('subject').value.trim();
@@ -116,36 +152,70 @@
       var url = document.getElementById('url').value.trim();
       var btn = document.getElementById('submitBtn');
 
-      if(!subject || !title || !url) return alert('請填寫歸屬科目，並從左側選擇檔案！');
+      if(!subject || !title || !url) return alert('資料不齊全！');
 
-      btn.innerText = '寫入資料庫中...'; 
-      btn.disabled = true;
+      btn.innerText = '處理中...'; btn.disabled = true;
 
       fetch('/api/bind-answer', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ type: currentType, subject: subject, title: title, url: url })
       })
       .then(function(res){ return res.json(); })
       .then(function(data){
-        if(data.success) { 
-          alert('✅ 綁定成功！'); 
-          document.getElementById('title').value = ''; 
-          document.getElementById('url').value = ''; 
-        } else { 
-          alert('錯誤：' + data.message); 
-        }
+        if(data.success) { alert('✅ 綁定成功！'); document.getElementById('title').value = ''; document.getElementById('url').value = ''; fetchGasFiles(); }
+        else alert('錯誤：' + data.message);
       })
-      .catch(function(){ alert('網路連線錯誤'); })
-      .finally(function(){ 
-        btn.innerText = '確認綁定'; 
-        btn.disabled = false; 
+      .catch(function(){ alert('網路錯誤'); })
+      .finally(function(){ btn.innerText = '確認綁定至 LINE'; btn.disabled = false; });
+    }
+
+    function renderDeleteSelects() {
+      var type = document.getElementById('delType').value;
+      var subjSelect = document.getElementById('delSubject');
+      var itemSelect = document.getElementById('delItem');
+      
+      subjSelect.innerHTML = '<option value="">請先選擇科目...</option>';
+      itemSelect.innerHTML = '<option value="">請選擇要下架的檔案 (若不選，將刪除整個科目)</option>';
+      
+      var subjects = currentFirebaseData[type] || {};
+      for (var subj in subjects) { subjSelect.innerHTML += `<option value="${subj}">${subj}</option>`; }
+    }
+
+    function onSubjectChange() {
+      var type = document.getElementById('delType').value;
+      var subj = document.getElementById('delSubject').value;
+      var itemSelect = document.getElementById('delItem');
+      
+      itemSelect.innerHTML = '<option value="">請選擇要下架的檔案 (若不選，將刪除整個科目)</option>';
+      if(!subj) return;
+      
+      var items = currentFirebaseData[type][subj] || {};
+      for (var key in items) {
+        if(items[key].title) itemSelect.innerHTML += `<option value="${key}">${items[key].title}</option>`;
+      }
+    }
+
+    function executeDelete() {
+      var type = document.getElementById('delType').value;
+      var subj = document.getElementById('delSubject').value;
+      var key = document.getElementById('delItem').value;
+      
+      if(!subj) return alert('請先選擇要操作的科目！');
+      var msg = key ? '確定要下架此檔案嗎？' : `⚠️ 確定要刪除整個【${subj}】科目嗎？`;
+      if(!confirm(msg)) return;
+      
+      fetch('/api/admin-answers', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', type: type, subject: subj, key: key })
+      })
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        if(data.success) { alert('✅ 下架成功！'); fetchGasFiles(); }
+        else alert('錯誤: ' + data.message);
       });
     }
 
-    window.onload = function() { 
-      if(!GAS_URL.includes("YOUR_GAS")) fetchGasFiles(); 
-    };
+    window.onload = function() { if(!GAS_URL.includes("YOUR_GAS")) fetchGasFiles(); };
   </script>
 </body>
 </html>
