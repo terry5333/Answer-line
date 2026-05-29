@@ -1,6 +1,83 @@
-// === 發送旗艦質感 Flex Message ===
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import axios from 'axios'; // 👈 剛才就是少了這個靈魂核心
+import { db } from './firebase';
+
+export default function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.method !== 'POST') { res.status(200).send('OK'); return; }
+  const events = req.body.events;
+  if (!events || events.length === 0) { res.status(200).send('OK'); return; }
+
+  const LINE_TOKEN = process.env.LINE_ACCESS_TOKEN;
+
+  const tasks = events.map(function(event: any) {
+    const replyToken = event.replyToken;
+    const userId = event.source?.userId; 
+
+    if (event.type === 'message' && event.message.type === 'text') {
+      const text = event.message.text.trim();
+
+      // 🟢 動作 1：切換圖文選單
+      if (text === '社會') {
+        const menuId = process.env.MENU_SOCIAL || '';
+        if (menuId && userId) return switchRichMenu(userId, menuId, LINE_TOKEN);
+      } 
+      else if (text === '課本') {
+        const menuId = process.env.MENU_TEXTBOOK || '';
+        if (menuId && userId) return switchRichMenu(userId, menuId, LINE_TOKEN);
+      } 
+      else if (text === '主選單' || text === '返回主選單') {
+        const menuId = process.env.MENU_MAIN || '';
+        if (menuId && userId) return switchRichMenu(userId, menuId, LINE_TOKEN);
+      } 
+      
+      // 🟢 動作 2：去資料庫找解答或課本
+      else {
+        let dbNode = 'answers'; // 預設找解答
+        let subject = text;
+
+        // 如果文字結尾是「課本」(例如: 國文課本)，就把節點切換到 textbooks
+        if (text.endsWith('課本') && text !== '課本') {
+          dbNode = 'textbooks';
+          subject = text.replace('課本', ''); 
+        }
+
+        // 去 Firebase 撈取資料
+        return db.ref(`${dbNode}/${subject}`).once('value')
+          .then(function(snapshot) {
+            if (snapshot.exists()) {
+              const dataList = Object.values(snapshot.val());
+              const prefix = dbNode === 'textbooks' ? '課本' : '解答';
+              return sendFlexMessage(replyToken, LINE_TOKEN, `${subject}${prefix}專區`, dataList);
+            } else {
+              return replyText(replyToken, LINE_TOKEN, `目前資料庫還沒有「${text}」的檔案喔！`);
+            }
+          })
+          .catch(function(error) {
+            console.error('資料庫讀取失敗:', error);
+          });
+      }
+    }
+
+    return Promise.resolve();
+  });
+
+  // 強制等待所有任務跑完
+  Promise.all(tasks)
+    .then(function() { res.status(200).send('OK'); })
+    .catch(function() { res.status(500).send('Error'); });
+}
+
+// === 切換圖文選單 API ===
+function switchRichMenu(userId: string, menuId: string, token: string | undefined) {
+  return axios.post(`https://api.line.me/v2/bot/user/${userId}/richmenu/${menuId}`, {}, { 
+    headers: { Authorization: `Bearer ${token}` } 
+  })
+  .then(function(){})
+  .catch(function(e) { console.error('切換選單失敗', e); });
+}
+
+// === 發送極簡深色風 Flex Message (旗艦版 UI) ===
 function sendFlexMessage(replyToken: string, token: string | undefined, titleText: string, items: any[]) {
-  // 把每個檔案變成一個漂亮且可點擊的列表區塊 (取代傳統醜按鈕)
   const listItems = items.map(function(item: any) {
     return {
       type: "box",
@@ -8,7 +85,7 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
       spacing: "md",
       paddingAll: "16px",
       cornerRadius: "16px",
-      backgroundColor: "#f8fafc", // 極簡淡灰底色
+      backgroundColor: "#f8fafc",
       action: { type: "uri", label: "開啟檔案", uri: item.url },
       contents: [
         { type: "text", text: "📄", flex: 0, size: "md", gravity: "center" },
@@ -28,7 +105,6 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
         layout: "vertical",
         paddingAll: "0px",
         contents: [
-          // 頂部 Header 區塊 (深邃藍黑漸層感)
           {
             type: "box",
             layout: "vertical",
@@ -39,7 +115,6 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
               { type: "text", text: titleText, color: "#ffffff", size: "xxl", weight: "bold", margin: "sm" }
             ]
           },
-          // 底部檔案列表區塊
           {
             type: "box",
             layout: "vertical",
@@ -56,5 +131,12 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
 
   return axios.post('https://api.line.me/v2/bot/message/reply', { 
     replyToken: replyToken, messages: [flexMessage] 
+  }, { headers: { Authorization: `Bearer ${token}` } });
+}
+
+// === 發送純文字防呆 ===
+function replyText(replyToken: string, token: string | undefined, text: string) {
+  return axios.post('https://api.line.me/v2/bot/message/reply', { 
+    replyToken: replyToken, messages: [{ type: 'text', text: text }] 
   }, { headers: { Authorization: `Bearer ${token}` } });
 }
