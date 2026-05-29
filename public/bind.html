@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>學生身分認證</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { background: linear-gradient(135deg, #f8fafc, #e2e8f0); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; font-family: sans-serif; }
+    .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 10px 40px rgba(0,0,0,0.05); border-radius: 24px; padding: 40px; width: 100%; max-width: 400px; }
+  </style>
+</head>
+<body>
+
+  <div class="glass-card text-center" id="step1">
+    <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+      <span class="text-2xl">🎓</span>
+    </div>
+    <h1 class="text-2xl font-black text-slate-800 mb-2">身分認證</h1>
+    <p class="text-slate-500 text-sm mb-6">請輸入老師為您建檔的座號</p>
+    
+    <input type="text" id="seatInput" class="w-full p-4 rounded-xl border border-slate-200 outline-none text-xl text-center tracking-widest font-bold mb-4" placeholder="例如：30125">
+    
+    <button onclick="checkSeat()" id="checkBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg transition">驗證座號</button>
+    <p id="errMsg" class="text-red-500 text-sm font-bold mt-4 hidden"></p>
+  </div>
+
+  <div class="glass-card text-center hidden" id="step2">
+    <div class="w-16 h-16 bg-green-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+      <span class="text-2xl">👋</span>
+    </div>
+    <h1 class="text-2xl font-black text-slate-800 mb-2">確認身分</h1>
+    <p class="text-slate-500 text-sm mb-6">請確認以下是否為您的正確資料：</p>
+    
+    <div class="bg-slate-50 p-6 rounded-xl border border-slate-100 mb-6">
+      <p class="text-slate-400 text-xs font-bold mb-1 uppercase">學生姓名</p>
+      <p class="text-3xl font-black text-slate-800" id="nameDisplay"></p>
+    </div>
+    
+    <div class="flex gap-3">
+      <button onclick="goBack()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold py-4 rounded-xl transition">重新輸入</button>
+      <button onclick="confirmBind()" id="bindBtn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg transition">確認綁定</button>
+    </div>
+  </div>
+
+  <script>
+    // ⚠️ 記得填入你的 LIFF ID
+    var myLiffId = "YOUR_LIFF_ID";
+    var userLineId = "";
+    var currentSeat = "";
+
+    // 初始化 LIFF 並取得使用者 LINE ID
+    liff.init({ liffId: myLiffId }).then(function() {
+      if (!liff.isLoggedIn()) liff.login();
+      liff.getProfile().then(function(profile) {
+        userLineId = profile.userId;
+      });
+    });
+
+    // 步驟 1：驗證座號並查詢姓名
+    function checkSeat() {
+      var seat = document.getElementById('seatInput').value.trim();
+      var btn = document.getElementById('checkBtn');
+      var err = document.getElementById('errMsg');
+
+      if (!seat) return;
+      btn.innerText = "查詢中..."; btn.disabled = true; err.classList.add('hidden');
+
+      fetch('/api/student-bind', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'check', seat: seat })
+      })
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        btn.innerText = "驗證座號"; btn.disabled = false;
+        if (data.success) {
+          currentSeat = seat;
+          document.getElementById('nameDisplay').innerText = data.name;
+          document.getElementById('step1').classList.add('hidden');
+          document.getElementById('step2').classList.remove('hidden');
+        } else {
+          err.innerText = data.message; err.classList.remove('hidden');
+        }
+      })
+      .catch(function(){ 
+        err.innerText = '網路異常，請稍後再試'; err.classList.remove('hidden'); 
+        btn.innerText = "驗證座號"; btn.disabled = false; 
+      });
+    }
+
+    function goBack() {
+      document.getElementById('step2').classList.add('hidden');
+      document.getElementById('step1').classList.remove('hidden');
+    }
+
+    // 步驟 2：確認並送出綁定
+    function confirmBind() {
+      var btn = document.getElementById('bindBtn');
+      btn.innerText = "綁定中..."; btn.disabled = true;
+
+      fetch('/api/student-bind', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'confirm', seat: currentSeat, lineId: userLineId })
+      })
+      .then(function(res){ return res.json(); })
+      .then(function(data){
+        if (data.success) {
+          // 🏆 綁定成功，讓機器人偷偷送出暗號以切換 6 宮格主選單
+          liff.sendMessages([{ type: 'text', text: '【系統指令：綁定成功】' }])
+            .then(function() { liff.closeWindow(); })
+            .catch(function() { liff.closeWindow(); });
+        } else {
+          alert("綁定失敗: " + data.message);
+          btn.innerText = "確認綁定"; btn.disabled = false;
+        }
+      })
+      .catch(function(){
+        alert("網路異常，請稍後再試");
+        btn.innerText = "確認綁定"; btn.disabled = false;
+      });
+    }
+  </script>
+</body>
+</html>
