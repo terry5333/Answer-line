@@ -43,15 +43,14 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     .then(function() {
       if (!LINE_TOKEN) return Promise.resolve();
 
-      // 🏆 終極優化：將「換選單」與「主動推播訊息」打包成並行事件，防止執行緒卡死
-      const lineTasks = [];
+      const lineTasks: Promise<any>[] = [];
 
       // 任務 A：更換圖文選單
       if (menuId) {
         const menuUrl = `https://api.line.me/v2/bot/user/${lineId}/richmenu/${menuId}`;
         lineTasks.push(
           axios.post(menuUrl, {}, { headers: { Authorization: `Bearer ${LINE_TOKEN}` } })
-            .catch(e => console.error('後台換選單失敗:', e.message))
+            .catch(function(e) { console.error('後台換選單失敗:', e.message); })
         );
       }
 
@@ -66,10 +65,13 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       };
       lineTasks.push(
         axios.post(pushUrl, pushPayload, { headers: { Authorization: `Bearer ${LINE_TOKEN}` } })
-          .catch(e => console.error('主動推播失敗:', e.message))
+          .catch(function(e) { console.error('主動推播失敗:', e.message); })
       );
 
-      return Promise.all(lineTasks);
+      // 💡 關鍵修復：把 Promise.all 回傳的陣列吃掉，強制轉成 Promise.resolve() 讓 TS 閉嘴
+      return Promise.all(lineTasks).then(function() {
+        return Promise.resolve();
+      });
     })
     .then(function() { 
       res.status(200).json({ success: true }); 
