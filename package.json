@@ -1,17 +1,17 @@
 {
   "name": "line-bot-webhook",
   "version": "1.0.0",
-  "description": "LINE Bot Webhook for Vercel",
+  "description": "Smart Education Line Bot",
+  "main": "index.js",
   "scripts": {
     "build": "tsc"
   },
   "dependencies": {
+    "@vercel/node": "^3.0.2",
     "axios": "^1.6.8",
-    "firebase-admin": "^12.0.0"
+    "firebase": "^8.10.1"
   },
   "devDependencies": {
-    "@types/node": "^20.11.0",
-    "@vercel/node": "^3.0.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.0.0"
   }
 }
