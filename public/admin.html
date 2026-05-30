@@ -8,7 +8,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* CSS 變數：深淺色無縫切換系統 */
     :root {
       --bg-color: #F5F5F7;
       --bg-gradient-1: rgba(200, 200, 200, 0.15);
@@ -61,15 +60,15 @@
     .themed-input:focus { border-color: var(--text-main); }
     .themed-card { background: var(--card-bg); border-color: var(--input-border); }
     
-    /* 動畫區 */
     .fade-enter { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
     .hover-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .hover-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
     
     ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--input-border); border-radius: 10px; }
+    .log-scroll::-webkit-scrollbar { width: 2px; }
+    .log-scroll::-webkit-scrollbar-thumb { background: var(--input-border); }
   </style>
 </head>
 <body class="p-4 md:p-8">
@@ -150,9 +149,14 @@
         <div class="glass-card rounded-[32px] p-8 hover-card">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <h2 class="text-base font-bold">新增學生建檔</h2>
-            <button onclick="loadAllStudentData()" class="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105" style="background: var(--input-bg); color: var(--text-main);">
-              <i class="fa-solid fa-rotate-right mr-1"></i>刷新戰情室
-            </button>
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+              <button onclick="clearAllLogs()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105">
+                <i class="fa-solid fa-dumpster mr-1"></i>清空全班紀錄
+              </button>
+              <button onclick="loadAllStudentData()" class="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105" style="background: var(--input-bg); color: var(--text-main);">
+                <i class="fa-solid fa-rotate-right mr-1"></i>刷新戰情室
+              </button>
+            </div>
           </div>
           <div class="flex flex-col md:flex-row gap-5 items-end">
             <div class="flex-1 w-full">
@@ -177,26 +181,21 @@
   </div>
 
   <script>
-    // ⚠️ 貼上你的 GAS 網址
-    var GAS_URL = "https://script.google.com/macros/s/AKfycbxB_QrqsHTpyVjihAevLxkfNEMKqpL45WZ1o0veow5IbTMr5bpoFqMdGLdvkPPdqrfw8Q/exec"; 
+    var GAS_URL = "https://script.google.com/macros/s/AKfycbxB_QrqsHTpyVjihAevLxkfNEMKqpL45WZ1o0veow5IbTMr5bpoFqMdGLdvkPPdqrfw8Q/exec"; // ⚠️ 貼上你的 GAS 網址
     var currentDataType = 'answers';
     var boundUrls = new Set();
     var fbData = { answers: {}, textbooks: {} };
     var globalStudents = {};
     var globalLogs = [];
 
-    // --- 主題切換引擎 ---
     function toggleTheme() {
       document.body.parentElement.classList.toggle('dark');
       var icon = document.getElementById('themeIcon');
       if (document.body.parentElement.classList.contains('dark')) {
         icon.className = 'fa-solid fa-sun text-yellow-300';
-      } else {
-        icon.className = 'fa-solid fa-moon';
-      }
+      } else { icon.className = 'fa-solid fa-moon'; }
     }
 
-    // --- UI 切換 ---
     function switchTab(tabId) {
       ['tab-resource', 'tab-student'].forEach(id => document.getElementById(id).classList.add('hidden'));
       ['btn-resource', 'btn-student'].forEach(id => {
@@ -220,7 +219,6 @@
       }
     }
 
-    // --- 資源管理 ---
     function loadBoundData() {
       return fetch('/api/admin-answers?action=list').then(res => res.json()).then(data => {
         if (data.success) {
@@ -302,7 +300,13 @@
 
     function renderStudentCards() {
       var container = document.getElementById('studentCardsContainer'), html = '', count = 0, logsBySeat = {};
-      globalLogs.forEach(l => { if (!logsBySeat[l.seat]) logsBySeat[l.seat] = []; logsBySeat[l.seat].push(l); });
+      
+      globalLogs.forEach(l => { 
+        if (l.seat && l.seat !== '未綁定') {
+          if (!logsBySeat[l.seat]) logsBySeat[l.seat] = []; 
+          logsBySeat[l.seat].push(l); 
+        }
+      });
 
       for (var seat in globalStudents) {
         var stu = globalStudents[seat];
@@ -311,7 +315,6 @@
 
         var isBound = !!stu.lineId, myLogs = logsBySeat[seat] || [];
         
-        // 💡 關鍵：渲染大頭貼 (如果有 avatarUrl，就顯示圖片，否則顯示首字母)
         var avatarRender = stu.avatarUrl 
           ? `<img src="${stu.avatarUrl}" class="w-full h-full object-cover rounded-full shadow-sm">`
           : `<span class="text-sm font-black text-gray-400">${(stu.name || '未').charAt(0)}</span>`;
@@ -319,20 +322,24 @@
         var badgeBg = isBound ? 'var(--btn-bg)' : 'var(--input-bg)';
         var badgeText = isBound ? 'var(--btn-text)' : 'var(--text-sub)';
         var statusBadge = `<span class="px-2 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase" style="background: ${badgeBg}; color: ${badgeText};">${isBound ? '已綁定' : '未綁定'}</span>`;
-        var unbindBtn = isBound ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-red-500 hover:text-red-400 text-xs font-bold transition-transform hover:scale-110"><i class="fa-solid fa-link-slash"></i></button>` : '';
+        var unbindBtn = isBound ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-red-500 hover:text-red-400 text-xs font-bold transition-transform hover:scale-110" title="解除綁定"><i class="fa-solid fa-link-slash"></i></button>` : '';
 
         var logHtml = '';
         if (myLogs.length > 0) {
           myLogs.forEach(function(l) {
             var icon = l.type === '解答' ? '<i class="fa-solid fa-pen-nib text-red-400 mr-1.5"></i>' : '<i class="fa-solid fa-book-open text-blue-400 mr-1.5"></i>';
             var shortTime = l.time.split(' ')[1] ? l.time.split(' ')[1].substring(0, 5) : l.time;
+            
+            // 🏆 關鍵修正：在每一條點擊紀錄的最右側，加上一個微型精準的「單筆刪除 x」按鈕
             logHtml += `
-              <div class="flex items-start gap-3 py-2 border-b last:border-0 hover:bg-black/5 transition-colors px-1 fade-enter" style="border-color: var(--input-border);">
-                <span class="text-[10px] font-mono mt-0.5" style="color: var(--text-sub);">${shortTime}</span>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs font-bold truncate" style="color: var(--text-main);">${icon}${l.subject}</p>
-                  <p class="text-[10px] truncate mt-0.5" style="color: var(--text-sub);">${l.fileTitle || '整個專區'}</p>
+              <div class="flex items-center justify-between py-2 border-b last:border-0 hover:bg-black/5 transition-colors px-1 fade-enter" style="border-color: var(--input-border);">
+                <div class="flex items-start gap-3 min-w-0 flex-1">
+                  <span class="text-[10px] font-mono mt-0.5" style="color: var(--text-sub);">${shortTime}</span>
+                  <p class="text-xs font-bold truncate pr-2" style="color: var(--text-main);">${icon}${l.fileTitle}</p>
                 </div>
+                <button onclick="deleteSingleLog('${l.id}')" class="text-gray-300 hover:text-red-500 text-xs px-1 transition-colors" title="刪除此筆點擊紀錄">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
               </div>`;
           });
         } else {
@@ -354,7 +361,9 @@
               <div class="flex flex-col items-end gap-1.5">${statusBadge}${unbindBtn}</div>
             </div>
             <div class="flex-1 p-4 overflow-y-auto log-scroll" style="background: var(--card-bg);">
-              <h4 class="text-[10px] font-bold uppercase tracking-widest mb-3 pl-1" style="color: var(--text-sub);">近期軌跡</h4>
+              <div class="mb-3 pl-1">
+                <h4 class="text-[10px] font-bold uppercase tracking-widest" style="color: var(--text-sub);">近期軌跡</h4>
+              </div>
               ${logHtml}
             </div>
           </div>
@@ -365,7 +374,7 @@
 
     function addStudent() {
       var s = document.getElementById('newSeat').value.trim(), n = document.getElementById('newName').value.trim(), btn = document.getElementById('addStudentBtn');
-      if (!s || !n) return alert('請填寫');
+      if (!s || !n) return alert('請填寫完整');
       btn.innerText = '處理中...'; btn.disabled = true;
       fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', seat: s, name: n }) })
       .then(res => res.json()).then(data => {
@@ -376,6 +385,26 @@
     function unbindStudent(s, l) {
       if (!confirm(`確定解除 ${s} 裝置綁定？`)) return;
       fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unbind', seat: s, lineId: l }) }).then(res => res.json()).then(data => { if (data.success) loadAllStudentData(); });
+    }
+
+    function clearAllLogs() {
+      if (!confirm("⚠️ 警告：確定要清空全班所有的檔案開啟紀錄嗎？")) return;
+      fetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearAll' }) })
+      .then(res => res.json()).then(data => { if (data.success) loadAllStudentData(); });
+    }
+
+    // 🏆 核心新增：前端呼叫單筆日誌刪除的 Function
+    function deleteSingleLog(logId) {
+      if (!confirm("確定要刪除這筆開啟紀錄嗎？")) return;
+      fetch('/api/admin-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'clearSingle', logId: logId })
+      }).then(res => res.json()).then(data => {
+        if (data.success) { 
+          loadAllStudentData(); // 靜悄悄即時重新加載，體驗極佳
+        } else { alert("刪除失敗"); }
+      }).catch(() => alert("網路異常"));
     }
 
     window.onload = () => switchTab('tab-resource');
