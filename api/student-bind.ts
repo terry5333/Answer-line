@@ -4,7 +4,10 @@ import { db } from './firebase';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-  const { action, seat, lineId, avatarUrl } = req.body;
+  const action = req.body?.action || req.query?.action;
+  const seat = req.body?.seat;
+  const lineId = req.body?.lineId;
+  const avatarUrl = req.body?.avatarUrl;
 
   if (action === 'check') {
     if (!seat) { res.status(400).json({ success: false, message: '請輸入座號' }); return; }
@@ -22,37 +25,58 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     if (!seat || !lineId) { res.status(400).json({ success: false, message: '參數不完整' }); return; }
     
     const LINE_TOKEN = process.env.LINE_ACCESS_TOKEN;
-    
+    const menuId = process.env.MENU_MAIN || '';
+
     db.ref(`students/${seat}`).once('value').then(function(snapshot) {
       const sData = snapshot.val();
       const updates: any = {};
       updates[`students/${seat}/lineId`] = lineId;
-      updates[`students/${seat}/avatarUrl`] = avatarUrl || ''; // 💡 存入頭像
-      updates[`users/${lineId}`] = { seat: seat, name: sData.name, avatarUrl: avatarUrl || '', boundAt: new Date().toISOString() };
+      updates[`students/${seat}/avatarUrl`] = avatarUrl || '';
+      updates[`users/${lineId}`] = { 
+        seat: seat, 
+        name: sData.name, 
+        avatarUrl: avatarUrl || '', 
+        boundAt: new Date().toISOString() 
+      };
       return db.ref().update(updates);
     })
     .then(function() {
-      // 1. 更換主選單
-      const menuId = process.env.MENU_MAIN || '';
-      if (menuId && LINE_TOKEN) {
-        return axios.post(`https://api.line.me/v2/bot/user/${lineId}/richmenu/${menuId}`, {}, { headers: { Authorization: `Bearer ${LINE_TOKEN}` } })
-        .then(() => Promise.resolve()).catch(e => { console.error('選單失敗', e); return Promise.resolve(); });
+      if (!LINE_TOKEN) return Promise.resolve();
+
+      // 🏆 終極優化：將「換選單」與「主動推播訊息」打包成並行事件，防止執行緒卡死
+      const lineTasks = [];
+
+      // 任務 A：更換圖文選單
+      if (menuId) {
+        const menuUrl = `https://api.line.me/v2/bot/user/${lineId}/richmenu/${menuId}`;
+        lineTasks.push(
+          axios.post(menuUrl, {}, { headers: { Authorization: `Bearer ${LINE_TOKEN}` } })
+            .catch(e => console.error('後台換選單失敗:', e.message))
+        );
       }
-      return Promise.resolve();
+
+      // 任務 B：主動發送 Push 祝賀訊息
+      const pushUrl = `https://api.line.me/v2/bot/message/push`;
+      const pushPayload = {
+        to: lineId,
+        messages: [{
+          type: 'text',
+          text: '🎉 系統通知：您的裝置已成功完成身分認證！\n專屬學習選單已開通，現在可以開始查閱解答與課本囉！'
+        }]
+      };
+      lineTasks.push(
+        axios.post(pushUrl, pushPayload, { headers: { Authorization: `Bearer ${LINE_TOKEN}` } })
+          .catch(e => console.error('主動推播失敗:', e.message))
+      );
+
+      return Promise.all(lineTasks);
     })
-    .then(function() {
-      // 2. 🏆 主動推播綁定成功訊息 (Push API)
-      if (LINE_TOKEN) {
-        return axios.post(`https://api.line.me/v2/bot/message/push`, {
-          to: lineId,
-          messages: [{ type: 'text', text: '🎉 系統通知：裝置綁定成功！\n您的專屬學習選單已開通，現在可以開始查閱解答與課本囉！' }]
-        }, { headers: { Authorization: `Bearer ${LINE_TOKEN}` } })
-        .then(() => Promise.resolve()).catch(e => { console.error('推播失敗', e); return Promise.resolve(); });
-      }
-      return Promise.resolve();
+    .then(function() { 
+      res.status(200).json({ success: true }); 
     })
-    .then(function() { res.status(200).json({ success: true }); })
-    .catch(function(err) { res.status(500).json({ success: false, message: err.message }); });
+    .catch(function(err) { 
+      res.status(500).json({ success: false, message: err.message }); 
+    });
     return;
   }
   
