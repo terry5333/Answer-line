@@ -3,177 +3,155 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Education | 中樞控制台</title>
+  <title>SmartEdu | 系統中樞</title>
+  
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#FAF8F4">
+
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..900;1,9..144,400..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['"Instrument Sans"', 'sans-serif'], serif: ['Fraunces', 'serif'] },
+          colors: {
+            bgCream: '#FAF8F4', textMain: '#1A1209', textBody: '#4A3F30', textMuted: '#8C7D6B',
+            accentTerra: '#D4654A', terraBg: '#FDF0EC',
+            accentSaffron: '#E8913A', saffronBg: '#FEF4E8',
+            accentSage: '#4A8B6F', sageBg: '#EDF5F1',
+            accentCobalt: '#3A5FC4', cobaltBg: '#EDF1FB',
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    :root {
-      --bg-color: #F5F5F7;
-      --bg-gradient-1: rgba(200, 200, 200, 0.15);
-      --bg-gradient-2: rgba(150, 150, 150, 0.1);
-      --text-main: #111111;
-      --text-sub: #6b7280;
-      --glass-panel: rgba(255, 255, 255, 0.5);
-      --glass-panel-border: rgba(255, 255, 255, 0.8);
-      --glass-card: rgba(255, 255, 255, 0.8);
-      --glass-card-border: rgba(255, 255, 255, 0.9);
-      --card-bg: #ffffff;
-      --input-bg: #f9fafb;
-      --input-border: #f3f4f6;
-      --btn-bg: #000000;
-      --btn-text: #ffffff;
-    }
-    
-    .dark {
-      --bg-color: #0f172a;
-      --bg-gradient-1: rgba(30, 64, 175, 0.1);
-      --bg-gradient-2: rgba(88, 28, 135, 0.1);
-      --text-main: #f8fafc;
-      --text-sub: #94a3b8;
-      --glass-panel: rgba(15, 23, 42, 0.6);
-      --glass-panel-border: rgba(255, 255, 255, 0.05);
-      --glass-card: rgba(30, 41, 59, 0.7);
-      --glass-card-border: rgba(255, 255, 255, 0.05);
-      --card-bg: #1e293b;
-      --input-bg: #0f172a;
-      --input-border: #334155;
-      --btn-bg: #ffffff;
-      --btn-text: #0f172a;
-    }
-
-    body { 
-      background-color: var(--bg-color);
-      background-image: radial-gradient(circle at 15% 50%, var(--bg-gradient-1), transparent 25%),
-                        radial-gradient(circle at 85% 30%, var(--bg-gradient-2), transparent 25%);
-      color: var(--text-main);
-      min-height: 100vh; font-family: 'Inter', sans-serif; transition: all 0.4s ease;
-    }
-
-    .glass-panel { background: var(--glass-panel); backdrop-filter: blur(40px); border: 1px solid var(--glass-panel-border); transition: all 0.4s ease; }
-    .glass-card { background: var(--glass-card); backdrop-filter: blur(20px); border: 1px solid var(--glass-card-border); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04); transition: all 0.4s ease; }
-    
-    .tab-btn.active { background-color: var(--btn-bg); color: var(--btn-text); }
-    .type-btn.active { background: var(--btn-bg); color: var(--btn-text); border-color: var(--btn-bg); }
-    
-    .themed-input { background: var(--input-bg); border-color: var(--input-border); color: var(--text-main); transition: all 0.3s; }
-    .themed-input:focus { border-color: var(--text-main); }
-    .themed-card { background: var(--card-bg); border-color: var(--input-border); }
-    
-    .fade-enter { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-    .hover-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-    .hover-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); }
-    
+    body { background-color: #FAF8F4; color: #1A1209; min-height: 100vh; overflow-x: hidden; }
+    .glass-card { background: rgba(255, 253, 249, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(237, 232, 224, 0.8); border-radius: 20px; box-shadow: 0 8px 32px rgba(26, 18, 9, 0.03); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    .glass-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(26, 18, 9, 0.06); }
+    .themed-input { background: #FFFFFF; border: 1px solid rgba(237, 232, 224, 0.8); color: #1A1209; transition: all 0.3s; border-radius: 12px; }
+    .themed-input:focus { border-color: #D4654A; outline: none; box-shadow: 0 0 0 3px #FDF0EC; }
+    .btn-primary { background: #1A1209; color: #FFFFFF; border-radius: 12px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26, 18, 9, 0.15); }
+    .btn-primary:active { transform: translateY(1px); }
+    .tab-btn { color: #8C7D6B; transition: all 0.3s; }
+    .tab-btn.active { color: #3A5FC4; background: #EDF1FB; font-weight: 700; }
+    .glow-circle { position: absolute; border-radius: 50%; filter: blur(60px); z-index: -1; opacity: 0.6; pointer-events: none; }
+    .glow-saffron { background: #F8D4A3; width: 300px; height: 300px; top: -50px; left: -50px; }
+    .glow-sage { background: #B3D8C6; width: 400px; height: 400px; bottom: -100px; right: -50px; }
+    .fade-up { animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+    .stagger-1 { animation-delay: 0.1s; }
     ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: var(--input-border); border-radius: 10px; }
-    .log-scroll::-webkit-scrollbar { width: 2px; }
-    .log-scroll::-webkit-scrollbar-thumb { background: var(--input-border); }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #EDE8E0; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #D6D0C4; }
+    /* 防止未驗證前閃爍 */
+    #mainContent { opacity: 0; transition: opacity 0.4s ease; pointer-events: none; }
+    #mainContent.ready { opacity: 1; pointer-events: auto; }
   </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="relative font-sans antialiased">
 
-  <div class="max-w-7xl mx-auto glass-panel rounded-[40px] overflow-hidden">
-    
-    <header class="p-8 md:px-12 border-b border-opacity-20 flex flex-col md:flex-row justify-between items-center gap-6" style="border-color: var(--text-sub);">
+  <div class="glow-circle glow-saffron"></div>
+  <div class="glow-circle glow-sage fixed"></div>
+
+  <div id="mainContent" class="max-w-[1500px] mx-auto">
+    <header class="px-8 py-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 fade-up">
       <div>
-        <h1 class="text-2xl font-extrabold tracking-tight">Smart Education</h1>
-        <p class="text-[10px] font-bold mt-1 tracking-widest uppercase" style="color: var(--text-sub);">System Control Center</p>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="bg-sageBg text-accentSage px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-accentSage animate-pulse"></span> System Online
+          </span>
+        </div>
+        <h1 class="font-serif italic text-4xl tracking-tight text-textMain">Smart Education</h1>
       </div>
       
-      <div class="flex gap-4 items-center w-full md:w-auto">
-        <div class="flex p-1.5 rounded-[24px] overflow-x-auto max-w-full" style="background: var(--input-bg); border: 1px solid var(--input-border);">
-          <button onclick="switchTab('tab-resource')" id="btn-resource" class="tab-btn active px-6 py-2.5 rounded-[18px] text-sm font-bold transition-all whitespace-nowrap" style="color: var(--text-sub);">資源管理</button>
-          <button onclick="switchTab('tab-student')" id="btn-student" class="tab-btn px-6 py-2.5 rounded-[18px] text-sm font-bold transition-all whitespace-nowrap" style="color: var(--text-sub);">學生戰情室</button>
-        </div>
-        <button onclick="toggleTheme()" class="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110" style="background: var(--btn-bg); color: var(--btn-text);">
-          <i id="themeIcon" class="fa-solid fa-moon"></i>
-        </button>
+      <div class="flex gap-2 bg-white/60 p-1.5 rounded-2xl border border-[rgba(237,232,224,0.8)] shadow-sm">
+        <button onclick="switchTab('tab-resource')" id="btn-resource" class="tab-btn active px-6 py-2.5 rounded-xl text-sm font-bold tracking-wide">資源發佈配置</button>
+        <button onclick="switchTab('tab-student')" id="btn-student" class="tab-btn px-6 py-2.5 rounded-xl text-sm font-bold tracking-wide">出缺席與戰情</button>
+        <button onclick="logout()" class="px-4 py-2.5 rounded-xl text-textMuted hover:text-accentTerra transition-colors"><i data-lucide="log-out" class="w-4 h-4"></i></button>
       </div>
     </header>
 
-    <main class="p-8 md:p-12 min-h-[700px]">
+    <main class="px-8 pb-20">
       
-      <div id="tab-resource" class="block space-y-8 fade-enter">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div class="lg:col-span-5 flex flex-col h-full">
-            <div class="glass-card rounded-[32px] p-8 flex-1 flex flex-col hover-card">
-              <div class="flex justify-between items-center mb-6 pb-4 border-b" style="border-color: var(--input-border);">
-                <h2 class="text-base font-bold">Drive 檔案庫</h2>
-                <button onclick="fetchGasFiles()" class="text-xs px-4 py-2 rounded-xl font-bold transition-colors" style="background: var(--input-bg); color: var(--text-main);">重新掃描</button>
-              </div>
-              <div id="gasList" class="space-y-3 overflow-y-auto pr-2 max-h-[500px] min-h-[400px] flex-1">
-                <p class="text-center mt-20 text-sm font-semibold" style="color: var(--text-sub);">讀取中...</p>
-              </div>
+      <div id="tab-resource" class="grid grid-cols-1 lg:grid-cols-12 gap-6 fade-up stagger-1">
+        <div class="lg:col-span-7 flex flex-col gap-6">
+          <div class="glass-card p-8 flex flex-col min-h-[500px] relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-cobaltBg rounded-full filter blur-[40px] -z-10"></div>
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="font-serif italic text-2xl text-textMain">Drive Resource</h2>
+              <button onclick="fetchGasFiles()" class="text-xs bg-white border border-[#EDE8E0] px-4 py-2 rounded-xl font-bold hover:bg-gray-50 transition-colors flex items-center gap-2">
+                <i data-lucide="refresh-cw" class="w-3 h-3"></i>重新掃描
+              </button>
+            </div>
+            <div id="gasList" class="space-y-2 overflow-y-auto pr-2 flex-1">
+              <p class="text-center mt-20 text-sm font-semibold text-textMuted">系統就緒，點擊重新掃描讀取雲端檔案...</p>
             </div>
           </div>
+        </div>
 
-          <div class="lg:col-span-7 flex flex-col gap-8">
-            <div class="glass-card rounded-[32px] p-8 hover-card">
-              <h2 class="text-base font-bold mb-6">資源發佈配置</h2>
-              <div class="flex gap-4 mb-6">
-                <button id="btn-answers" onclick="setDataType('answers')" class="type-btn active flex-1 py-4 border rounded-[20px] font-bold text-sm transition-all" style="border-color: var(--input-border);">解答庫</button>
-                <button id="btn-textbooks" onclick="setDataType('textbooks')" class="type-btn flex-1 py-4 border rounded-[20px] font-bold text-sm transition-all" style="color: var(--text-sub); border-color: var(--input-border);">課本庫</button>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <input type="text" id="subject" class="themed-input w-full p-4 rounded-2xl border outline-none font-bold text-sm" placeholder="歸屬科目 (如: 國文)">
-                <input type="text" id="title" class="themed-input w-full p-4 rounded-2xl border outline-none font-bold text-sm" placeholder="按鈕顯示標題">
-              </div>
-              <div class="mb-8">
-                <input type="url" id="url" readonly class="w-full p-4 rounded-2xl outline-none text-xs font-mono" style="background: var(--bg-color); color: var(--text-sub); border: 1px dashed var(--input-border);" placeholder="雲端網址 (點擊左側自動帶入)">
-              </div>
-              <button id="submitBtn" onclick="bindFile()" class="w-full font-bold py-4 rounded-2xl transition-transform active:scale-[0.98]" style="background: var(--btn-bg); color: var(--btn-text);">發佈至系統</button>
+        <div class="lg:col-span-5 flex flex-col gap-6">
+          <div class="glass-card p-8">
+            <h2 class="font-serif italic text-2xl mb-6">Publish Settings</h2>
+            <div class="flex gap-2 mb-6 p-1 bg-gray-50 rounded-xl border border-[#EDE8E0]">
+              <button id="btn-answers" onclick="setDataType('answers')" class="flex-1 py-3 bg-white shadow-sm rounded-lg font-bold text-sm text-textMain transition-all">解答庫</button>
+              <button id="btn-textbooks" onclick="setDataType('textbooks')" class="flex-1 py-3 rounded-lg font-bold text-sm text-textMuted hover:text-textMain transition-all">課本庫</button>
             </div>
+            <div class="space-y-4 mb-6">
+              <input type="text" id="subject" class="themed-input w-full p-4 text-sm font-bold" placeholder="歸屬科目 (如: 國文)">
+              <input type="text" id="title" class="themed-input w-full p-4 text-sm font-bold" placeholder="按鈕顯示標題">
+              <input type="url" id="url" readonly class="w-full p-4 rounded-xl bg-gray-50 border border-dashed border-[#EDE8E0] text-textMuted text-xs font-mono outline-none" placeholder="雲端網址 (點擊左側自動帶入)">
+            </div>
+            <button id="submitBtn" onclick="bindFile()" class="w-full btn-primary py-4 text-sm font-bold tracking-wider uppercase">發佈至系統 Publish</button>
+          </div>
 
-            <div class="glass-card rounded-[32px] p-8 hover-card border border-red-500/20">
-              <h2 class="text-base font-bold text-red-500 mb-6">下架與刪除</h2>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <select id="delType" onchange="renderDelSelects()" class="themed-input p-4 rounded-2xl border font-bold text-sm outline-none">
-                  <option value="answers">解答庫</option>
-                  <option value="textbooks">課本庫</option>
-                </select>
-                <select id="delSubject" onchange="onSubjChange()" class="themed-input p-4 rounded-2xl border font-bold text-sm outline-none">
-                  <option value="">選擇科目...</option>
-                </select>
-              </div>
-              <select id="delItem" class="themed-input w-full p-4 rounded-2xl border font-bold text-sm mb-6 outline-none">
-                <option value="">選擇檔案 (留空刪除整科)</option>
-              </select>
-              <button onclick="executeDelete()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-2xl transition-transform active:scale-[0.98]">執行刪除</button>
+          <div class="glass-card p-8 border-l-4 border-l-accentTerra">
+            <div class="flex items-center gap-2 mb-6">
+              <i data-lucide="trash-2" class="w-5 h-5 text-accentTerra"></i>
+              <h2 class="font-serif italic text-xl text-textMain">Remove Items</h2>
             </div>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <select id="delType" onchange="renderDelSelects()" class="themed-input p-4 text-sm font-bold"><option value="answers">解答庫</option><option value="textbooks">課本庫</option></select>
+              <select id="delSubject" onchange="onSubjChange()" class="themed-input p-4 text-sm font-bold"><option value="">選擇科目...</option></select>
+            </div>
+            <select id="delItem" class="themed-input w-full p-4 text-sm font-bold mb-6"><option value="">選擇檔案 (留空刪除整科)</option></select>
+            <button onclick="executeDelete()" class="w-full bg-terraBg text-accentTerra hover:bg-[#F5C4B5] font-bold py-4 rounded-xl transition-colors tracking-wide">執行刪除 Remove</button>
           </div>
         </div>
       </div>
 
-      <div id="tab-student" class="hidden space-y-8 fade-enter">
-        <div class="glass-card rounded-[32px] p-8 hover-card">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <h2 class="text-base font-bold">新增學生建檔</h2>
-            <div class="flex items-center gap-3 w-full sm:w-auto">
-              <button onclick="clearAllLogs()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105">
-                <i class="fa-solid fa-dumpster mr-1"></i>清空全班紀錄
-              </button>
-              <button onclick="loadAllStudentData()" class="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-105" style="background: var(--input-bg); color: var(--text-main);">
-                <i class="fa-solid fa-rotate-right mr-1"></i>刷新戰情室
-              </button>
-            </div>
+      <div id="tab-student" class="hidden fade-up stagger-1 space-y-6">
+        <div class="glass-card p-6 md:p-8 flex flex-col lg:flex-row justify-between items-center gap-6">
+          <div class="flex flex-col md:flex-row gap-4 items-center w-full lg:w-auto flex-1">
+            <h2 class="font-serif italic text-2xl mr-4 whitespace-nowrap">Student Roster</h2>
+            <input type="text" id="newSeat" class="themed-input w-full md:w-32 p-3.5 text-sm font-mono font-bold" placeholder="座號">
+            <input type="text" id="newName" class="themed-input w-full md:w-48 p-3.5 text-sm font-bold" placeholder="學生真實姓名">
+            <button id="addStudentBtn" onclick="addStudent()" class="w-full md:w-auto btn-primary px-8 py-3.5 text-sm font-bold tracking-wide">建檔 Add</button>
           </div>
-          <div class="flex flex-col md:flex-row gap-5 items-end">
-            <div class="flex-1 w-full">
-              <input type="text" id="newSeat" class="themed-input w-full p-4 rounded-2xl border outline-none font-bold font-mono text-sm" placeholder="座號 (如: 30125)">
-            </div>
-            <div class="flex-1 w-full">
-              <input type="text" id="newName" class="themed-input w-full p-4 rounded-2xl border outline-none font-bold text-sm" placeholder="學生真實姓名">
-            </div>
-            <button id="addStudentBtn" onclick="addStudent()" class="w-full md:w-auto font-bold px-10 py-4 rounded-2xl transition-transform active:scale-[0.98]" style="background: var(--btn-bg); color: var(--btn-text);">建檔</button>
+          <div class="flex gap-3 w-full lg:w-auto">
+            <button onclick="clearAllLogs()" class="flex-1 lg:flex-none bg-terraBg text-accentTerra px-5 py-3 rounded-xl text-xs font-bold transition-all hover:scale-105 flex items-center justify-center gap-2">
+              <i data-lucide="bomb" class="w-4 h-4"></i>清空全班紀錄
+            </button>
+            <button onclick="loadAllStudentData()" class="flex-1 lg:flex-none bg-white border border-[#EDE8E0] px-5 py-3 rounded-xl text-xs font-bold transition-all hover:scale-105 flex items-center justify-center gap-2">
+              <i data-lucide="refresh-ccw" class="w-4 h-4"></i>刷新
+            </button>
           </div>
         </div>
 
-        <div class="glass-card rounded-[32px] p-8">
-          <h2 class="text-base font-bold mb-6">全班動態總覽</h2>
-          <div id="studentCardsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            <div class="p-10 text-center font-semibold col-span-full" style="color: var(--text-sub);">資料載入中...</div>
-          </div>
+        <div id="studentCardsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div class="p-10 text-center font-semibold text-textMuted col-span-full">資料載入中...</div>
         </div>
       </div>
 
@@ -181,42 +159,70 @@
   </div>
 
   <script>
-    var GAS_URL = "https://script.google.com/macros/s/AKfycbxB_QrqsHTpyVjihAevLxkfNEMKqpL45WZ1o0veow5IbTMr5bpoFqMdGLdvkPPdqrfw8Q/exec"; // ⚠️ 貼上你的 GAS 網址
+    lucide.createIcons();
+    let auth;
+
+    // ==========================================
+    // Firebase 初始化與狀態檢查 (路由核心)
+    // ==========================================
+    fetch('/api/config').then(res => res.json()).then(config => {
+      if (!firebase.apps.length) firebase.initializeApp(config);
+      auth = firebase.auth();
+      
+      auth.onAuthStateChanged(user => {
+        if (!user) {
+          // 💡 未登入，立刻強制跳回登入頁
+          window.location.href = '/login.html';
+        } else {
+          // 💡 已登入，浮現儀表板
+          document.getElementById('mainContent').classList.add('ready');
+          switchTab('tab-resource');
+        }
+      });
+    }).catch(err => {
+      alert("系統初始化失敗，請檢查 API 設定。");
+      window.location.href = '/login.html';
+    });
+
+    function logout() { 
+      if (auth) auth.signOut(); 
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW 註冊失敗', err)));
+    }
+
+    // ==========================================
+    // 系統邏輯
+    // ==========================================
+    var GAS_URL = "https://script.google.com/macros/s/AKfycbxB_QrqsHTpyVjihAevLxkfNEMKqpL45WZ1o0veow5IbTMr5bpoFqMdGLdvkPPdqrfw8Q/exec"; // ⚠️ 貼上 GAS 網址
     var currentDataType = 'answers';
     var boundUrls = new Set();
     var fbData = { answers: {}, textbooks: {} };
     var globalStudents = {};
     var globalLogs = [];
 
-    function toggleTheme() {
-      document.body.parentElement.classList.toggle('dark');
-      var icon = document.getElementById('themeIcon');
-      if (document.body.parentElement.classList.contains('dark')) {
-        icon.className = 'fa-solid fa-sun text-yellow-300';
-      } else { icon.className = 'fa-solid fa-moon'; }
-    }
-
     function switchTab(tabId) {
       ['tab-resource', 'tab-student'].forEach(id => document.getElementById(id).classList.add('hidden'));
       ['btn-resource', 'btn-student'].forEach(id => {
-        document.getElementById(id).classList.remove('active');
-        document.getElementById(id).style.color = 'var(--text-sub)';
+        document.getElementById(id).classList.remove('active', 'bg-white', 'shadow-sm');
+        document.getElementById(id).classList.add('text-textMuted');
       });
       document.getElementById(tabId).classList.remove('hidden');
-      document.getElementById('btn-' + tabId.replace('tab-', '')).classList.add('active');
-      document.getElementById('btn-' + tabId.replace('tab-', '')).style.color = 'var(--btn-text)';
+      var btn = document.getElementById('btn-' + tabId.replace('tab-', ''));
+      btn.classList.add('active', 'bg-white', 'shadow-sm');
+      btn.classList.remove('text-textMuted');
+      
       if (tabId === 'tab-resource') fetchGasFiles();
       if (tabId === 'tab-student') loadAllStudentData();
     }
 
     function setDataType(type) {
       currentDataType = type;
-      var acts = { 'answers': 'btn-answers', 'textbooks': 'btn-textbooks' };
-      for (var k in acts) {
-        var btn = document.getElementById(acts[k]);
-        if (k === type) { btn.classList.add('active'); btn.style.color = 'var(--btn-text)'; }
-        else { btn.classList.remove('active'); btn.style.color = 'var(--text-sub)'; }
-      }
+      var activeBtn = document.getElementById(type === 'answers' ? 'btn-answers' : 'btn-textbooks');
+      var inactiveBtn = document.getElementById(type === 'answers' ? 'btn-textbooks' : 'btn-answers');
+      activeBtn.className = 'flex-1 py-3 bg-white shadow-sm rounded-lg font-bold text-sm text-textMain transition-all';
+      inactiveBtn.className = 'flex-1 py-3 rounded-lg font-bold text-sm text-textMuted hover:text-textMain transition-all';
     }
 
     function loadBoundData() {
@@ -232,22 +238,22 @@
 
     function fetchGasFiles() {
       var list = document.getElementById('gasList');
-      if (!GAS_URL || GAS_URL.includes("YOUR_GAS_URL")) { list.innerHTML = "<div class='text-center mt-10 p-6'><p class='text-red-500 font-bold'>請設定 GAS_URL</p></div>"; return; }
-      list.innerHTML = `<p class='text-center mt-20 text-sm font-semibold' style='color: var(--text-sub);'>掃描中...</p>`;
+      if (!GAS_URL || GAS_URL.includes("YOUR_GAS_URL")) { list.innerHTML = "<p class='text-center mt-20 text-accentTerra font-bold'>請設定 GAS_URL</p>"; return; }
+      list.innerHTML = `<p class='text-center mt-20 text-sm font-semibold text-textMuted'>掃描雲端硬碟中...</p>`;
       
       loadBoundData().then(() => fetch(GAS_URL)).then(res => res.json()).then(data => {
         if(data.error) throw new Error(data.error);
         var html = '';
         data.forEach(f => {
           if (!boundUrls.has(f.url)) {
-            html += `<div class="p-4 rounded-2xl mb-3 cursor-pointer transition-all flex justify-between items-center group hover:scale-[1.02]" style="background: var(--input-bg); border: 1px solid var(--input-border);" onclick="autoFill('${f.name}','${f.url}')">
-              <span class="text-sm font-bold truncate pr-4" style="color: var(--text-main);">${f.name}</span>
-              <span class="text-[10px] px-3 py-1.5 rounded-xl font-bold transition-colors" style="background: var(--card-bg); color: var(--text-sub);">選取</span>
+            html += `<div class="p-4 rounded-xl mb-3 cursor-pointer transition-all flex justify-between items-center bg-white border border-[#EDE8E0] hover:-translate-y-0.5 hover:shadow-sm" onclick="autoFill('${f.name}','${f.url}')">
+              <span class="text-sm font-bold truncate pr-4 text-textMain">${f.name}</span>
+              <span class="text-[10px] px-3 py-1.5 rounded-lg font-bold bg-sageBg text-accentSage tracking-wide uppercase">Select</span>
             </div>`;
           }
         });
-        list.innerHTML = html || `<div class='text-center mt-16 p-8'><p class='font-bold' style='color: var(--text-sub);'>雲端檔案皆已發佈</p></div>`;
-      }).catch(() => { list.innerHTML = `<div class='text-center mt-10 p-6'><p class='text-red-500 font-bold'>讀取失敗</p></div>`; });
+        list.innerHTML = html || `<p class='text-center mt-16 font-bold text-textMuted'>檔案皆已發佈完畢 ✨</p>`;
+      }).catch(() => { list.innerHTML = `<p class='text-center mt-10 text-accentTerra font-bold'>讀取失敗</p>`; });
     }
 
     function autoFill(n, u) { document.getElementById('title').value = n; document.getElementById('url').value = u; }
@@ -260,7 +266,7 @@
       fetch('/api/bind-answer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: currentDataType, subject: s, title: t, url: u }) })
       .then(res => res.json()).then(data => { 
         if (data.success) { document.getElementById('title').value = ''; document.getElementById('url').value = ''; fetchGasFiles(); } else alert('失敗：' + data.message);
-      }).catch(() => alert('連線失敗')).finally(() => { btn.innerText = '發佈至系統'; btn.disabled = false; });
+      }).catch(() => alert('連線失敗')).finally(() => { btn.innerText = '發佈至系統 Publish'; btn.disabled = false; });
     }
 
     function renderDelSelects() {
@@ -284,92 +290,71 @@
     // --- 學生戰情室 ---
     function loadAllStudentData() {
       var container = document.getElementById('studentCardsContainer');
-      container.innerHTML = '<div class="p-10 text-center font-semibold col-span-full" style="color: var(--text-sub);">資料載入中...</div>';
-
-      var p1 = fetch('/api/admin-students?action=list').then(res => res.json());
-      var p2 = fetch('/api/admin-logs').then(res => res.json());
-
-      Promise.all([p1, p2]).then(function(results) {
+      container.innerHTML = '<div class="p-10 text-center font-semibold text-textMuted col-span-full">資料載入中...</div>';
+      Promise.all([fetch('/api/admin-students?action=list').then(res => res.json()), fetch('/api/admin-logs').then(res => res.json())])
+      .then(function(results) {
         if (results[0].success) globalStudents = results[0].students || {};
         if (results[1].success) globalLogs = results[1].logs || [];
         renderStudentCards();
-      }).catch(function() {
-        container.innerHTML = '<div class="p-10 text-center text-red-500 font-semibold col-span-full">讀取資料失敗</div>';
       });
     }
 
     function renderStudentCards() {
       var container = document.getElementById('studentCardsContainer'), html = '', count = 0, logsBySeat = {};
-      
-      globalLogs.forEach(l => { 
-        if (l.seat && l.seat !== '未綁定') {
-          if (!logsBySeat[l.seat]) logsBySeat[l.seat] = []; 
-          logsBySeat[l.seat].push(l); 
-        }
-      });
+      globalLogs.forEach(l => { if (l.seat && l.seat !== '未綁定') { if (!logsBySeat[l.seat]) logsBySeat[l.seat] = []; logsBySeat[l.seat].push(l); } });
 
       for (var seat in globalStudents) {
-        var stu = globalStudents[seat];
-        if (!stu) continue;
-        count++;
-
+        var stu = globalStudents[seat]; if (!stu) continue; count++;
         var isBound = !!stu.lineId, myLogs = logsBySeat[seat] || [];
         
-        var avatarRender = stu.avatarUrl 
-          ? `<img src="${stu.avatarUrl}" class="w-full h-full object-cover rounded-full shadow-sm">`
-          : `<span class="text-sm font-black text-gray-400">${(stu.name || '未').charAt(0)}</span>`;
-
-        var badgeBg = isBound ? 'var(--btn-bg)' : 'var(--input-bg)';
-        var badgeText = isBound ? 'var(--btn-text)' : 'var(--text-sub)';
-        var statusBadge = `<span class="px-2 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase" style="background: ${badgeBg}; color: ${badgeText};">${isBound ? '已綁定' : '未綁定'}</span>`;
-        var unbindBtn = isBound ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-red-500 hover:text-red-400 text-xs font-bold transition-transform hover:scale-110" title="解除綁定"><i class="fa-solid fa-link-slash"></i></button>` : '';
+        var avatarRender = stu.avatarUrl ? `<img src="${stu.avatarUrl}" class="w-full h-full object-cover rounded-full shadow-sm">` : `<span class="text-sm font-black text-textMuted">${(stu.name || '未').charAt(0)}</span>`;
+        var statusBadge = isBound ? `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase bg-sageBg text-accentSage">已綁定</span>` : `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase bg-gray-100 text-textMuted">未綁定</span>`;
+        var unbindBtn = isBound ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-accentTerra hover:bg-terraBg p-1.5 rounded-lg transition-colors"><i data-lucide="unlink" class="w-4 h-4"></i></button>` : '';
 
         var logHtml = '';
         if (myLogs.length > 0) {
           myLogs.forEach(function(l) {
-            var icon = l.type === '解答' ? '<i class="fa-solid fa-pen-nib text-red-400 mr-1.5"></i>' : '<i class="fa-solid fa-book-open text-blue-400 mr-1.5"></i>';
+            var iconName = l.type === '解答' ? 'pen-tool' : 'book-open';
             var shortTime = l.time.split(' ')[1] ? l.time.split(' ')[1].substring(0, 5) : l.time;
             
-            // 🏆 關鍵修正：在每一條點擊紀錄的最右側，加上一個微型精準的「單筆刪除 x」按鈕
             logHtml += `
-              <div class="flex items-center justify-between py-2 border-b last:border-0 hover:bg-black/5 transition-colors px-1 fade-enter" style="border-color: var(--input-border);">
-                <div class="flex items-start gap-3 min-w-0 flex-1">
-                  <span class="text-[10px] font-mono mt-0.5" style="color: var(--text-sub);">${shortTime}</span>
-                  <p class="text-xs font-bold truncate pr-2" style="color: var(--text-main);">${icon}${l.fileTitle}</p>
+              <div class="flex items-center justify-between py-2.5 border-b border-[#EDE8E0] last:border-0 hover:bg-white/50 transition-colors px-1 group">
+                <div class="flex items-center gap-3 min-w-0 flex-1">
+                  <span class="text-[10px] font-mono text-textMuted w-8">${shortTime}</span>
+                  <div class="w-1 h-4 rounded-full ${l.type === '解答' ? 'bg-accentTerra' : 'bg-accentCobalt'}"></div>
+                  <p class="text-xs font-bold truncate pr-2 text-textMain">${l.fileTitle}</p>
                 </div>
-                <button onclick="deleteSingleLog('${l.id}')" class="text-gray-300 hover:text-red-500 text-xs px-1 transition-colors" title="刪除此筆點擊紀錄">
-                  <i class="fa-solid fa-xmark"></i>
+                <button onclick="deleteSingleLog('${l.id}')" class="text-[#EDE8E0] group-hover:text-accentTerra text-xs px-2 transition-colors">
+                  <i data-lucide="x" class="w-3.5 h-3.5"></i>
                 </button>
               </div>`;
           });
-        } else {
-          logHtml = `<div class="flex items-center justify-center h-full text-[11px] font-bold py-6" style="color: var(--text-sub); opacity: 0.5;">尚無開啟紀錄</div>`;
-        }
+        } else { logHtml = `<div class="flex items-center justify-center h-full text-[11px] font-bold py-6 text-textMuted opacity-60">無足跡紀錄</div>`; }
 
         html += `
-          <div class="themed-card rounded-[24px] border shadow-sm flex flex-col h-[320px] overflow-hidden hover-card fade-enter">
-            <div class="p-5 border-b flex items-center justify-between" style="border-color: var(--input-border); background: var(--input-bg);">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full border flex items-center justify-center overflow-hidden" style="border-color: var(--input-border); background: var(--card-bg);">
-                  ${avatarRender}
-                </div>
-                <div>
-                  <h3 class="font-bold" style="color: var(--text-main);">${stu.name || '未知'}</h3>
-                  <p class="text-xs font-mono" style="color: var(--text-sub);">${seat}</p>
+          <div class="glass-card flex flex-col h-[340px] overflow-hidden">
+            <div class="p-6 border-b border-[#EDE8E0] bg-white/40 flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full border border-[#EDE8E0] bg-white flex items-center justify-center overflow-hidden shrink-0">${avatarRender}</div>
+                <div class="min-w-0">
+                  <h3 class="font-bold text-lg text-textMain truncate">${stu.name || '未知'}</h3>
+                  <p class="text-xs font-mono text-textMuted">${seat}</p>
                 </div>
               </div>
-              <div class="flex flex-col items-end gap-1.5">${statusBadge}${unbindBtn}</div>
+              <div class="flex flex-col items-end gap-2 shrink-0">${statusBadge}${unbindBtn}</div>
             </div>
-            <div class="flex-1 p-4 overflow-y-auto log-scroll" style="background: var(--card-bg);">
-              <div class="mb-3 pl-1">
-                <h4 class="text-[10px] font-bold uppercase tracking-widest" style="color: var(--text-sub);">近期軌跡</h4>
+            <div class="flex-1 p-5 overflow-y-auto">
+              <div class="mb-4 pl-1 flex items-center gap-2">
+                <i data-lucide="activity" class="w-3.5 h-3.5 text-accentSaffron"></i>
+                <h4 class="text-[10px] font-bold uppercase tracking-widest text-textMuted">Recent Activity</h4>
               </div>
               ${logHtml}
             </div>
           </div>
         `;
       }
-      container.innerHTML = count > 0 ? html : `<div class="p-10 text-center font-semibold col-span-full" style="color: var(--text-sub);">目前無名單，請先建檔</div>`;
+      container.innerHTML = count > 0 ? html : `<div class="p-10 text-center font-semibold text-textMuted col-span-full">目前無名單，請先建檔</div>`;
+      lucide.createIcons();
     }
 
     function addStudent() {
@@ -377,9 +362,7 @@
       if (!s || !n) return alert('請填寫完整');
       btn.innerText = '處理中...'; btn.disabled = true;
       fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', seat: s, name: n }) })
-      .then(res => res.json()).then(data => {
-        if (data.success) { document.getElementById('newSeat').value = ''; document.getElementById('newName').value = ''; loadAllStudentData(); } else alert('失敗：' + data.message);
-      }).catch(err => alert('連線失敗')).finally(() => { btn.innerText = '建檔'; btn.disabled = false; });
+      .then(res => res.json()).then(data => { if (data.success) { document.getElementById('newSeat').value = ''; document.getElementById('newName').value = ''; loadAllStudentData(); } else alert('失敗：' + data.message); }).finally(() => { btn.innerText = '建檔 Add'; btn.disabled = false; });
     }
 
     function unbindStudent(s, l) {
@@ -389,25 +372,13 @@
 
     function clearAllLogs() {
       if (!confirm("⚠️ 警告：確定要清空全班所有的檔案開啟紀錄嗎？")) return;
-      fetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearAll' }) })
-      .then(res => res.json()).then(data => { if (data.success) loadAllStudentData(); });
+      fetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearAll' }) }).then(res => res.json()).then(data => { if (data.success) loadAllStudentData(); });
     }
 
-    // 🏆 核心新增：前端呼叫單筆日誌刪除的 Function
     function deleteSingleLog(logId) {
       if (!confirm("確定要刪除這筆開啟紀錄嗎？")) return;
-      fetch('/api/admin-logs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'clearSingle', logId: logId })
-      }).then(res => res.json()).then(data => {
-        if (data.success) { 
-          loadAllStudentData(); // 靜悄悄即時重新加載，體驗極佳
-        } else { alert("刪除失敗"); }
-      }).catch(() => alert("網路異常"));
+      fetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearSingle', logId: logId }) }).then(res => res.json()).then(data => { if (data.success) loadAllStudentData(); });
     }
-
-    window.onload = () => switchTab('tab-resource');
   </script>
 </body>
-</html>
+</html>0
