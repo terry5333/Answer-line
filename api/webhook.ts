@@ -8,7 +8,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   if (!events || events.length === 0) { res.status(200).send('OK'); return; }
 
   const LINE_TOKEN = process.env.LINE_ACCESS_TOKEN;
-  const host = req.headers.host || ''; // 取得當前 Vercel 域名
+  const host = req.headers.host || ''; 
 
   const tasks = events.map(function(event: any) {
     const replyToken = event.replyToken;
@@ -26,29 +26,38 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         if (menuId && userId) {
           return switchRichMenu(userId, menuId, LINE_TOKEN);
         }
+        return Promise.resolve();
       } 
       else {
-        let dbNode = 'answers'; 
-        let subject = text;
-        let logType = '解答';
-
-        if (text.endsWith('課本') && text !== '課本') {
-          dbNode = 'textbooks';
-          subject = text.replace('課本', ''); 
-          logType = '課本';
-        }
-
-        return db.ref(`${dbNode}/${subject}`).once('value').then(function(snapshot) {
-          if (snapshot.exists()) {
-            const dataList = Object.values(snapshot.val());
-            const prefix = dbNode === 'textbooks' ? '課本' : '解答';
-            // 將必要的參數全部餵給卡片生成器
-            return sendFlexMessage(replyToken, LINE_TOKEN, `${subject}${prefix}專區`, dataList, userId, host, subject, logType);
-          } else {
-            return replyText(replyToken, LINE_TOKEN, `目前資料庫還沒有「${text}」的檔案喔！`);
+        // 🏆 擋修機制：查詢前先驗證身分
+        return db.ref(`users/${userId}`).once('value').then(function(userSnap) {
+          if (!userSnap.exists()) {
+            // 沒有綁定，直接退回
+            return replyText(replyToken, LINE_TOKEN, '⚠️ 權限不足\n您尚未綁定系統，請先點擊選單的「身分認證」進行綁定喔！');
           }
+
+          // 已綁定，繼續處理解答邏輯
+          let dbNode = 'answers'; 
+          let subject = text;
+          let logType = '解答';
+
+          if (text.endsWith('課本') && text !== '課本') {
+            dbNode = 'textbooks';
+            subject = text.replace('課本', ''); 
+            logType = '課本';
+          }
+
+          return db.ref(`${dbNode}/${subject}`).once('value').then(function(snapshot) {
+            if (snapshot.exists()) {
+              const dataList = Object.values(snapshot.val());
+              const prefix = dbNode === 'textbooks' ? '課本' : '解答';
+              return sendFlexMessage(replyToken, LINE_TOKEN, `${subject}${prefix}專區`, dataList, userId, host, subject, logType);
+            } else {
+              return replyText(replyToken, LINE_TOKEN, `目前資料庫還沒有「${text}」的檔案喔！`);
+            }
+          });
         }).catch(function(error) {
-          console.error('資料庫讀取失敗:', error);
+          console.error('執行失敗:', error);
           return Promise.resolve();
         });
       }
@@ -65,9 +74,7 @@ function switchRichMenu(userId: string, menuId: string, token: string | undefine
 
 function sendFlexMessage(replyToken: string, token: string | undefined, titleText: string, items: any[], userId: string, host: string, subject: string, logType: string) {
   const listItems = items.map(function(item: any) {
-    // 🏆 核心進化：把卡片的按鈕網址，包裝成代理轉址網址，傳遞所有重要特徵參數
     const proxyUrl = `https://${host}/api/view?uid=${userId}&subj=${encodeURIComponent(subject)}&type=${encodeURIComponent(logType)}&title=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.url)}`;
-    
     return {
       type: "box", layout: "horizontal", spacing: "md", paddingAll: "16px", cornerRadius: "16px", backgroundColor: "#f8fafc",
       action: { type: "uri", label: "開啟檔案", uri: proxyUrl },
@@ -85,26 +92,15 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
       body: {
         type: "box", layout: "vertical", paddingAll: "0px",
         contents: [
-          {
-            type: "box", layout: "vertical", backgroundColor: "#000000", paddingAll: "24px",
-            contents: [
-              { type: "text", text: "Smart Education", color: "#888888", size: "xs", weight: "bold" },
-              { type: "text", text: titleText, color: "#ffffff", size: "xl", weight: "bold", margin: "sm" }
-            ]
-          },
-          {
-            type: "box", layout: "vertical", paddingAll: "24px", spacing: "md",
-            contents: listItems.length > 0 ? listItems : [{ type: "text", text: "此分類暫無檔案", color: "#94a3b8", size: "sm", align: "center" }]
-          }
+          { type: "box", layout: "vertical", backgroundColor: "#000000", paddingAll: "24px", contents: [{ type: "text", text: "Smart Education", color: "#888888", size: "xs", weight: "bold" }, { type: "text", text: titleText, color: "#ffffff", size: "xl", weight: "bold", margin: "sm" }] },
+          { type: "box", layout: "vertical", paddingAll: "24px", spacing: "md", contents: listItems.length > 0 ? listItems : [{ type: "text", text: "此分類暫無檔案", color: "#94a3b8", size: "sm", align: "center" }] }
         ]
       }
     }
   };
-
   return axios.post('https://api.line.me/v2/bot/message/reply', { replyToken: replyToken, messages: [flexMessage] }, { headers: { Authorization: `Bearer ${token}` } }).then(function() { return Promise.resolve(); });
 }
 
-// 純文字防呆
 function replyText(replyToken: string, token: string | undefined, text: string) {
   return axios.post('https://api.line.me/v2/bot/message/reply', { replyToken: replyToken, messages: [{ type: 'text', text: text }] }, { headers: { Authorization: `Bearer ${token}` } }).then(function() { return Promise.resolve(); });
 }
