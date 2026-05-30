@@ -6,7 +6,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
   
   const { action, seat, lineId } = req.body;
 
-  // 🟢 動作 1：輸入座號後，查詢姓名
+  // 🟢 動作 1：輸入座號後，查詢老師建好的姓名
   if (action === 'check') {
     if (!seat) { res.status(400).json({ success: false, message: '請輸入座號' }); return; }
 
@@ -16,7 +16,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           const studentData = snapshot.val();
           // 防呆：檢查是否已經被綁定過了
           if (studentData.lineId) {
-            res.status(200).json({ success: false, message: '此座號已被綁定，請洽管理員' });
+            res.status(200).json({ success: false, message: '此座號已被綁定，請洽資訊組長' });
           } else {
             res.status(200).json({ success: true, name: studentData.name });
           }
@@ -25,10 +25,11 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         }
       })
       .catch(function(err) { res.status(500).json({ success: false, message: err.message }); });
+    return;
   } 
   
   // 🟢 動作 2：學生看到姓名無誤，按下確認綁定
-  else if (action === 'confirm') {
+  if (action === 'confirm') {
     if (!seat || !lineId) { res.status(400).json({ success: false, message: '參數不完整' }); return; }
 
     db.ref(`students/${seat}`).once('value')
@@ -52,5 +53,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       .catch(function(err) {
         res.status(500).json({ success: false, message: err.message });
       });
+    return;
   }
+
+  res.status(400).json({ success: false, message: '無效的動作' });
 }
