@@ -79,7 +79,10 @@
 
     function signInWithGoogle() { 
       if (!auth) return alert('系統尚未就緒，請稍候');
-      auth.signInWithPopup(provider).catch(err => alert('登入失敗：' + err.message)); 
+      
+      // 🏆 關鍵修正：將 signInWithPopup 改為 signInWithRedirect
+      // 這樣會直接在當前頁面跳轉到 Google 登入畫面，完美避開所有彈出視窗攔截器！
+      auth.signInWithRedirect(provider).catch(err => alert('跳轉登入失敗：' + err.message)); 
     }
   </script>
 </body>
