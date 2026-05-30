@@ -4,7 +4,9 @@ import { db } from './firebase';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
-  const { action, seat, lineId } = req.body;
+  const action = req.body?.action || req.query?.action;
+  const seat = req.body?.seat;
+  const lineId = req.body?.lineId;
 
   if (action === 'check') {
     if (!seat) { res.status(400).json({ success: false, message: '請輸入座號' }); return; }
@@ -34,6 +36,14 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       if (menuId && LINE_TOKEN) {
         return axios.post(`https://api.line.me/v2/bot/user/${lineId}/richmenu/${menuId}`, {}, { 
           headers: { Authorization: `Bearer ${LINE_TOKEN}` } 
+        })
+        // 💡 關鍵修復：統一回傳 Promise.resolve() 讓 TypeScript 閉嘴
+        .then(function() {
+          return Promise.resolve();
+        })
+        .catch(function(e) {
+          console.error('綁定選單失敗', e);
+          return Promise.resolve();
         });
       }
       return Promise.resolve();
@@ -42,4 +52,6 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     .catch(function(err) { res.status(500).json({ success: false, message: err.message }); });
     return;
   }
+  
+  res.status(400).json({ success: false, message: '無效的操作' });
 }
