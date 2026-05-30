@@ -6,6 +6,7 @@
   <title>Smart Education | 中樞控制台</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body { 
       background-color: #F5F5F7;
@@ -17,10 +18,22 @@
     }
     .glass-panel { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.8); }
     .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04); }
+    
     .tab-btn.active { background-color: #000000; color: #FFFFFF; }
     .type-btn.active { background: #000000; color: white; border-color: #000000; }
-    ::-webkit-scrollbar { width: 6px; }
+    
+    /* 極簡隱形滾動條 */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #E5E5E5; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #CCCCCC; }
+
+    /* 戰情卡片專屬滾動條 */
+    .log-scroll::-webkit-scrollbar { width: 2px; }
+    .log-scroll::-webkit-scrollbar-thumb { background: #F3F4F6; }
+
+    .fade-enter { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body class="p-4 md:p-8">
@@ -34,22 +47,27 @@
       </div>
       
       <div class="flex bg-white/40 p-1.5 rounded-[24px] border border-white/60 shadow-sm overflow-x-auto max-w-full">
-        <button onclick="switchTab('tab-resource')" id="btn-resource" class="tab-btn active px-6 py-3 rounded-[18px] text-sm font-bold text-gray-500 transition-colors whitespace-nowrap">資源管理</button>
-        <button onclick="switchTab('tab-student')" id="btn-student" class="tab-btn px-6 py-3 rounded-[18px] text-sm font-bold text-gray-500 transition-colors whitespace-nowrap">學生名單</button>
-        <button onclick="switchTab('tab-logs')" id="btn-logs" class="tab-btn px-6 py-3 rounded-[18px] text-sm font-bold text-gray-500 transition-colors whitespace-nowrap">軌跡追蹤</button>
+        <button onclick="switchTab('tab-resource')" id="btn-resource" class="tab-btn active px-8 py-3 rounded-[18px] text-sm font-bold text-gray-500 transition-colors whitespace-nowrap">
+          資源管理
+        </button>
+        <button onclick="switchTab('tab-student')" id="btn-student" class="tab-btn px-8 py-3 rounded-[18px] text-sm font-bold text-gray-500 transition-colors whitespace-nowrap">
+          學生戰情室
+        </button>
       </div>
     </header>
 
     <main class="p-8 md:p-12 min-h-[700px]">
       
-      <div id="tab-resource" class="block space-y-8">
+      <div id="tab-resource" class="block space-y-8 fade-enter">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           <div class="lg:col-span-5 flex flex-col h-full">
             <div class="glass-card rounded-[32px] p-8 flex-1 flex flex-col">
               <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
                 <h2 class="text-base font-bold">Drive 檔案庫</h2>
-                <button onclick="fetchGasFiles()" class="text-xs text-black bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl font-bold transition-colors">重新掃描</button>
+                <button onclick="fetchGasFiles()" class="text-xs text-black bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl font-bold transition-colors">
+                  重新掃描
+                </button>
               </div>
               <div id="gasList" class="space-y-3 overflow-y-auto pr-2 max-h-[500px] min-h-[400px] flex-1">
                 <p class="text-gray-400 text-center mt-20 text-sm font-semibold">讀取中...</p>
@@ -60,12 +78,10 @@
           <div class="lg:col-span-7 flex flex-col gap-8">
             <div class="glass-card rounded-[32px] p-8">
               <h2 class="text-base font-bold mb-6">資源發佈配置</h2>
-              
               <div class="flex gap-4 mb-6">
                 <button id="btn-answers" onclick="setDataType('answers')" class="type-btn active flex-1 py-4 border border-gray-200 rounded-[20px] font-bold text-sm transition-colors">解答庫</button>
                 <button id="btn-textbooks" onclick="setDataType('textbooks')" class="type-btn flex-1 py-4 border border-gray-200 text-gray-400 rounded-[20px] font-bold text-sm transition-colors">課本庫</button>
               </div>
-
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <input type="text" id="subject" class="w-full p-4 rounded-2xl bg-gray-50 border border-gray-100 outline-none focus:border-black font-bold text-sm transition-colors" placeholder="歸屬科目 (如: 國文)">
                 <input type="text" id="title" class="w-full p-4 rounded-2xl bg-gray-50 border border-gray-100 outline-none focus:border-black font-bold text-sm transition-colors" placeholder="按鈕顯示標題">
@@ -73,7 +89,6 @@
               <div class="mb-8">
                 <input type="url" id="url" readonly class="w-full p-4 rounded-2xl bg-gray-100/50 border border-transparent text-gray-400 text-xs font-mono outline-none" placeholder="雲端網址 (點擊左側自動帶入)">
               </div>
-              
               <button id="submitBtn" onclick="bindFile()" class="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 rounded-2xl transition-transform active:scale-[0.98]">發佈至系統</button>
             </div>
 
@@ -97,67 +112,34 @@
         </div>
       </div>
 
-      <div id="tab-student" class="hidden space-y-8">
+      <div id="tab-student" class="hidden space-y-8 fade-enter">
+        
         <div class="glass-card rounded-[32px] p-8">
-          <h2 class="text-base font-bold mb-6">新增學生</h2>
+          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h2 class="text-base font-bold">新增學生建檔</h2>
+            <button onclick="loadAllStudentData()" class="bg-gray-100 hover:bg-gray-200 text-black px-4 py-2 rounded-xl text-xs font-bold transition-colors">
+              <i class="fa-solid fa-rotate-right mr-1"></i>刷新戰情室
+            </button>
+          </div>
+          
           <div class="flex flex-col md:flex-row gap-5 items-end">
             <div class="flex-1 w-full">
               <input type="text" id="newSeat" class="w-full p-4 rounded-2xl bg-gray-50 border border-gray-100 outline-none focus:border-black font-bold font-mono text-sm transition-colors" placeholder="座號 (如: 30125)">
             </div>
             <div class="flex-1 w-full">
-              <input type="text" id="newName" class="w-full p-4 rounded-2xl bg-gray-50 border border-gray-100 outline-none focus:border-black font-bold text-sm transition-colors" placeholder="學生姓名">
+              <input type="text" id="newName" class="w-full p-4 rounded-2xl bg-gray-50 border border-gray-100 outline-none focus:border-black font-bold text-sm transition-colors" placeholder="學生真實姓名">
             </div>
             <button id="addStudentBtn" onclick="addStudent()" class="w-full md:w-auto bg-black text-white font-bold px-10 py-4 rounded-2xl transition-transform active:scale-[0.98]">建檔</button>
           </div>
         </div>
 
-        <div class="glass-card rounded-[32px] p-8 overflow-hidden">
-          <h2 class="text-base font-bold mb-6">名單與狀態</h2>
-          <div class="overflow-x-auto rounded-[20px] border border-gray-100">
-            <table class="w-full text-left">
-              <thead class="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th class="p-5 text-xs font-bold text-gray-400 uppercase tracking-widest">座號</th>
-                  <th class="p-5 text-xs font-bold text-gray-400 uppercase tracking-widest">姓名</th>
-                  <th class="p-5 text-xs font-bold text-gray-400 uppercase tracking-widest">狀態</th>
-                  <th class="p-5 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">操作</th>
-                </tr>
-              </thead>
-              <tbody id="studentListContainer" class="text-sm divide-y divide-gray-50">
-                <tr><td colspan="4" class="p-10 text-center text-gray-400 font-semibold">資料載入中...</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div id="tab-logs" class="hidden space-y-8">
-        <div class="glass-card rounded-[32px] p-8">
-          <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-8 pb-6 border-b border-gray-100">
-            <h2 class="text-base font-bold">活動日誌</h2>
-            <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <select id="logFilter" onchange="renderLogs()" class="p-3.5 rounded-2xl border border-gray-100 font-bold text-sm bg-gray-50 outline-none focus:border-black min-w-[200px]">
-                <option value="all">全班總覽</option>
-              </select>
-              <button onclick="loadLogs()" class="bg-black text-white px-6 py-3.5 rounded-2xl text-sm font-bold transition-transform active:scale-[0.98]">刷新</button>
-            </div>
-          </div>
+        <div class="glass-card rounded-[32px] p-8 bg-gray-50/30">
+          <h2 class="text-base font-bold mb-6">全班動態總覽</h2>
           
-          <div class="overflow-x-auto rounded-[20px] border border-gray-100">
-            <table class="w-full text-left">
-              <thead class="bg-gray-50 border-b border-gray-100 text-xs text-gray-400 font-bold uppercase tracking-widest">
-                <tr>
-                  <th class="p-5">時間</th>
-                  <th class="p-5">身分</th>
-                  <th class="p-5">動作</th>
-                  <th class="p-5">目標</th>
-                </tr>
-              </thead>
-              <tbody id="logsContainer" class="text-sm divide-y divide-gray-50">
-                <tr><td colspan="4" class="p-10 text-center text-gray-400 font-semibold">加載中...</td></tr>
-              </tbody>
-            </table>
+          <div id="studentCardsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div class="p-10 text-center text-gray-400 font-semibold col-span-full">資料載入中...</div>
           </div>
+
         </div>
       </div>
 
@@ -173,16 +155,19 @@
     var currentDataType = 'answers';
     var boundUrls = new Set();
     var fbData = { answers: {}, textbooks: {} };
-    var allLogs = [];
+    
+    // 全域變數儲存資料，方便合併
+    var globalStudents = {};
+    var globalLogs = [];
 
+    // --- UI 切換 ---
     function switchTab(tabId) {
-      ['tab-resource', 'tab-student', 'tab-logs'].forEach(id => document.getElementById(id).classList.add('hidden'));
-      ['btn-resource', 'btn-student', 'btn-logs'].forEach(id => document.getElementById(id).classList.remove('active'));
+      ['tab-resource', 'tab-student'].forEach(id => document.getElementById(id).classList.add('hidden'));
+      ['btn-resource', 'btn-student'].forEach(id => document.getElementById(id).classList.remove('active'));
       document.getElementById(tabId).classList.remove('hidden');
       document.getElementById('btn-' + tabId.replace('tab-', '')).classList.add('active');
       if (tabId === 'tab-resource') fetchGasFiles();
-      if (tabId === 'tab-student') loadStudents();
-      if (tabId === 'tab-logs') loadLogs();
+      if (tabId === 'tab-student') loadAllStudentData();
     }
 
     function setDataType(type) {
@@ -206,7 +191,7 @@
 
     function fetchGasFiles() {
       var list = document.getElementById('gasList');
-      if (!GAS_URL) { list.innerHTML = "<div class='text-center mt-10 p-6'><p class='text-red-500 font-bold'>請設定 GAS_URL</p></div>"; return; }
+      if (!GAS_URL || GAS_URL.includes("YOUR_GAS_URL")) { list.innerHTML = "<div class='text-center mt-10 p-6'><p class='text-red-500 font-bold'>請設定 GAS_URL</p></div>"; return; }
       list.innerHTML = "<p class='text-gray-400 text-center mt-20 text-sm font-semibold'>掃描中...</p>";
       
       loadBoundData().then(() => fetch(GAS_URL)).then(res => res.json()).then(data => {
@@ -255,84 +240,132 @@
       fetch('/api/admin-answers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type: t, subject: s, key: k }) }).then(res => res.json()).then(data => { if(data.success) fetchGasFiles(); });
     }
 
-    // --- 學生名單 ---
-    function loadStudents() {
-      var container = document.getElementById('studentListContainer');
-      container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-400 font-semibold">讀取中...</td></tr>';
-      
-      fetch('/api/admin-students?action=list').then(res => res.json()).then(data => {
-        if (!data.success) return;
-        var studentData = data.students || {}, html = '', count = 0;
-        
-        for (var seat in studentData) {
-          var stu = studentData[seat];
-          if (!stu) continue; // 終極防護：過濾空資料
-          count++;
-          var isB = !!stu.lineId;
-          
-          var badge = isB ? '<span class="bg-black text-white px-3 py-1.5 rounded-xl font-bold text-xs">已綁定</span>' : '<span class="bg-gray-100 text-gray-400 px-3 py-1.5 rounded-xl font-bold text-xs">未認證</span>';
-          var btn = isB ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-red-500 font-bold text-xs hover:underline">解除</button>` : '';
+    // === 全新：學生戰情室融合引擎 ===
 
-          html += `<tr class="hover:bg-gray-50 transition-colors">
-            <td class="p-5 font-bold font-mono text-gray-600">${seat}</td>
-            <td class="p-5 font-bold text-black">${stu.name || '未知'}</td>
-            <td class="p-5">${badge}</td>
-            <td class="p-5 text-right">${btn}</td>
-          </tr>`;
-        }
-        container.innerHTML = count > 0 ? html : '<tr><td colspan="4" class="p-10 text-center text-gray-400 font-semibold">目前無資料</td></tr>';
-      }).catch(err => { container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-red-500 font-semibold">讀取失敗</td></tr>'; });
+    // 1. 同時載入名單與日誌
+    function loadAllStudentData() {
+      var container = document.getElementById('studentCardsContainer');
+      container.innerHTML = '<div class="p-10 text-center text-gray-400 font-semibold col-span-full">資料載入中...</div>';
+
+      var p1 = fetch('/api/admin-students?action=list').then(res => res.json());
+      var p2 = fetch('/api/admin-logs').then(res => res.json());
+
+      Promise.all([p1, p2]).then(function(results) {
+        var studentRes = results[0];
+        var logRes = results[1];
+
+        if (studentRes.success) globalStudents = studentRes.students || {};
+        if (logRes.success) globalLogs = logRes.logs || [];
+
+        renderStudentCards();
+      }).catch(function() {
+        container.innerHTML = '<div class="p-10 text-center text-red-500 font-semibold col-span-full">讀取資料失敗</div>';
+      });
     }
 
+    // 2. 繪製戰情卡片
+    function renderStudentCards() {
+      var container = document.getElementById('studentCardsContainer');
+      var html = '';
+      var count = 0;
+
+      // 替每個座號分發專屬的日誌陣列
+      var logsBySeat = {};
+      globalLogs.forEach(function(log) {
+        if (!logsBySeat[log.seat]) logsBySeat[log.seat] = [];
+        logsBySeat[log.seat].push(log);
+      });
+
+      // 針對每位學生繪製卡片
+      for (var seat in globalStudents) {
+        var stu = globalStudents[seat];
+        if (!stu) continue;
+        count++;
+
+        var isBound = !!stu.lineId;
+        var myLogs = logsBySeat[seat] || [];
+
+        // --- 卡片頭部 (大頭貼、狀態、解除綁定) ---
+        var avatarInitial = (stu.name || '未').charAt(0);
+        var statusBadge = isBound 
+          ? `<span class="bg-black text-white px-2 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase">已綁定</span>` 
+          : `<span class="bg-gray-100 text-gray-400 px-2 py-1 rounded-md text-[10px] font-bold tracking-widest uppercase">未綁定</span>`;
+        
+        var unbindBtn = isBound 
+          ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-red-400 hover:text-red-600 text-xs font-bold transition-colors" title="解除綁定"><i class="fa-solid fa-link-slash"></i></button>` 
+          : ``;
+
+        // --- 卡片日誌區 (滾動區塊) ---
+        var logHtml = '';
+        if (myLogs.length > 0) {
+          myLogs.forEach(function(l) {
+            var isAnswer = l.type === '解答';
+            var icon = isAnswer ? '<i class="fa-solid fa-pen-nib text-red-400/80 mr-1.5"></i>' : '<i class="fa-solid fa-book-open text-blue-400/80 mr-1.5"></i>';
+            // 擷取時間的 HH:MM
+            var shortTime = l.time.split(' ')[1] ? l.time.split(' ')[1].substring(0, 5) : l.time;
+            
+            logHtml += `
+              <div class="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors px-1">
+                <span class="text-[10px] text-gray-400 font-mono mt-0.5">${shortTime}</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-bold text-gray-800 truncate">${icon}${l.subject}</p>
+                  <p class="text-[10px] text-gray-400 truncate mt-0.5">${l.fileTitle || '整個專區'}</p>
+                </div>
+              </div>`;
+          });
+        } else {
+          logHtml = `<div class="flex items-center justify-center h-full text-[11px] text-gray-300 font-bold py-6">尚無任何開啟紀錄</div>`;
+        }
+
+        // --- 組合單張卡片 (正方體感) ---
+        html += `
+          <div class="bg-white rounded-[24px] border border-gray-100 shadow-sm flex flex-col h-[320px] overflow-hidden hover:shadow-md transition-shadow">
+            
+            <div class="p-5 border-b border-gray-50 bg-gray-50/30 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-500 font-black text-sm">
+                  ${avatarInitial}
+                </div>
+                <div>
+                  <h3 class="font-bold text-gray-900">${stu.name || '未知'}</h3>
+                  <p class="text-xs font-mono text-gray-400">${seat}</p>
+                </div>
+              </div>
+              <div class="flex flex-col items-end gap-1.5">
+                ${statusBadge}
+                ${unbindBtn}
+              </div>
+            </div>
+
+            <div class="flex-1 p-4 overflow-y-auto log-scroll bg-white">
+              <h4 class="text-[10px] font-bold text-gray-300 uppercase tracking-widest mb-3 pl-1">近期軌跡</h4>
+              ${logHtml}
+            </div>
+
+          </div>
+        `;
+      }
+
+      container.innerHTML = count > 0 ? html : '<div class="p-10 text-center text-gray-400 font-semibold col-span-full">目前名單空白，請於上方新增建檔</div>';
+    }
+
+    // 3. 新增與解除綁定
     function addStudent() {
       var s = document.getElementById('newSeat').value.trim(), n = document.getElementById('newName').value.trim(), btn = document.getElementById('addStudentBtn');
       if (!s || !n) return alert('請填寫完整');
       btn.innerText = '處理中...'; btn.disabled = true;
       fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', seat: s, name: n }) })
       .then(res => res.json()).then(data => {
-        if (data.success) { document.getElementById('newSeat').value = ''; document.getElementById('newName').value = ''; loadStudents(); } else alert('失敗：' + data.message);
+        if (data.success) { document.getElementById('newSeat').value = ''; document.getElementById('newName').value = ''; loadAllStudentData(); } else alert('失敗：' + data.message);
       }).catch(err => alert('連線失敗')).finally(() => { btn.innerText = '建檔'; btn.disabled = false; });
     }
 
     function unbindStudent(s, l) {
-      if (!confirm(`解除 ${s} 綁定？`)) return;
-      fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unbind', seat: s, lineId: l }) }).then(res => res.json()).then(data => { if (data.success) loadStudents(); });
+      if (!confirm(`確定解除 ${s} 裝置綁定？`)) return;
+      fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unbind', seat: s, lineId: l }) }).then(res => res.json()).then(data => { if (data.success) loadAllStudentData(); });
     }
 
-    // --- 日誌追蹤 ---
-    function loadLogs() {
-      var container = document.getElementById('logsContainer');
-      container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-400 font-semibold">讀取中...</td></tr>';
-      
-      fetch('/api/admin-logs').then(res => res.json()).then(data => {
-        if(data.success) {
-          allLogs = data.logs || [];
-          var filter = document.getElementById('logFilter'), uniqueS = new Set(), html = '<option value="all">全班總覽</option>';
-          allLogs.forEach(l => uniqueS.add(l.seat));
-          Array.from(uniqueS).sort().forEach(s => html += `<option value="${s}">${s}</option>`);
-          var currentVal = filter.value; filter.innerHTML = html; if(uniqueS.has(currentVal)) filter.value = currentVal;
-          renderLogs();
-        } else { container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-red-500">讀取失敗</td></tr>'; }
-      }).catch(() => { container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-red-500">連線異常</td></tr>'; });
-    }
-
-    function renderLogs() {
-      var filter = document.getElementById('logFilter').value, container = document.getElementById('logsContainer'), html = '';
-      var filtered = filter === 'all' ? allLogs : allLogs.filter(l => l.seat === filter);
-      if(filtered.length > 0) {
-        filtered.forEach(l => {
-          var typeStr = l.type === '解答' ? '解答' : '課本';
-          html += `<tr class="hover:bg-gray-50 transition-colors">
-            <td class="p-5 text-xs text-gray-400 font-mono">${l.time}</td>
-            <td class="p-5 font-bold text-gray-800">${l.seat} <span class="text-gray-400 font-normal ml-1">${l.name !== '未知' ? l.name : ''}</span></td>
-            <td class="p-5"><span class="bg-gray-100 text-gray-600 px-3 py-1.5 rounded-xl font-bold text-[11px]">${typeStr}</span></td>
-            <td class="p-5 font-bold text-black">${l.subject}</td>
-          </tr>`;
-        });
-        container.innerHTML = html;
-      } else container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-400 font-semibold">無紀錄</td></tr>';
-    }
-
+    // 啟動
     window.onload = () => switchTab('tab-resource');
   </script>
 </body>
