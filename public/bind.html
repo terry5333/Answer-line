@@ -3,75 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Education | 身分認證</title>
+  <title>Smart Education</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
   <style>
     body {
       background-color: #F5F5F7;
-      background-image: radial-gradient(circle at 10% 20%, rgba(200, 200, 200, 0.2), transparent 40%),
-                        radial-gradient(circle at 90% 80%, rgba(150, 150, 150, 0.15), transparent 40%);
       min-height: 100vh; display: flex; justify-content: center; align-items: center;
-      padding: 24px; font-family: 'Inter', -apple-system, sans-serif; overflow: hidden;
-      color: #111;
+      padding: 24px; font-family: 'Inter', -apple-system, sans-serif;
     }
     .glass-card {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(30px);
-      -webkit-backdrop-filter: blur(30px);
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
       border: 1px solid rgba(255, 255, 255, 1);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.06);
-      border-radius: 40px; width: 100%; max-width: 400px; padding: 48px 40px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.04);
+      border-radius: 32px; width: 100%; max-w: 380px; padding: 40px;
     }
-    input::placeholder { color: #A1A1AA; }
     .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
 
   <div class="glass-card text-center fade-in" id="step1">
-    <div class="w-20 h-20 bg-gray-100 rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-gray-200">
-      <span class="text-3xl">🎓</span>
-    </div>
-    <h1 class="text-2xl font-black mb-2 tracking-tight">學生認證</h1>
-    <p class="text-gray-500 text-sm mb-10 font-bold">請輸入老師為您預設的座號代碼</p>
+    <div class="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm text-2xl font-black">⚙️</div>
+    <h1 class="text-2xl font-black tracking-tight mb-2">身分認證</h1>
+    <p class="text-gray-400 text-xs font-semibold mb-8 uppercase tracking-wider">Student Verification</p>
     
-    <input type="text" id="seatInput" class="w-full p-5 rounded-2xl bg-gray-50 border border-gray-200 text-black outline-none focus:border-black focus:ring-2 focus:ring-black/10 text-2xl text-center tracking-widest font-black transition-all mb-6" placeholder="如 30125">
-    
-    <button onclick="checkSeat()" id="checkBtn" class="w-full bg-black text-white font-bold py-5 rounded-2xl shadow-xl hover:bg-gray-800 transition-transform active:scale-[0.98]">
-      下一步
-    </button>
-    <p id="errMsg" class="text-red-500 text-xs font-bold mt-6 hidden"></p>
+    <input type="text" id="seatInput" class="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 text-black outline-none focus:border-black text-xl text-center tracking-widest font-black transition-all mb-6" placeholder="輸入座號">
+    <button onclick="checkSeat()" id="checkBtn" class="w-full bg-black hover:bg-gray-900 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98]">下一步</button>
+    <p id="errMsg" class="text-red-500 text-xs font-bold mt-4 hidden"></p>
   </div>
 
   <div class="glass-card text-center hidden fade-in" id="step2">
-    <div class="w-20 h-20 bg-gray-100 rounded-[28px] flex items-center justify-center mx-auto mb-8 border border-gray-200">
-      <span class="text-3xl">👋</span>
-    </div>
-    <h1 class="text-2xl font-black mb-2 tracking-tight">確認姓名</h1>
-    <p class="text-gray-500 text-sm mb-8 font-bold">請確認以下是否為您的正確資料</p>
+    <div class="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm text-2xl font-black">✓</div>
+    <h1 class="text-2xl font-black tracking-tight mb-1">確認資訊</h1>
+    <p class="text-gray-400 text-xs font-semibold mb-8 uppercase tracking-wider">Confirm Profile</p>
     
-    <div class="bg-gray-50 p-8 rounded-[28px] border border-gray-200 mb-8">
-      <p class="text-gray-400 text-[10px] font-black mb-2 uppercase tracking-widest">系統偵測結果</p>
-      <p class="text-3xl font-black text-black tracking-tight" id="nameDisplay"></p>
+    <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 mb-8">
+      <p class="text-gray-400 text-[10px] font-bold mb-1 tracking-widest">姓名</p>
+      <p class="text-2xl font-black text-black" id="nameDisplay"></p>
     </div>
     
-    <div class="flex flex-col gap-4">
-      <button onclick="confirmBind()" id="bindBtn" class="w-full bg-black text-white font-bold py-5 rounded-2xl shadow-xl hover:bg-gray-800 transition-transform active:scale-[0.98]">
-        確認無誤，綁定裝置
-      </button>
-      <button onclick="goBack()" class="text-gray-400 font-bold text-xs hover:text-gray-600 transition-colors py-2">
-        這不是我，重新輸入
-      </button>
+    <div class="flex flex-col gap-3">
+      <button onclick="confirmBind()" id="bindBtn" class="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98]">確認綁定</button>
+      <button onclick="goBack()" class="text-gray-400 font-semibold text-xs hover:text-black transition-colors py-1">返回修改</button>
     </div>
   </div>
 
   <script>
-    // ⚠️⚠️ 請務必填入你的 LIFF ID ⚠️⚠️
-    var myLiffId = "2009698922-Ili8ydt3"; 
-    
+    var myLiffId = "2009698922-Ili8ydt3"; // ⚠️ 貼上你的 LIFF ID
     var userLineId = "";
     var currentSeat = "";
 
@@ -82,10 +64,8 @@
 
     function checkSeat() {
       var seat = document.getElementById('seatInput').value.trim();
-      var btn = document.getElementById('checkBtn');
-      var err = document.getElementById('errMsg');
+      var btn = document.getElementById('checkBtn'), err = document.getElementById('errMsg');
       if (!seat) return;
-
       btn.innerText = "驗證中..."; btn.disabled = true; err.classList.add('hidden');
 
       fetch('/api/student-bind', {
@@ -99,37 +79,22 @@
           document.getElementById('step1').classList.add('hidden');
           document.getElementById('step2').classList.remove('hidden');
         } else { err.innerText = data.message; err.classList.remove('hidden'); }
-      }).catch(() => { 
-        err.innerText = "網路異常"; err.classList.remove('hidden');
-        btn.innerText = "下一步"; btn.disabled = false; 
-      });
+      }).catch(() => { btn.innerText = "下一步"; btn.disabled = false; });
     }
 
-    function goBack() {
-      document.getElementById('step2').classList.add('hidden');
-      document.getElementById('step1').classList.remove('hidden');
-    }
+    function goBack() { document.getElementById('step2').classList.add('hidden'); document.getElementById('step1').classList.remove('hidden'); }
 
     function confirmBind() {
       var btn = document.getElementById('bindBtn');
-      btn.innerText = "綁定中..."; btn.disabled = true;
-      
+      btn.innerText = "處理中..."; btn.disabled = true;
       fetch('/api/student-bind', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'confirm', seat: currentSeat, lineId: userLineId })
       }).then(res => res.json()).then(data => {
         if (data.success) {
-          // 🏆 綁定成功後，發送低調的指令讓機器人切換選單，並自動關閉視窗
-          liff.sendMessages([{ type: 'text', text: '@更新選單' }])
-            .then(() => liff.closeWindow())
-            .catch(() => liff.closeWindow());
-        } else { 
-          alert("綁定失敗: " + data.message); 
-          btn.innerText = "確認無誤，綁定裝置"; btn.disabled = false; 
-        }
-      }).catch(() => {
-        alert("網路異常，請稍後再試"); 
-        btn.innerText = "確認無誤，綁定裝置"; btn.disabled = false;
+          // 🏆 直接關閉視窗，選單已被後端悄悄切換完畢，體驗極致絲滑！
+          liff.closeWindow();
+        } else { alert(data.message); btn.disabled = false; }
       });
     }
   </script>
