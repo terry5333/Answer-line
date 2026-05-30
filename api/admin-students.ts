@@ -28,7 +28,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       return; 
     }
 
-    db.ref(`students/${seat}`).set({ name: name, lineId: null })
+    db.ref(`students/${seat}`).set({ name: name, lineId: null, avatarUrl: null })
       .then(function() { 
         res.status(200).json({ success: true }); 
       })
@@ -50,6 +50,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
 
     const updates: any = {};
     updates[`students/${seat}/lineId`] = null;
+    // 🏆 關鍵修復：解除綁定時，同步將頭像網址從資料庫抹除
+    updates[`students/${seat}/avatarUrl`] = null; 
     updates[`users/${lineId}`] = null;
 
     db.ref().update(updates)
