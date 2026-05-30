@@ -5,44 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Education | 中樞控制台</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    /* 極簡美學底色與極致毛玻璃 */
     body { 
-      background-color: #F5F5F7; /* Apple 經典灰底 */
+      background-color: #F5F5F7;
       background-image: radial-gradient(circle at 15% 50%, rgba(200, 200, 200, 0.15), transparent 25%),
                         radial-gradient(circle at 85% 30%, rgba(150, 150, 150, 0.1), transparent 25%);
       min-height: 100vh;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       color: #111111;
     }
-    .glass-panel { 
-      background: rgba(255, 255, 255, 0.5); 
-      backdrop-filter: blur(40px); 
-      -webkit-backdrop-filter: blur(40px); 
-      border: 1px solid rgba(255, 255, 255, 0.8); 
-    }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, 0.9);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
-    }
-    
-    /* 極簡黑白切換邏輯 */
+    .glass-panel { background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.8); }
+    .glass-card { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.9); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04); }
     .tab-btn.active { background-color: #000000; color: #FFFFFF; }
     .type-btn.active { background: #000000; color: white; border-color: #000000; }
-    
-    /* 隱形滾動條 */
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #E5E5E5; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #CCCCCC; }
-
-    /* 平滑過渡 */
-    .fade-enter { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body class="p-4 md:p-8">
@@ -56,30 +34,22 @@
       </div>
       
       <div class="flex bg-white/40 p-1.5 rounded-[24px] border border-white/60 shadow-sm overflow-x-auto max-w-full">
-        <button onclick="switchTab('tab-resource')" id="btn-resource" class="tab-btn active px-6 py-3 rounded-[18px] text-sm font-bold text-gray-500 transition-colors whitespace-nowrap">
-          資源管理
-        </button>
-        <button onclick="switchTab('tab-student')" id="btn-student" class="tab-btn px-6 py-3 rounded-[18px] text-sm font-bold text-gray-500 transition-colors whitespace-nowrap">
-          學生名單
-        </button>
-        <button onclick="switchTab('tab-logs')" id="btn-logs" class="tab-btn px-6 py-3 rounded-[18px] text-sm font-bold text-gray-500 transition-colors whitespace-nowrap">
-          軌跡追蹤
-        </button>
+        <button onclick="switchTab('tab-resource')" id="btn-resource" class="tab-btn active px-6 py-3 rounded-[18px] text-sm font-bold text-gray-500 transition-colors whitespace-nowrap">資源管理</button>
+        <button onclick="switchTab('tab-student')" id="btn-student" class="tab-btn px-6 py-3 rounded-[18px] text-sm font-bold text-gray-500 transition-colors whitespace-nowrap">學生名單</button>
+        <button onclick="switchTab('tab-logs')" id="btn-logs" class="tab-btn px-6 py-3 rounded-[18px] text-sm font-bold text-gray-500 transition-colors whitespace-nowrap">軌跡追蹤</button>
       </div>
     </header>
 
     <main class="p-8 md:p-12 min-h-[700px]">
       
-      <div id="tab-resource" class="block space-y-8 fade-enter">
+      <div id="tab-resource" class="block space-y-8">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
           <div class="lg:col-span-5 flex flex-col h-full">
             <div class="glass-card rounded-[32px] p-8 flex-1 flex flex-col">
               <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
                 <h2 class="text-base font-bold">Drive 檔案庫</h2>
-                <button onclick="fetchGasFiles()" class="text-xs text-black bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl font-bold transition-colors">
-                  重新掃描
-                </button>
+                <button onclick="fetchGasFiles()" class="text-xs text-black bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl font-bold transition-colors">重新掃描</button>
               </div>
               <div id="gasList" class="space-y-3 overflow-y-auto pr-2 max-h-[500px] min-h-[400px] flex-1">
                 <p class="text-gray-400 text-center mt-20 text-sm font-semibold">讀取中...</p>
@@ -92,12 +62,8 @@
               <h2 class="text-base font-bold mb-6">資源發佈配置</h2>
               
               <div class="flex gap-4 mb-6">
-                <button id="btn-answers" onclick="setDataType('answers')" class="type-btn active flex-1 py-4 border border-gray-200 rounded-[20px] font-bold text-sm transition-colors">
-                  解答庫
-                </button>
-                <button id="btn-textbooks" onclick="setDataType('textbooks')" class="type-btn flex-1 py-4 border border-gray-200 text-gray-400 rounded-[20px] font-bold text-sm transition-colors">
-                  課本庫
-                </button>
+                <button id="btn-answers" onclick="setDataType('answers')" class="type-btn active flex-1 py-4 border border-gray-200 rounded-[20px] font-bold text-sm transition-colors">解答庫</button>
+                <button id="btn-textbooks" onclick="setDataType('textbooks')" class="type-btn flex-1 py-4 border border-gray-200 text-gray-400 rounded-[20px] font-bold text-sm transition-colors">課本庫</button>
               </div>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -108,9 +74,7 @@
                 <input type="url" id="url" readonly class="w-full p-4 rounded-2xl bg-gray-100/50 border border-transparent text-gray-400 text-xs font-mono outline-none" placeholder="雲端網址 (點擊左側自動帶入)">
               </div>
               
-              <button id="submitBtn" onclick="bindFile()" class="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 rounded-2xl transition-transform active:scale-[0.98]">
-                發佈至系統
-              </button>
+              <button id="submitBtn" onclick="bindFile()" class="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 rounded-2xl transition-transform active:scale-[0.98]">發佈至系統</button>
             </div>
 
             <div class="glass-card rounded-[32px] p-8">
@@ -127,15 +91,13 @@
               <select id="delItem" class="w-full p-4 rounded-2xl border border-gray-100 font-bold text-sm bg-gray-50 mb-6 outline-none focus:border-black">
                 <option value="">選擇檔案 (留空刪除整科)</option>
               </select>
-              <button onclick="executeDelete()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-2xl transition-transform active:scale-[0.98]">
-                執行刪除
-              </button>
+              <button onclick="executeDelete()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-2xl transition-transform active:scale-[0.98]">執行刪除</button>
             </div>
           </div>
         </div>
       </div>
 
-      <div id="tab-student" class="hidden space-y-8 fade-enter">
+      <div id="tab-student" class="hidden space-y-8">
         <div class="glass-card rounded-[32px] p-8">
           <h2 class="text-base font-bold mb-6">新增學生</h2>
           <div class="flex flex-col md:flex-row gap-5 items-end">
@@ -145,9 +107,7 @@
             <div class="flex-1 w-full">
               <input type="text" id="newName" class="w-full p-4 rounded-2xl bg-gray-50 border border-gray-100 outline-none focus:border-black font-bold text-sm transition-colors" placeholder="學生姓名">
             </div>
-            <button id="addStudentBtn" onclick="addStudent()" class="w-full md:w-auto bg-black text-white font-bold px-10 py-4 rounded-2xl transition-transform active:scale-[0.98]">
-              建檔
-            </button>
+            <button id="addStudentBtn" onclick="addStudent()" class="w-full md:w-auto bg-black text-white font-bold px-10 py-4 rounded-2xl transition-transform active:scale-[0.98]">建檔</button>
           </div>
         </div>
 
@@ -171,18 +131,15 @@
         </div>
       </div>
 
-      <div id="tab-logs" class="hidden space-y-8 fade-enter">
+      <div id="tab-logs" class="hidden space-y-8">
         <div class="glass-card rounded-[32px] p-8">
           <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-5 mb-8 pb-6 border-b border-gray-100">
             <h2 class="text-base font-bold">活動日誌</h2>
-            
             <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <select id="logFilter" onchange="renderLogs()" class="p-3.5 rounded-2xl border border-gray-100 font-bold text-sm bg-gray-50 outline-none focus:border-black min-w-[200px]">
                 <option value="all">全班總覽</option>
               </select>
-              <button onclick="loadLogs()" class="bg-black text-white px-6 py-3.5 rounded-2xl text-sm font-bold transition-transform active:scale-[0.98]">
-                刷新
-              </button>
+              <button onclick="loadLogs()" class="bg-black text-white px-6 py-3.5 rounded-2xl text-sm font-bold transition-transform active:scale-[0.98]">刷新</button>
             </div>
           </div>
           
@@ -218,14 +175,11 @@
     var fbData = { answers: {}, textbooks: {} };
     var allLogs = [];
 
-    // --- UI 切換 ---
     function switchTab(tabId) {
       ['tab-resource', 'tab-student', 'tab-logs'].forEach(id => document.getElementById(id).classList.add('hidden'));
       ['btn-resource', 'btn-student', 'btn-logs'].forEach(id => document.getElementById(id).classList.remove('active'));
-      
       document.getElementById(tabId).classList.remove('hidden');
       document.getElementById('btn-' + tabId.replace('tab-', '')).classList.add('active');
-      
       if (tabId === 'tab-resource') fetchGasFiles();
       if (tabId === 'tab-student') loadStudents();
       if (tabId === 'tab-logs') loadLogs();
@@ -239,35 +193,23 @@
 
     // --- 資源管理 ---
     function loadBoundData() {
-      return fetch('/api/admin-answers?action=list')
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            fbData = data; 
-            boundUrls.clear();
-            ['answers', 'textbooks'].forEach(t => { 
-              for(var s in data[t]) {
-                for(var k in data[t][s]) {
-                  if(data[t][s][k].url) boundUrls.add(data[t][s][k].url);
-                }
-              }
-            });
-            renderDelSelects();
-          }
-        });
+      return fetch('/api/admin-answers?action=list').then(res => res.json()).then(data => {
+        if (data.success) {
+          fbData = data; boundUrls.clear();
+          ['answers', 'textbooks'].forEach(t => { 
+            for(var s in data[t]) for(var k in data[t][s]) if(data[t][s][k].url) boundUrls.add(data[t][s][k].url);
+          });
+          renderDelSelects();
+        }
+      });
     }
 
     function fetchGasFiles() {
       var list = document.getElementById('gasList');
-      if (!GAS_URL) { 
-        list.innerHTML = "<div class='text-center mt-10 p-6'><p class='text-red-500 font-bold'>請先於程式碼設定 GAS_URL</p></div>"; 
-        return; 
-      }
+      if (!GAS_URL) { list.innerHTML = "<div class='text-center mt-10 p-6'><p class='text-red-500 font-bold'>請設定 GAS_URL</p></div>"; return; }
       list.innerHTML = "<p class='text-gray-400 text-center mt-20 text-sm font-semibold'>掃描中...</p>";
       
-      loadBoundData().then(() => fetch(GAS_URL))
-      .then(res => res.json())
-      .then(data => {
+      loadBoundData().then(() => fetch(GAS_URL)).then(res => res.json()).then(data => {
         if(data.error) throw new Error(data.error);
         var html = '';
         data.forEach(f => {
@@ -279,146 +221,82 @@
           }
         });
         list.innerHTML = html || "<div class='text-center mt-16 p-8'><p class='text-gray-400 font-bold'>雲端檔案皆已發佈</p></div>";
-      }).catch(() => { 
-        list.innerHTML = `<div class='text-center mt-10 p-6'><p class='text-red-500 font-bold'>讀取失敗</p></div>`; 
-      });
+      }).catch(() => { list.innerHTML = `<div class='text-center mt-10 p-6'><p class='text-red-500 font-bold'>讀取失敗</p></div>`; });
     }
 
-    function autoFill(n, u) { 
-      document.getElementById('title').value = n; 
-      document.getElementById('url').value = u; 
-    }
+    function autoFill(n, u) { document.getElementById('title').value = n; document.getElementById('url').value = u; }
 
     function bindFile() {
-      var s = document.getElementById('subject').value.trim();
-      var t = document.getElementById('title').value.trim();
-      var u = document.getElementById('url').value.trim();
+      var s = document.getElementById('subject').value.trim(), t = document.getElementById('title').value.trim(), u = document.getElementById('url').value.trim();
       var btn = document.getElementById('submitBtn');
-
       if (!s || !t || !u) return alert('請完整填寫');
       btn.innerText = '處理中...'; btn.disabled = true;
-
-      fetch('/api/bind-answer', { 
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ type: currentDataType, subject: s, title: t, url: u }) 
-      })
-      .then(res => res.json())
-      .then(data => { 
-        if (data.success) { 
-          document.getElementById('title').value = '';
-          document.getElementById('url').value = '';
-          fetchGasFiles(); 
-        } else { alert('失敗：' + data.message); }
-      })
-      .catch(() => alert('連線失敗'))
-      .finally(() => { btn.innerText = '發佈至系統'; btn.disabled = false; });
+      fetch('/api/bind-answer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: currentDataType, subject: s, title: t, url: u }) })
+      .then(res => res.json()).then(data => { 
+        if (data.success) { document.getElementById('title').value = ''; document.getElementById('url').value = ''; fetchGasFiles(); } else alert('失敗：' + data.message);
+      }).catch(() => alert('連線失敗')).finally(() => { btn.innerText = '發佈至系統'; btn.disabled = false; });
     }
 
     function renderDelSelects() {
-      var t = document.getElementById('delType').value;
-      var sSelect = document.getElementById('delSubject');
+      var t = document.getElementById('delType').value, sSelect = document.getElementById('delSubject');
       sSelect.innerHTML = '<option value="">選擇科目...</option>';
       for (var s in fbData[t]) sSelect.innerHTML += `<option value="${s}">${s}</option>`;
     }
-
     function onSubjChange() {
-      var t = document.getElementById('delType').value;
-      var s = document.getElementById('delSubject').value;
-      var iSelect = document.getElementById('delItem');
+      var t = document.getElementById('delType').value, s = document.getElementById('delSubject').value, iSelect = document.getElementById('delItem');
       iSelect.innerHTML = '<option value="">選擇檔案 (留空刪除整科)</option>';
       if (!s) return;
       for (var k in fbData[t][s]) if (fbData[t][s][k].title) iSelect.innerHTML += `<option value="${k}">${fbData[t][s][k].title}</option>`;
     }
-
     function executeDelete() {
-      var t = document.getElementById('delType').value;
-      var s = document.getElementById('delSubject').value;
-      var k = document.getElementById('delItem').value;
+      var t = document.getElementById('delType').value, s = document.getElementById('delSubject').value, k = document.getElementById('delItem').value;
       if (!s) return alert('請選擇科目');
       if (!confirm('確認刪除？')) return;
-      
-      fetch('/api/admin-answers', { 
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ action: 'delete', type: t, subject: s, key: k }) 
-      }).then(res => res.json()).then(data => { if(data.success) fetchGasFiles(); });
+      fetch('/api/admin-answers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type: t, subject: s, key: k }) }).then(res => res.json()).then(data => { if(data.success) fetchGasFiles(); });
     }
 
-    // --- 學生名單 (修正防呆) ---
+    // --- 學生名單 ---
     function loadStudents() {
       var container = document.getElementById('studentListContainer');
       container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-400 font-semibold">讀取中...</td></tr>';
       
-      fetch('/api/admin-students?action=list')
-      .then(res => res.json())
-      .then(data => {
+      fetch('/api/admin-students?action=list').then(res => res.json()).then(data => {
         if (!data.success) return;
-        
-        // 🏆 終極防呆：確保 data.students 不是 null 或 undefined
-        var studentData = data.students || {};
-        var html = '';
-        var count = 0;
+        var studentData = data.students || {}, html = '', count = 0;
         
         for (var seat in studentData) {
-          count++;
           var stu = studentData[seat];
+          if (!stu) continue; // 終極防護：過濾空資料
+          count++;
           var isB = !!stu.lineId;
           
-          var badge = isB 
-            ? '<span class="bg-black text-white px-3 py-1.5 rounded-xl font-bold text-xs">已綁定</span>' 
-            : '<span class="bg-gray-100 text-gray-400 px-3 py-1.5 rounded-xl font-bold text-xs">未認證</span>';
-            
-          var btn = isB 
-            ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-red-500 font-bold text-xs hover:underline">解除</button>` 
-            : '';
+          var badge = isB ? '<span class="bg-black text-white px-3 py-1.5 rounded-xl font-bold text-xs">已綁定</span>' : '<span class="bg-gray-100 text-gray-400 px-3 py-1.5 rounded-xl font-bold text-xs">未認證</span>';
+          var btn = isB ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-red-500 font-bold text-xs hover:underline">解除</button>` : '';
 
           html += `<tr class="hover:bg-gray-50 transition-colors">
             <td class="p-5 font-bold font-mono text-gray-600">${seat}</td>
-            <td class="p-5 font-bold text-black">${stu.name}</td>
+            <td class="p-5 font-bold text-black">${stu.name || '未知'}</td>
             <td class="p-5">${badge}</td>
             <td class="p-5 text-right">${btn}</td>
           </tr>`;
         }
-        
         container.innerHTML = count > 0 ? html : '<tr><td colspan="4" class="p-10 text-center text-gray-400 font-semibold">目前無資料</td></tr>';
-      })
-      .catch(err => {
-        console.error("API 讀取錯誤:", err);
-        container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-red-500 font-semibold">讀取失敗，請按 F12 查看錯誤</td></tr>';
-      });
+      }).catch(err => { container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-red-500 font-semibold">讀取失敗</td></tr>'; });
     }
 
     function addStudent() {
-      var seatInput = document.getElementById('newSeat');
-      var nameInput = document.getElementById('newName');
-      var btn = document.getElementById('addStudentBtn');
-
-      var s = seatInput.value.trim();
-      var n = nameInput.value.trim();
-
+      var s = document.getElementById('newSeat').value.trim(), n = document.getElementById('newName').value.trim(), btn = document.getElementById('addStudentBtn');
       if (!s || !n) return alert('請填寫完整');
       btn.innerText = '處理中...'; btn.disabled = true;
-
-      fetch('/api/admin-students', { 
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ action: 'add', seat: s, name: n }) 
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          seatInput.value = ''; nameInput.value = '';
-          loadStudents();
-        } else { alert('失敗：' + data.message); }
-      })
-      .catch(err => alert('連線失敗'))
-      .finally(() => { btn.innerText = '建檔'; btn.disabled = false; });
+      fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', seat: s, name: n }) })
+      .then(res => res.json()).then(data => {
+        if (data.success) { document.getElementById('newSeat').value = ''; document.getElementById('newName').value = ''; loadStudents(); } else alert('失敗：' + data.message);
+      }).catch(err => alert('連線失敗')).finally(() => { btn.innerText = '建檔'; btn.disabled = false; });
     }
 
     function unbindStudent(s, l) {
       if (!confirm(`解除 ${s} 綁定？`)) return;
-      fetch('/api/admin-students', { 
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ action: 'unbind', seat: s, lineId: l }) 
-      }).then(res => res.json()).then(data => { if (data.success) loadStudents(); });
+      fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unbind', seat: s, lineId: l }) }).then(res => res.json()).then(data => { if (data.success) loadStudents(); });
     }
 
     // --- 日誌追蹤 ---
@@ -429,26 +307,18 @@
       fetch('/api/admin-logs').then(res => res.json()).then(data => {
         if(data.success) {
           allLogs = data.logs || [];
-          var filter = document.getElementById('logFilter'), uniqueS = new Set();
+          var filter = document.getElementById('logFilter'), uniqueS = new Set(), html = '<option value="all">全班總覽</option>';
           allLogs.forEach(l => uniqueS.add(l.seat));
-          
-          var html = '<option value="all">全班總覽</option>';
           Array.from(uniqueS).sort().forEach(s => html += `<option value="${s}">${s}</option>`);
-          
-          var currentVal = filter.value;
-          filter.innerHTML = html;
-          if(uniqueS.has(currentVal)) filter.value = currentVal;
-          
+          var currentVal = filter.value; filter.innerHTML = html; if(uniqueS.has(currentVal)) filter.value = currentVal;
           renderLogs();
         } else { container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-red-500">讀取失敗</td></tr>'; }
       }).catch(() => { container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-red-500">連線異常</td></tr>'; });
     }
 
     function renderLogs() {
-      var filter = document.getElementById('logFilter').value;
-      var container = document.getElementById('logsContainer'), html = '';
+      var filter = document.getElementById('logFilter').value, container = document.getElementById('logsContainer'), html = '';
       var filtered = filter === 'all' ? allLogs : allLogs.filter(l => l.seat === filter);
-      
       if(filtered.length > 0) {
         filtered.forEach(l => {
           var typeStr = l.type === '解答' ? '解答' : '課本';
@@ -460,12 +330,9 @@
           </tr>`;
         });
         container.innerHTML = html;
-      } else {
-        container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-400 font-semibold">無紀錄</td></tr>';
-      }
+      } else container.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-400 font-semibold">無紀錄</td></tr>';
     }
 
-    // 啟動
     window.onload = () => switchTab('tab-resource');
   </script>
 </body>
