@@ -8,29 +8,17 @@
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
   <style>
-    body {
-      background-color: #F5F5F7;
-      min-height: 100vh; display: flex; justify-content: center; align-items: center;
-      padding: 24px; font-family: 'Inter', -apple-system, sans-serif;
-    }
-    .glass-card {
-      background: rgba(255, 255, 255, 0.75);
-      backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-      border: 1px solid rgba(255, 255, 255, 1);
-      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.04);
-      border-radius: 32px; width: 100%; max-w: 380px; padding: 40px;
-    }
-    .fade-in { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    body { background-color: #F5F5F7; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 24px; font-family: 'Inter', sans-serif; }
+    .glass-card { background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 1); box-shadow: 0 30px 60px rgba(0, 0, 0, 0.04); border-radius: 32px; width: 100%; max-width: 380px; padding: 40px; }
+    .fade-in { animation: fadeIn 0.4s ease forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
-
   <div class="glass-card text-center fade-in" id="step1">
     <div class="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm text-2xl font-black">⚙️</div>
     <h1 class="text-2xl font-black tracking-tight mb-2">身分認證</h1>
     <p class="text-gray-400 text-xs font-semibold mb-8 uppercase tracking-wider">Student Verification</p>
-    
     <input type="text" id="seatInput" class="w-full p-4 rounded-xl bg-gray-50 border border-gray-200 text-black outline-none focus:border-black text-xl text-center tracking-widest font-black transition-all mb-6" placeholder="輸入座號">
     <button onclick="checkSeat()" id="checkBtn" class="w-full bg-black hover:bg-gray-900 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98]">下一步</button>
     <p id="errMsg" class="text-red-500 text-xs font-bold mt-4 hidden"></p>
@@ -40,12 +28,10 @@
     <div class="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm text-2xl font-black">✓</div>
     <h1 class="text-2xl font-black tracking-tight mb-1">確認資訊</h1>
     <p class="text-gray-400 text-xs font-semibold mb-8 uppercase tracking-wider">Confirm Profile</p>
-    
     <div class="bg-gray-50 p-6 rounded-2xl border border-gray-100 mb-8">
       <p class="text-gray-400 text-[10px] font-bold mb-1 tracking-widest">姓名</p>
       <p class="text-2xl font-black text-black" id="nameDisplay"></p>
     </div>
-    
     <div class="flex flex-col gap-3">
       <button onclick="confirmBind()" id="bindBtn" class="w-full bg-black hover:bg-gray-800 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98]">確認綁定</button>
       <button onclick="goBack()" class="text-gray-400 font-semibold text-xs hover:text-black transition-colors py-1">返回修改</button>
@@ -53,13 +39,17 @@
   </div>
 
   <script>
-    var myLiffId = "2009698922-Ili8ydt3"; // ⚠️ 貼上你的 LIFF ID
+    var myLiffId = "2009698922-Ili8ydt3"; // ⚠️ 請填寫 LIFF ID
     var userLineId = "";
     var currentSeat = "";
+    var userAvatar = ""; // 💡 新增：用來裝大頭貼網址
 
     liff.init({ liffId: myLiffId }).then(function() {
       if (!liff.isLoggedIn()) liff.login();
-      liff.getProfile().then(function(profile) { userLineId = profile.userId; });
+      liff.getProfile().then(function(profile) { 
+        userLineId = profile.userId; 
+        userAvatar = profile.pictureUrl || ""; // 抓取頭像
+      });
     });
 
     function checkSeat() {
@@ -67,17 +57,12 @@
       var btn = document.getElementById('checkBtn'), err = document.getElementById('errMsg');
       if (!seat) return;
       btn.innerText = "驗證中..."; btn.disabled = true; err.classList.add('hidden');
-
-      fetch('/api/student-bind', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'check', seat: seat })
-      }).then(res => res.json()).then(data => {
+      fetch('/api/student-bind', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'check', seat: seat }) })
+      .then(res => res.json()).then(data => {
         btn.innerText = "下一步"; btn.disabled = false;
         if (data.success) {
-          currentSeat = seat;
-          document.getElementById('nameDisplay').innerText = data.name;
-          document.getElementById('step1').classList.add('hidden');
-          document.getElementById('step2').classList.remove('hidden');
+          currentSeat = seat; document.getElementById('nameDisplay').innerText = data.name;
+          document.getElementById('step1').classList.add('hidden'); document.getElementById('step2').classList.remove('hidden');
         } else { err.innerText = data.message; err.classList.remove('hidden'); }
       }).catch(() => { btn.innerText = "下一步"; btn.disabled = false; });
     }
@@ -85,16 +70,14 @@
     function goBack() { document.getElementById('step2').classList.add('hidden'); document.getElementById('step1').classList.remove('hidden'); }
 
     function confirmBind() {
-      var btn = document.getElementById('bindBtn');
-      btn.innerText = "處理中..."; btn.disabled = true;
+      var btn = document.getElementById('bindBtn'); btn.innerText = "處理中..."; btn.disabled = true;
       fetch('/api/student-bind', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'confirm', seat: currentSeat, lineId: userLineId })
+        // 💡 關鍵：把 avatar 傳送給後端
+        body: JSON.stringify({ action: 'confirm', seat: currentSeat, lineId: userLineId, avatarUrl: userAvatar })
       }).then(res => res.json()).then(data => {
-        if (data.success) {
-          // 🏆 直接關閉視窗，選單已被後端悄悄切換完畢，體驗極致絲滑！
-          liff.closeWindow();
-        } else { alert(data.message); btn.disabled = false; }
+        if (data.success) liff.closeWindow(); 
+        else { alert(data.message); btn.disabled = false; }
       });
     }
   </script>
