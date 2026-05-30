@@ -66,23 +66,45 @@
     let auth;
     const provider = new firebase.auth.GoogleAuthProvider();
 
-    // 讀取配置並初始化
+    // 🏆 核心安全門神：只有在這個清單內的 Email 才能進入系統
+    const ADMIN_WHITELIST = ['teerylie0215@gmail.com']; 
+
     fetch('/api/config').then(res => res.json()).then(config => {
       if (!firebase.apps.length) firebase.initializeApp(config);
       auth = firebase.auth();
       
-      auth.onAuthStateChanged(user => {
-        // 💡 登入成功，直接跳轉到管理後台
-        if (user) window.location.href = '/admin.html';
+      // 🏆 修正 1：非同步強行捕獲 Google 跳轉回來的帳號憑證
+      auth.getRedirectResult().then(function(result) {
+        if (result && result.user) {
+          verifyAndRedirect(result.user);
+        }
+      }).catch(function(err) {
+        console.error("跳轉驗證攔截異常:", err);
       });
-    }).catch(err => console.error("系統初始化失敗:", err));
+
+      // 監聽狀態
+      auth.onAuthStateChanged(user => {
+        if (user) {
+          verifyAndRedirect(user);
+        }
+      });
+    }).catch(err => console.error("配置載入失敗:", err));
+
+    // 🏆 核心驗證邏輯
+    function verifyAndRedirect(user) {
+      if (ADMIN_WHITELIST.includes(user.email)) {
+        // 白名單符合，准許進入中樞
+        window.location.href = '/admin.html';
+      } else {
+        // 抓到內鬼，強制登出並報警
+        alert(`⚠️ 存取遭拒！\n帳號 [${user.email}] 未配置管理員授權。`);
+        auth.signOut();
+      }
+    }
 
     function signInWithGoogle() { 
-      if (!auth) return alert('系統尚未就緒，請稍候');
-      
-      // 🏆 關鍵修正：將 signInWithPopup 改為 signInWithRedirect
-      // 這樣會直接在當前頁面跳轉到 Google 登入畫面，完美避開所有彈出視窗攔截器！
-      auth.signInWithRedirect(provider).catch(err => alert('跳轉登入失敗：' + err.message)); 
+      if (!auth) return alert('系統初始化中，請稍候...');
+      auth.signInWithRedirect(provider).catch(err => alert('跳轉失敗：' + err.message)); 
     }
   </script>
 </body>
