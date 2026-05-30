@@ -1,0 +1,16 @@
+{
+  "name": "Smart Education Admin",
+  "short_name": "SmartEdu",
+  "start_url": "/admin.html",
+  "display": "standalone",
+  "background_color": "#FAF8F4",
+  "theme_color": "#FAF8F4",
+  "description": "解答一線通 - 系統中樞",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
