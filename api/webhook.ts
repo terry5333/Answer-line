@@ -3,50 +3,30 @@ import axios from 'axios';
 import { db } from './firebase';
 
 export default function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== 'POST') {
-    res.status(200).send('OK');
-    return;
-  }
-  
+  if (req.method !== 'POST') { res.status(200).send('OK'); return; }
   const events = req.body.events;
-  if (!events || events.length === 0) {
-    res.status(200).send('OK');
-    return;
-  }
+  if (!events || events.length === 0) { res.status(200).send('OK'); return; }
 
   const LINE_TOKEN = process.env.LINE_ACCESS_TOKEN;
+  const host = req.headers.host || ''; // 取得當前 Vercel 域名
 
   const tasks = events.map(function(event: any) {
     const replyToken = event.replyToken;
-    const userId = event.source?.userId; 
+    const userId = event.source?.userId || ''; 
 
     if (event.type === 'message' && event.message.type === 'text') {
       const text = event.message.text.trim();
 
-      // 🟢 動作 1：切換圖文選單 (包含剛綁定成功的 @更新選單)
-      if (text === '社會' || text === '課本' || text === '主選單' || text === '返回主選單' || text === '@更新選單') {
+      if (text === '社會' || text === '課本' || text === '主選單' || text === '返回主選單') {
         let menuId = '';
-        if (text === '社會') {
-          menuId = process.env.MENU_SOCIAL || '';
-        } else if (text === '課本') {
-          menuId = process.env.MENU_TEXTBOOK || '';
-        } else {
-          menuId = process.env.MENU_MAIN || '';
-        }
+        if (text === '社會') menuId = process.env.MENU_SOCIAL || '';
+        else if (text === '課本') menuId = process.env.MENU_TEXTBOOK || '';
+        else menuId = process.env.MENU_MAIN || '';
 
         if (menuId && userId) {
-          return switchRichMenu(userId, menuId, LINE_TOKEN).then(function() {
-             if (text === '@更新選單') {
-                 return replyText(replyToken, LINE_TOKEN, '🎉 裝置綁定成功！您的專屬學習選單已啟動。');
-             }
-             return Promise.resolve();
-          });
-        } else {
-          return Promise.resolve();
+          return switchRichMenu(userId, menuId, LINE_TOKEN);
         }
       } 
-      
-      // 🟢 動作 2：去資料庫找解答或課本，並【寫入點擊紀錄】
       else {
         let dbNode = 'answers'; 
         let subject = text;
@@ -62,19 +42,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           if (snapshot.exists()) {
             const dataList = Object.values(snapshot.val());
             const prefix = dbNode === 'textbooks' ? '課本' : '解答';
-            
-            if (userId) {
-              db.ref('logs/access').push({
-                userId: userId,
-                type: logType,
-                subject: subject,
-                timestamp: new Date().toISOString()
-              }).catch(function(e) {
-                console.error("日誌寫入失敗:", e);
-              });
-            }
-
-            return sendFlexMessage(replyToken, LINE_TOKEN, `${subject}${prefix}專區`, dataList);
+            // 將必要的參數全部餵給卡片生成器
+            return sendFlexMessage(replyToken, LINE_TOKEN, `${subject}${prefix}專區`, dataList, userId, host, subject, logType);
           } else {
             return replyText(replyToken, LINE_TOKEN, `目前資料庫還沒有「${text}」的檔案喔！`);
           }
@@ -84,34 +53,24 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
     }
-
     return Promise.resolve();
   });
 
-  Promise.all(tasks).then(function() {
-    res.status(200).send('OK');
-  }).catch(function() {
-    res.status(500).send('Error');
-  });
+  Promise.all(tasks).then(function() { res.status(200).send('OK'); }).catch(function() { res.status(500).send('Error'); });
 }
 
-// === API 函式區 ===
 function switchRichMenu(userId: string, menuId: string, token: string | undefined) {
-  return axios.post(`https://api.line.me/v2/bot/user/${userId}/richmenu/${menuId}`, {}, { 
-    headers: { Authorization: `Bearer ${token}` } 
-  }).then(function() {
-    return Promise.resolve();
-  }).catch(function(e) {
-    console.error('切換選單失敗', e);
-    return Promise.resolve();
-  });
+  return axios.post(`https://api.line.me/v2/bot/user/${userId}/richmenu/${menuId}`, {}, { headers: { Authorization: `Bearer ${token}` } }).then(function() { return Promise.resolve(); }).catch(function() { return Promise.resolve(); });
 }
 
-function sendFlexMessage(replyToken: string, token: string | undefined, titleText: string, items: any[]) {
+function sendFlexMessage(replyToken: string, token: string | undefined, titleText: string, items: any[], userId: string, host: string, subject: string, logType: string) {
   const listItems = items.map(function(item: any) {
+    // 🏆 核心進化：把卡片的按鈕網址，包裝成代理轉址網址，傳遞所有重要特徵參數
+    const proxyUrl = `https://${host}/api/view?uid=${userId}&subj=${encodeURIComponent(subject)}&type=${encodeURIComponent(logType)}&title=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.url)}`;
+    
     return {
       type: "box", layout: "horizontal", spacing: "md", paddingAll: "16px", cornerRadius: "16px", backgroundColor: "#f8fafc",
-      action: { type: "uri", label: "開啟檔案", uri: item.url },
+      action: { type: "uri", label: "開啟檔案", uri: proxyUrl },
       contents: [
         { type: "text", text: "📄", flex: 0, size: "md", gravity: "center" },
         { type: "text", text: item.title, weight: "bold", color: "#111111", size: "sm", gravity: "center", wrap: true }
@@ -142,29 +101,10 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
     }
   };
 
-  return axios.post('https://api.line.me/v2/bot/message/reply', {
-    replyToken: replyToken,
-    messages: [flexMessage]
-  }, {
-    headers: { Authorization: `Bearer ${token}` }
-  }).then(function() {
-    return Promise.resolve();
-  }).catch(function(e) {
-    console.error('Flex Message 失敗', e);
-    return Promise.resolve();
-  });
+  return axios.post('https://api.line.me/v2/bot/message/reply', { replyToken: replyToken, messages: [flexMessage] }, { headers: { Authorization: `Bearer ${token}` } }).then(function() { return Promise.resolve(); });
 }
 
+// 純文字防呆
 function replyText(replyToken: string, token: string | undefined, text: string) {
-  return axios.post('https://api.line.me/v2/bot/message/reply', {
-    replyToken: replyToken,
-    messages: [{ type: 'text', text: text }]
-  }, {
-    headers: { Authorization: `Bearer ${token}` }
-  }).then(function() {
-    return Promise.resolve();
-  }).catch(function(e) {
-    console.error('純文字回覆失敗', e);
-    return Promise.resolve();
-  });
+  return axios.post('https://api.line.me/v2/bot/message/reply', { replyToken: replyToken, messages: [{ type: 'text', text: text }] }, { headers: { Authorization: `Bearer ${token}` } }).then(function() { return Promise.resolve(); });
 }
