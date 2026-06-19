@@ -32,23 +32,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     let body = req.body;
+    if (Buffer.isBuffer(body)) body = body.toString('utf8');
     if (typeof body === 'string') {
       try { body = JSON.parse(body); } catch(e) {}
     }
 
-    const { type, subject, title, url, group } = body || {};
+    const { type, subject, title, url, groups } = body || {};
     
     if (!type || !subject || !title || !url) {
       return res.status(400).json({ success: false, message: '缺少必要發佈參數' });
     }
 
-    const targetGroup = group || '全體';
+    // 🏆 多選核心防禦：若前端沒有傳送身分組陣列，則預設為全體可見
+    let targetGroups = ['全體'];
+    if (Array.isArray(groups) && groups.length > 0) {
+      targetGroups = groups;
+    }
 
     const newRef = db.ref(`${type}/${subject}`).push();
     await newRef.set({
       title: title,
       url: url,
-      group: targetGroup,
+      groups: targetGroups, // 寫入多重身分組陣列
+      group: targetGroups.includes('全體') ? '全體' : targetGroups[0], // 同步保留單一欄位，防堵舊系統破圖
       createdAt: Date.now()
     });
 
