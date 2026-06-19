@@ -1,4 +1,5 @@
-const admin = require('firebase-admin');
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import * as admin from 'firebase-admin';
 
 if (!admin.apps.length) {
   try {
@@ -17,8 +18,8 @@ if (!admin.apps.length) {
 
 const db = admin.database();
 
-module.exports = async function(req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', true);
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
@@ -30,10 +31,9 @@ module.exports = async function(req, res) {
       return res.status(405).json({ success: false, message: 'Method Not Allowed' });
     }
 
-    // 🏆 極限防禦：相容 Vercel 的字串型 Body 解析
     let body = req.body;
     if (typeof body === 'string') {
-      try { body = JSON.parse(body); } catch(e) { console.error("Body 解析失敗:", e); }
+      try { body = JSON.parse(body); } catch(e) {}
     }
 
     const { type, subject, title, url, group } = body || {};
@@ -54,6 +54,6 @@ module.exports = async function(req, res) {
 
     return res.status(200).json({ success: true, id: newRef.key });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: (error as Error).message });
   }
-};
+}
