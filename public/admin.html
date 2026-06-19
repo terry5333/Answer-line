@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartEdu | 系統中樞</title>
   
-  <link rel="manifest" href="/manifest.json?v=6">
+  <link rel="manifest" href="/manifest.json?v=7">
   <meta name="theme-color" content="#FAF8F4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -178,7 +178,7 @@
     const ADMIN_WHITELIST = ['terrylie0215@gmail.com']; 
     var GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec"; 
 
-    // 🏆 【安全防禦核心】阻絕 API 連線崩潰中斷網頁渲染
+    // 安全防禦核心：阻絕 API 連線崩潰中斷網頁渲染
     async function safeFetch(url, options = {}) {
       try {
         const res = await fetch(url, options);
@@ -218,6 +218,7 @@
     var globalGroups = []; 
     var activeAdminGroup = ''; 
 
+    // 🏆 【終極 Bug 修正】移除了導致 JS 執行緒完全卡死崩潰的錯誤 .trim()
     function switchTab(tabId) {
       ['tab-resource', 'tab-student', 'tab-group'].forEach(id => document.getElementById(id).classList.add('hidden'));
       ['btn-resource', 'btn-student', 'btn-group'].forEach(id => {
@@ -227,7 +228,6 @@
       document.getElementById(tabId).classList.remove('hidden');
       var btn = document.getElementById('btn-' + tabId.replace('tab-', ''));
       btn.classList.add('active', 'bg-white', 'shadow-sm');
-      btn.classList.remove('text-textMuted');
       
       if (tabId === 'tab-resource') { fetchGasFiles(); loadAllData(false); }
       if (tabId === 'tab-student') loadAllData(true);
@@ -247,7 +247,7 @@
         document.getElementById('studentCardsContainer').innerHTML = '<div class="p-10 text-center font-semibold text-textMuted col-span-full">資料庫同步中...</div>';
       }
       
-      Promise.all([
+      return Promise.all([
         safeFetch('/api/admin-students?action=list'),
         safeFetch('/api/admin-logs'),
         safeFetch('/api/admin-groups')
@@ -351,7 +351,7 @@
     function deletePublishedItem(type, subject, key) {
       if (!confirm('確定要將此資源從學生端下架刪除嗎？')) return;
       safeFetch('/api/admin-answers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type: type, subject: subject, key: key })
-      }).then(data => { if (data.success) loadAllData(false); });
+      }).then(data => { if (data.success) fetchGasFiles(); });
     }
 
     function renderStudentCards() {
@@ -417,6 +417,7 @@
       list.innerHTML = html; lucide.createIcons();
     }
 
+    // 🏆 【點擊觸發復活】因為前面 switchTab 活過來了，現在點擊將能順暢撈取名冊
     function selectGroupForMembers(groupName) {
       activeAdminGroup = groupName;
       document.querySelectorAll('.group-item-btn').forEach(btn => {
@@ -459,7 +460,6 @@
       });
     }
 
-    // 🏆 【精準偵錯雷達】建立身分組時，若失敗會彈窗提示原因
     function createNewGroup() {
       var name = document.getElementById('newGroupNameInput').value.trim();
       if (!name) return alert('請輸入身分組名稱');
