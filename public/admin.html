@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartEdu | 系統中樞</title>
   
-  <link rel="manifest" href="/manifest.json?v=5">
+  <link rel="manifest" href="/manifest.json?v=6">
   <meta name="theme-color" content="#FAF8F4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -75,7 +75,7 @@
     </header>
 
     <main class="px-8 pb-20">
-      
+      <!-- ================= 頁籤 1：資源管理 ================= -->
       <div id="tab-resource" class="grid grid-cols-1 lg:grid-cols-12 gap-6 fade-up">
         <div class="lg:col-span-7 flex flex-col gap-6">
           <div class="glass-card p-8 flex flex-col min-h-[540px] relative overflow-hidden">
@@ -121,6 +121,7 @@
         </div>
       </div>
 
+      <!-- ================= 頁籤 2：學生戰情室 ================= -->
       <div id="tab-student" class="hidden fade-up space-y-6">
         <div class="glass-card p-6 md:p-8 flex flex-col lg:flex-row justify-between items-center gap-6">
           <div class="flex flex-col md:flex-row gap-4 items-center w-full lg:w-auto flex-1">
@@ -137,9 +138,9 @@
         <div id="studentCardsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
       </div>
 
+      <!-- ================= 頁籤 3：身分組管理 ================= -->
       <div id="tab-group" class="hidden fade-up">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
           <div class="lg:col-span-5 glass-card p-8">
             <div class="flex items-center gap-3 mb-6">
               <div class="p-2 bg-cobaltBg rounded-xl"><i data-lucide="users" class="w-5 h-5 text-accentCobalt"></i></div>
@@ -151,7 +152,6 @@
             </div>
             <div class="space-y-2 overflow-y-auto max-h-[400px] pr-1" id="groupListContainer"></div>
           </div>
-
           <div class="lg:col-span-7 glass-card p-8 min-h-[480px] flex flex-col">
             <div id="groupMembersHeader" class="border-b border-[#EDE8E0] pb-4 mb-4 flex justify-between items-center">
               <div>
@@ -164,7 +164,6 @@
               <div class="text-center font-semibold text-textMuted col-span-full py-20 italic">← 請先點擊左側任何一個身分組來配置成員</div>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -172,10 +171,31 @@
   </div>
 
   <script>
+    lucide.createIcons();
     let auth;
+    
     // ⚠️ 填寫您的管理員信箱與 GAS_URL
     const ADMIN_WHITELIST = ['terrylie0215@gmail.com']; 
-    var GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/execL"; 
+    var GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec"; 
+
+    // 🏆 【裝甲防護盾】安全拉取 API，死掉的 API 不會拖垮整頁
+    async function safeFetch(url, options = {}) {
+      try {
+        const res = await fetch(url, options);
+        const text = await res.text();
+        try {
+          const data = JSON.parse(text);
+          if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+          return data;
+        } catch (e) {
+          console.error(`🔴 [API 崩潰] 網址: ${url} | 伺服器回傳了無效內容:`, text);
+          return { success: false, message: `後端當機 (${res.status})` };
+        }
+      } catch (err) {
+        console.error(`🔴 [連線失敗] 網址: ${url} | 錯誤:`, err);
+        return { success: false, message: err.message };
+      }
+    }
 
     fetch('/api/config').then(res => res.json()).then(config => {
         if (!firebase.apps.length) firebase.initializeApp(config);
@@ -196,7 +216,7 @@
     var globalStudents = {};
     var globalLogs = [];
     var globalGroups = []; 
-    var activeAdminGroup = ''; // 當前選中要勾選成員的身分組
+    var activeAdminGroup = ''; 
 
     function switchTab(tabId) {
       ['tab-resource', 'tab-student', 'tab-group'].forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -206,7 +226,7 @@
       });
       document.getElementById(tabId).classList.remove('hidden');
       var btn = document.getElementById('btn-' + tabId.replace('tab-', ''));
-      btn.classList.add('active', 'bg-white', 'shadow-sm').trim();
+      btn.classList.add('active', 'bg-white', 'shadow-sm');
       btn.classList.remove('text-textMuted');
       
       if (tabId === 'tab-resource') { fetchGasFiles(); loadAllData(false); }
@@ -226,37 +246,64 @@
       if(renderCards && globalGroups.length === 0) {
         document.getElementById('studentCardsContainer').innerHTML = '<div class="p-10 text-center font-semibold text-textMuted col-span-full">資料庫同步中...</div>';
       }
-      return Promise.all([
-        fetch('/api/admin-students?action=list').then(res => res.json()),
-        fetch('/api/admin-logs').then(res => res.json()),
-        fetch('/api/admin-groups').then(res => res.json())
+      
+      Promise.all([
+        safeFetch('/api/admin-students?action=list'),
+        safeFetch('/api/admin-logs'),
+        safeFetch('/api/admin-groups')
       ]).then(function(results) {
-        if (results[0].success) globalStudents = results[0].students || {};
-        if (results[1].success) globalLogs = results[1].logs || [];
-        globalGroups = results[2].success && results[2].groups ? Object.keys(results[2].groups) : [];
+        var stuRes = results[0], logRes = results[1], grpRes = results[2];
+
+        // 偵錯系統：在主控台印出錯誤的兇手
+        if (!stuRes.success) console.error("❌ 學生名單讀取失敗:", stuRes.message);
+        if (!logRes.success) console.error("❌ 足跡紀錄讀取失敗:", logRes.message);
+        if (!grpRes.success) console.error("❌ 身分組讀取失敗:", grpRes.message);
+
+        globalStudents = stuRes.success ? (stuRes.students || {}) : {};
+        
+        if (logRes.success && logRes.logs) {
+            globalLogs = Array.isArray(logRes.logs) ? logRes.logs : Object.values(logRes.logs);
+        } else {
+            globalLogs = [];
+        }
+
+        globalGroups = grpRes.success && grpRes.groups ? Object.keys(grpRes.groups) : [];
 
         renderPublishGroupSelect(); 
         if(renderCards) {
           renderStudentCards(); 
           renderGroupList();    
-          if(activeAdminGroup) selectGroupForMembers(activeAdminGroup); // 保持選中狀態與右側勾選列表
+          if(activeAdminGroup) selectGroupForMembers(activeAdminGroup); 
         }
       });
     }
 
-    // --- 頁籤 1：資源雲端硬碟自動填入與發佈 ---
     function fetchGasFiles() {
       var list = document.getElementById('gasList');
       if (!GAS_URL || GAS_URL.includes("YOUR_GAS_URL")) { list.innerHTML = "<p class='text-center mt-20 text-accentTerra font-bold'>請先配置 GAS_URL 變數</p>"; return; }
-      fetch('/api/admin-answers?action=list').then(res => res.json()).then(data => {
-        if (data.success) { fbData = data; boundUrls.clear(); ['answers', 'textbooks'].forEach(t => { for(var s in data[t]) for(var k in data[t][s]) if(data[t][s][k].url) boundUrls.add(data[t][s][k].url); }); renderDelSelects(); }
-        return fetch(GAS_URL);
-      }).then(res => res.json()).then(data => {
+      
+      safeFetch('/api/admin-answers?action=list').then(data => {
+        if (data.success) { 
+          fbData = data; boundUrls.clear(); 
+          ['answers', 'textbooks'].forEach(t => { 
+            if(data[t]) for(var s in data[t]) for(var k in data[t][s]) if(data[t][s][k].url) boundUrls.add(data[t][s][k].url); 
+          }); 
+          renderDelSelects(); 
+        } else {
+          console.error("❌ 答案庫讀取失敗:", data.message);
+        }
+        return fetch(GAS_URL).catch(() => null);
+      }).then(res => res ? res.json() : null).then(data => {
+        if (!data || data.error) throw new Error(data ? data.error : "GAS API 無回應");
         var html = '';
         data.forEach(f => { if (!boundUrls.has(f.url)) { html += `<div class="p-4 rounded-xl mb-3 cursor-pointer transition-all flex justify-between items-center bg-white border border-[#EDE8E0] hover:-translate-y-0.5 hover:shadow-sm" onclick="autoFill('${f.name}','${f.url}')"><span class="text-sm font-bold truncate pr-4 text-textMain">${f.name}</span><span class="text-[10px] px-3 py-1.5 rounded-lg font-bold bg-sageBg text-accentSage tracking-wide uppercase">Select</span></div>`; } });
         list.innerHTML = html || `<p class='text-center mt-16 font-bold text-textMuted'>檔案皆已發佈完畢 ✨</p>`;
+      }).catch(err => {
+        list.innerHTML = `<p class='text-center mt-10 text-accentTerra font-bold'>GAS 雲端硬碟讀取失敗</p>`;
+        console.error(err);
       });
     }
+
     function autoFill(n, u) { document.getElementById('title').value = n; document.getElementById('url').value = u; }
     
     function renderPublishGroupSelect() {
@@ -269,15 +316,14 @@
       var s = document.getElementById('subject').value.trim(), t = document.getElementById('title').value.trim(), u = document.getElementById('url').value.trim(), g = document.getElementById('publishGroup').value;
       var btn = document.getElementById('submitBtn'); if (!s || !t || !u) return alert('請完整填寫發佈欄位');
       btn.innerText = '處理中...'; btn.disabled = true;
-      fetch('/api/bind-answer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: currentDataType, subject: s, title: t, url: u, group: g }) })
-      .then(res => res.json()).then(data => { if (data.success) { document.getElementById('title').value = ''; document.getElementById('url').value = ''; fetchGasFiles(); } else alert('失敗：' + data.message); }).finally(() => { btn.innerText = '發佈至系統 Publish'; btn.disabled = false; });
+      safeFetch('/api/bind-answer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: currentDataType, subject: s, title: t, url: u, group: g }) })
+      .then(data => { if (data.success) { document.getElementById('title').value = ''; document.getElementById('url').value = ''; fetchGasFiles(); } else alert('失敗：' + data.message); }).finally(() => { btn.innerText = '發佈至系統 Publish'; btn.disabled = false; });
     }
 
-    // 🏆 升級功能：渲染已發佈資源，提供「即時更變以前解答身分組」與下架功能
     function renderDelSelects() {
       var t = document.getElementById('delType').value, sSelect = document.getElementById('delSubject');
       sSelect.innerHTML = '<option value="">選擇科目...</option>';
-      for (var s in fbData[t]) sSelect.innerHTML += `<option value="${s}">${s}</option>`;
+      if(fbData[t]) for (var s in fbData[t]) sSelect.innerHTML += `<option value="${s}">${s}</option>`;
       document.getElementById('publishedItemsContainer').innerHTML = '<p class="text-center text-xs text-textMuted py-8">請先選擇上方科目以管理現有解答...</p>';
     }
     
@@ -290,8 +336,6 @@
       for (var key in items) {
         var item = items[key];
         var currentGroup = item.group || '全體';
-        
-        // 生成給以前解答更換身分組的下拉選單
         var optHtml = `<option value="全體" ${currentGroup==='全體'?'selected':''}>全體可見</option>`;
         globalGroups.forEach(g => { optHtml += `<option value="${g}" ${currentGroup===g?'selected':''}>限 ${g}</option>`; });
 
@@ -310,23 +354,16 @@
     }
 
     function updatePreviousAnswerGroup(type, subject, key, newGroup) {
-      fetch('/api/admin-answers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'updateGroup', type: type, subject: subject, key: key, group: newGroup })
-      }).then(res => res.json()).then(data => { if (!data.success) alert('更變身分組失敗'); });
+      safeFetch('/api/admin-answers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'updateGroup', type: type, subject: subject, key: key, group: newGroup })
+      }).then(data => { if (!data.success) alert('更變身分組失敗'); });
     }
 
     function deletePublishedItem(type, subject, key) {
       if (!confirm('確定要將此資源從學生端下架刪除嗎？')) return;
-      fetch('/api/admin-answers', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', type: type, subject: subject, key: key })
-      }).then(res => res.json()).then(data => { if (data.success) fetchGasFiles(); });
+      safeFetch('/api/admin-answers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type: type, subject: subject, key: key })
+      }).then(data => { if (data.success) fetchGasFiles(); });
     }
 
-    // --- 頁籤 2：學生戰情室 (🏆 僅做「顯示」不在此處管理群組) ---
     function renderStudentCards() {
       var container = document.getElementById('studentCardsContainer'), html = '', count = 0, logsBySeat = {};
       globalLogs.forEach(l => { if (l.seat && l.seat !== '未綁定') { if (!logsBySeat[l.seat]) logsBySeat[l.seat] = []; logsBySeat[l.seat].push(l); } });
@@ -338,18 +375,15 @@
         var statusBadge = isBound ? `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase bg-sageBg text-accentSage">已綁定</span>` : `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase bg-gray-100 text-textMuted">未綁定</span>`;
         var unbindBtn = isBound ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-accentTerra hover:bg-terraBg p-1.5 rounded-lg transition-colors" title="解除綁定"><i data-lucide="unlink" class="w-4 h-4"></i></button>` : '';
 
-        // 🏆 只顯示身分組標籤，剔除修改下拉選單
         var studentGroups = stu.groups ? Object.keys(stu.groups) : [];
         var groupBadges = '';
-        studentGroups.forEach(g => {
-            groupBadges += `<span class="px-2 py-0.5 rounded bg-cobaltBg border border-accentCobalt text-accentCobalt text-[10px] font-bold shadow-sm">${g}</span>`;
-        });
+        studentGroups.forEach(g => { groupBadges += `<span class="px-2 py-0.5 rounded bg-cobaltBg border border-accentCobalt text-accentCobalt text-[10px] font-bold shadow-sm">${g}</span>`; });
         if (studentGroups.length === 0) groupBadges = `<span class="text-[10px] text-textMuted italic">一般全體</span>`;
 
         var logHtml = '';
         if (myLogs.length > 0) {
           myLogs.forEach(function(l) {
-            var shortTime = l.time.split(' ')[1] ? l.time.split(' ')[1].substring(0, 5) : l.time;
+            var shortTime = l.time && l.time.split(' ')[1] ? l.time.split(' ')[1].substring(0, 5) : l.time;
             logHtml += `<div class="flex items-center justify-between py-2.5 border-b border-[#EDE8E0] last:border-0 hover:bg-white/50 transition-colors px-1 group"><div class="flex items-center gap-3 min-w-0 flex-1"><span class="text-[10px] font-mono text-textMuted w-8">${shortTime}</span><div class="w-1 h-4 rounded-full ${l.type === '解答' ? 'bg-accentTerra' : 'bg-accentCobalt'}"></div><p class="text-xs font-bold truncate pr-2 text-textMain" title="${l.fileTitle}">${l.fileTitle}</p></div><button onclick="deleteSingleLog('${l.id}')" class="text-[#EDE8E0] group-hover:text-accentTerra text-xs px-2 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div>`;
           });
         } else { logHtml = `<div class="flex items-center justify-center h-full text-[11px] font-bold py-6 text-textMuted opacity-60">無足跡紀錄</div>`; }
@@ -379,7 +413,6 @@
       lucide.createIcons();
     }
 
-    // --- 頁籤 3：身分組管理 (🏆 左右雙面板名冊勾選核心邏輯) ---
     function renderGroupList() {
       var list = document.getElementById('groupListContainer');
       if (globalGroups.length === 0) { list.innerHTML = '<p class="text-xs text-textMuted text-center py-6">請在上方建立第一個群組</p>'; return; }
@@ -394,11 +427,8 @@
       list.innerHTML = html; lucide.createIcons();
     }
 
-    // 🏆 點擊左邊身分組，右邊立刻浮現全班學生進行「勾選配置」
     function selectGroupForMembers(groupName) {
       activeAdminGroup = groupName;
-      
-      // 亮色高亮左側選中的群組
       document.querySelectorAll('.group-item-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.innerText.includes(groupName)) btn.classList.add('active');
@@ -406,52 +436,34 @@
 
       document.getElementById('selectedGroupNameTitle').innerText = `成員配置：限【${groupName}】`;
       var container = document.getElementById('membersCheckboxContainer');
-      
-      var html = '';
-      var memberCount = 0;
-
-      // 排序座號依序渲染
+      var html = ''; var memberCount = 0;
       var sortedSeats = Object.keys(globalStudents).sort();
       sortedSeats.forEach(seat => {
         var stu = globalStudents[seat];
         var isMember = stu.groups && stu.groups[groupName] === true;
         if (isMember) memberCount++;
-
         html += `<label class="bg-white border border-[#EDE8E0] p-3 rounded-xl flex items-center gap-3 cursor-pointer select-none hover:bg-gray-50 transition-colors shadow-sm relative">
           <input type="checkbox" ${isMember ? 'checked' : ''} onchange="toggleStudentCheckbox('${seat}', '${groupName}', this.checked)" class="w-4 h-4 rounded text-accentCobalt focus:ring-accentCobalt border-gray-300 cursor-pointer">
-          <div class="min-w-0">
-            <span class="text-xs font-mono text-textMuted mr-1">[${seat}]</span>
-            <span class="text-sm font-bold text-textMain">${stu.name || '未知'}</span>
-          </div>
+          <div class="min-w-0"><span class="text-xs font-mono text-textMuted mr-1">[${seat}]</span><span class="text-sm font-bold text-textMain">${stu.name || '未知'}</span></div>
         </label>`;
       });
 
       container.innerHTML = html || '<p class="text-center text-xs text-textMuted col-span-full py-10">目前尚無學生註冊，請先前往戰情室建檔。</p>';
-      
       var badge = document.getElementById('memberCountBadge');
-      badge.innerText = `成員總數: ${memberCount} 人`;
-      badge.classList.remove('hidden');
+      badge.innerText = `成員總數: ${memberCount} 人`; badge.classList.remove('hidden');
     }
 
-    // 🏆 當勾選狀態改變時，後台秒速同步
     function toggleStudentCheckbox(seat, groupName, isChecked) {
       var action = isChecked ? 'assign' : 'unassign';
-      
-      // 本地快取即時更新 (防止重新讀取造成畫面閃爍，提供極致流暢操作)
       if (!globalStudents[seat].groups) globalStudents[seat].groups = {};
       if (isChecked) globalStudents[seat].groups[groupName] = true;
       else delete globalStudents[seat].groups[groupName];
       
-      fetch('/api/admin-groups', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: action, seat: seat, groupName: groupName })
-      }).then(res => res.json()).then(data => {
+      safeFetch('/api/admin-groups', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: action, seat: seat, groupName: groupName })
+      }).then(data => {
         if (!data.success) { alert('同步失敗，重新整理中'); loadAllData(); } 
         else {
-          // 動態計算成員總數
-          var count = 0;
-          for(var s in globalStudents) { if(globalStudents[s].groups && globalStudents[s].groups[groupName]) count++; }
+          var count = 0; for(var s in globalStudents) { if(globalStudents[s].groups && globalStudents[s].groups[groupName]) count++; }
           document.getElementById('memberCountBadge').innerText = `成員總數: ${count} 人`;
         }
       });
@@ -461,22 +473,22 @@
       var name = document.getElementById('newGroupNameInput').value.trim();
       if (!name) return alert('請輸入身分組名稱');
       var btn = document.getElementById('btnCreateGroup'); btn.innerText = '..'; btn.disabled = true;
-      fetch('/api/admin-groups', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action: 'add', groupName: name})})
-      .then(res => res.json()).then(data => { if (data.success) { document.getElementById('newGroupNameInput').value = ''; activeAdminGroup = data.groupName; loadAllData(); } })
+      safeFetch('/api/admin-groups', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action: 'add', groupName: name})})
+      .then(data => { if (data.success) { document.getElementById('newGroupNameInput').value = ''; activeAdminGroup = data.groupName || name; loadAllData(); } })
       .finally(() => { btn.innerText = '建立'; btn.disabled = false; });
     }
 
     function deleteGroup(name) {
       if (!confirm(`確定要永久刪除 [${name}] 身分組嗎？`)) return;
       if (activeAdminGroup === name) activeAdminGroup = '';
-      fetch('/api/admin-groups', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action: 'delete', groupName: name})})
-      .then(res => res.json()).then(data => { if (data.success) loadAllData(); });
+      safeFetch('/api/admin-groups', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action: 'delete', groupName: name})})
+      .then(data => { if (data.success) loadAllData(); });
     }
 
-    function addStudent() { var s = document.getElementById('newSeat').value.trim(), n = document.getElementById('newName').value.trim(), btn = document.getElementById('addStudentBtn'); if (!s || !n) return alert('請填寫完整名單資訊'); btn.innerText = '..'; btn.disabled = true; fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', seat: s, name: n }) }).then(res => res.json()).then(data => { if (data.success) { document.getElementById('newSeat').value = ''; document.getElementById('newName').value = ''; loadAllData(); } }).finally(() => { btn.innerText = '建檔 Add'; btn.disabled = false; }); }
-    function unbindStudent(s, l) { if (!confirm(`確定要強行解除座號 ${s} 的裝置綁定狀態嗎？`)) return; fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unbind', seat: s, lineId: l }) }).then(res => res.json()).then(data => { if (data.success) loadAllData(); }); }
-    function clearAllLogs() { if (!confirm("⚠️ 確定要永久刪除全班足跡紀錄嗎？")) return; fetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearAll' }) }).then(res => res.json()).then(data => { if (data.success) loadAllData(); }); }
-    function deleteSingleLog(logId) { if (!confirm("確定要抹除本條點擊紀錄嗎？")) return; fetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearSingle', logId: logId }) }).then(res => res.json()).then(data => { if (data.success) loadAllData(); }); }
+    function addStudent() { var s = document.getElementById('newSeat').value.trim(), n = document.getElementById('newName').value.trim(), btn = document.getElementById('addStudentBtn'); if (!s || !n) return alert('請填寫完整名單資訊'); btn.innerText = '..'; btn.disabled = true; safeFetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', seat: s, name: n }) }).then(data => { if (data.success) { document.getElementById('newSeat').value = ''; document.getElementById('newName').value = ''; loadAllData(); } }).finally(() => { btn.innerText = '建檔 Add'; btn.disabled = false; }); }
+    function unbindStudent(s, l) { if (!confirm(`確定要強行解除座號 ${s} 的裝置綁定狀態嗎？`)) return; safeFetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unbind', seat: s, lineId: l }) }).then(data => { if (data.success) loadAllData(); }); }
+    function clearAllLogs() { if (!confirm("⚠️ 確定要永久刪除全班足跡紀錄嗎？")) return; safeFetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearAll' }) }).then(data => { if (data.success) loadAllData(); }); }
+    function deleteSingleLog(logId) { if (!confirm("確定要抹除本條點擊紀錄嗎？")) return; safeFetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearSingle', logId: logId }) }).then(data => { if (data.success) loadAllData(); }); }
   </script>
 </body>
 </html>
