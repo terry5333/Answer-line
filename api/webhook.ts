@@ -29,15 +29,11 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
         return Promise.resolve();
       } 
       else {
-        // 🏆 擋修機制：查詢前先驗證身分
-        // 加上 async 關鍵字，讓我們可以在裡面使用 await 撈取身分組
         return db.ref(`users/${userId}`).once('value').then(async function(userSnap) {
           if (!userSnap.exists()) {
-            // 沒有綁定，直接退回
             return replyText(replyToken, LINE_TOKEN, '⚠️ 權限不足\n您尚未綁定系統，請先點擊選單的「身分認證」進行綁定喔！');
           }
 
-          // 🏆 取得學生的座號，藉此去 students 節點拿取最新的「身分組標籤」
           const userData = userSnap.val();
           const seat = userData.seat;
           let studentGroups: any = {};
@@ -45,12 +41,10 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           if (seat) {
             const studentSnap = await db.ref(`students/${seat}`).once('value');
             if (studentSnap.exists()) {
-              // 把學生身上的標籤抓下來，例如 { "補習班": true, "A組": true }
               studentGroups = studentSnap.val().groups || {};
             }
           }
 
-          // 已綁定，繼續處理解答邏輯
           let dbNode = 'answers'; 
           let subject = text;
           let logType = '解答';
@@ -65,15 +59,17 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
             if (snapshot.exists()) {
               const dataList = Object.values(snapshot.val());
               
-              // 🛡️ 終極權限過濾器：檢查身分證！
+              // 🛡️ 升級版：多重權限聯集交叉比對過濾器
               const allowedDataList = dataList.filter((item: any) => {
-                const reqGroup = item.group || '全體';
-                if (reqGroup === '全體') return true; // 1. 全體開放，直接放行
-                if (studentGroups[reqGroup] === true) return true; // 2. 學生身上有專屬標籤，放行
-                return false; // 3. 權限不符，擋下剃除！
+                // 相容舊資料：優先讀取新版 groups 陣列，若無則將舊版單一字串包成陣列解析
+                const itemGroups: string[] = Array.isArray(item.groups) ? item.groups : [item.group || '全體'];
+                
+                if (itemGroups.includes('全體')) return true; // 1. 只要包含全體開放，直接放行
+                
+                // 2. 使用 .some() 交叉比對：只要學生的多重身分組與解答要求的任一身分組吻合，即判定有權檢視！
+                return itemGroups.some((g: string) => studentGroups[g] === true);
               });
 
-              // 如果剃除完之後，發現這科他一份解答都沒資格看
               if (allowedDataList.length === 0) {
                 return replyText(replyToken, LINE_TOKEN, `⚠️ 權限受限\n目前「${text}」分類中，沒有開放給您所屬身分組的專屬資源喔！`);
               }
