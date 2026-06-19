@@ -70,7 +70,6 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
               }
 
               const prefix = dbNode === 'textbooks' ? '課本' : '解答';
-              // 呼叫全新的美化版 Flex Message
               return sendFlexMessage(replyToken, LINE_TOKEN, `${subject}${prefix}專區`, allowedDataList, userId, host, subject, logType);
             } else {
               return replyText(replyToken, LINE_TOKEN, `目前資料庫還沒有「${text}」的檔案喔！`);
@@ -92,7 +91,7 @@ function switchRichMenu(userId: string, menuId: string, token: string | undefine
   return axios.post(`https://api.line.me/v2/bot/user/${userId}/richmenu/${menuId}`, {}, { headers: { Authorization: `Bearer ${token}` } }).then(function() { return Promise.resolve(); }).catch(function() { return Promise.resolve(); });
 }
 
-// 🏆 徹底翻新的極簡現代版 Flex Message (Clean UI)
+// 🏆 修正版：嚴格符合 LINE API 標準的極簡質感 Flex Message
 function sendFlexMessage(replyToken: string, token: string | undefined, titleText: string, items: any[], userId: string, host: string, subject: string, logType: string) {
   const listItems = items.map(function(item: any) {
     const proxyUrl = `https://${host}/api/view?uid=${userId}&subj=${encodeURIComponent(subject)}&type=${encodeURIComponent(logType)}&title=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.url)}`;
@@ -101,12 +100,13 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
       layout: "horizontal", 
       spacing: "md", 
       paddingAll: "16px", 
-      cornerRadius: "20px", // 圓潤的大圓角設計
+      cornerRadius: "20px", 
       backgroundColor: "#FFFFFF", 
       alignItems: "center",
       action: { type: "uri", label: "開啟檔案", uri: proxyUrl },
       contents: [
-        { type: "box", layout: "vertical", width: "4px", backgroundColor: "#4A8B6F", cornerRadius: "full" }, // 質感左側綠色修飾線
+        // 🔥 關鍵修復：補上 LINE 強制要求的 contents 陣列，並將圓角改為標準的 "md"
+        { type: "box", layout: "vertical", width: "4px", backgroundColor: "#4A8B6F", cornerRadius: "md", contents: [{ type: "filler" }] }, 
         { type: "text", text: "📄", flex: 0, size: "md" },
         { type: "text", text: item.title, weight: "bold", color: "#334155", size: "sm", gravity: "center", wrap: true, flex: 1 },
         { type: "box", layout: "vertical", backgroundColor: "#EDF5F1", paddingAll: "6px", cornerRadius: "8px", flex: 0, contents: [
@@ -126,9 +126,8 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
         type: "box", 
         layout: "vertical", 
         paddingAll: "0px", 
-        backgroundColor: "#F4F7F6", // 柔和的淺灰底色
+        backgroundColor: "#F4F7F6",
         contents: [
-          // 頂部高雅的白底標題區塊
           { 
             type: "box", 
             layout: "vertical", 
@@ -143,7 +142,6 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
               { type: "text", text: "點擊下方卡片即可查看或下載內容", color: "#94A3B8", size: "xs", margin: "sm" }
             ] 
           },
-          // 下方漂浮感卡片列表
           { 
             type: "box", 
             layout: "vertical", 
