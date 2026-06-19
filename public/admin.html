@@ -5,8 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartEdu | 系統中樞</title>
   
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/manifest.json?v=3">
   <meta name="theme-color" content="#FAF8F4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="SmartEdu">
+  <link class="apple-touch-icon" href="/icon-192.png">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -22,22 +26,11 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: {
-            sans: ['"Instrument Sans"', 'sans-serif'],
-            serif: ['Fraunces', 'serif'],
-          },
+          fontFamily: { sans: ['"Instrument Sans"', 'sans-serif'], serif: ['Fraunces', 'serif'] },
           colors: {
-            bgCream: '#FAF8F4',
-            textMain: '#1A1209',
-            textBody: '#4A3F30',
-            textMuted: '#8C7D6B',
-            accentTerra: '#D4654A', terraBg: '#FDF0EC',
-            accentSaffron: '#E8913A', saffronBg: '#FEF4E8',
-            accentSage: '#4A8B6F', sageBg: '#EDF5F1',
-            accentCobalt: '#3A5FC4', cobaltBg: '#EDF1FB',
-          },
-          boxShadow: {
-            glass: '0 8px 32px rgba(26, 18, 9, 0.03)',
+            bgCream: '#FAF8F4', textMain: '#1A1209', textBody: '#4A3F30', textMuted: '#8C7D6B',
+            accentTerra: '#D4654A', terraBg: '#FDF0EC', accentSaffron: '#E8913A', saffronBg: '#FEF4E8',
+            accentSage: '#4A8B6F', sageBg: '#EDF5F1', accentCobalt: '#3A5FC4', cobaltBg: '#EDF1FB',
           }
         }
       }
@@ -46,42 +39,22 @@
 
   <style>
     body { background-color: #FAF8F4; color: #1A1209; min-height: 100vh; overflow-x: hidden; }
-    
-    .glass-card {
-      background: rgba(255, 253, 249, 0.85);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(237, 232, 224, 0.8);
-      border-radius: 20px;
-      box-shadow: 0 8px 32px rgba(26, 18, 9, 0.03);
-      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+    .glass-card { background: rgba(255, 253, 249, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(237, 232, 224, 0.8); border-radius: 20px; box-shadow: 0 8px 32px rgba(26, 18, 9, 0.03); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
     .glass-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(26, 18, 9, 0.06); }
-
     .themed-input { background: #FFFFFF; border: 1px solid rgba(237, 232, 224, 0.8); color: #1A1209; transition: all 0.3s; border-radius: 12px; }
     .themed-input:focus { border-color: #D4654A; outline: none; box-shadow: 0 0 0 3px #FDF0EC; }
-    
     .btn-primary { background: #1A1209; color: #FFFFFF; border-radius: 12px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
     .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26, 18, 9, 0.15); }
-    .btn-primary:active { transform: translateY(1px); }
-
     .tab-btn { color: #8C7D6B; transition: all 0.3s; }
     .tab-btn.active { color: #3A5FC4; background: #EDF1FB; font-weight: 700; }
-
     .glow-circle { position: absolute; border-radius: 50%; filter: blur(60px); z-index: -1; opacity: 0.6; pointer-events: none; }
     .glow-saffron { background: #F8D4A3; width: 300px; height: 300px; top: -50px; left: -50px; }
     .glow-sage { background: #B3D8C6; width: 400px; height: 400px; bottom: -100px; right: -50px; }
-
     .fade-up { animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
     @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
     .stagger-1 { animation-delay: 0.1s; }
-
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #EDE8E0; border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: #D6D0C4; }
-
-    #mainContent { opacity: 0; transition: opacity 0.4s ease; pointer-events: none; }
-    #mainContent.ready { opacity: 1; pointer-events: auto; }
+    ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #EDE8E0; border-radius: 10px; }
+    #mainContent { opacity: 0; transition: opacity 0.4s ease; pointer-events: none; } #mainContent.ready { opacity: 1; pointer-events: auto; }
   </style>
 </head>
 <body class="relative font-sans antialiased">
@@ -91,85 +64,73 @@
 
   <div id="mainContent" class="max-w-[1500px] mx-auto">
     
-    <header class="px-8 py-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 fade-up">
+    <header class="px-8 py-10 flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 fade-up">
       <div>
         <div class="flex items-center gap-2 mb-2">
-          <span class="bg-sageBg text-accentSage px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-accentSage animate-pulse"></span> System Online
-          </span>
+          <span class="bg-sageBg text-accentSage px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-accentSage animate-pulse"></span> System Online</span>
         </div>
         <h1 class="font-serif italic text-4xl tracking-tight text-textMain">Smart Education</h1>
       </div>
       
-      <div class="flex gap-2 bg-white/60 p-1.5 rounded-2xl border border-[rgba(237,232,224,0.8)] shadow-sm relative z-10">
+      <div class="flex flex-wrap gap-2 bg-white/60 p-1.5 rounded-2xl border border-[rgba(237,232,224,0.8)] shadow-sm relative z-10">
         <button onclick="switchTab('tab-resource')" id="btn-resource" class="tab-btn active px-6 py-2.5 rounded-xl text-sm font-bold tracking-wide">資源發佈配置</button>
         <button onclick="switchTab('tab-student')" id="btn-student" class="tab-btn px-6 py-2.5 rounded-xl text-sm font-bold tracking-wide">出缺席與戰情</button>
-        <button onclick="logout()" class="px-4 py-2.5 rounded-xl text-textMuted hover:text-accentTerra transition-colors" title="登出系統"><i data-lucide="log-out" class="w-4 h-4"></i></button>
+        <button onclick="switchTab('tab-group')" id="btn-group" class="tab-btn px-6 py-2.5 rounded-xl text-sm font-bold tracking-wide">身分組管理</button>
+        <button onclick="logout()" class="px-4 py-2.5 rounded-xl text-textMuted hover:text-accentTerra transition-colors"><i data-lucide="log-out" class="w-4 h-4"></i></button>
       </div>
     </header>
 
     <main class="px-8 pb-20">
       
+      <!-- ================= 頁籤 1：資源管理 ================= -->
       <div id="tab-resource" class="grid grid-cols-1 lg:grid-cols-12 gap-6 fade-up stagger-1">
-        
         <div class="lg:col-span-7 flex flex-col gap-6">
           <div class="glass-card p-8 flex flex-col min-h-[500px] relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-cobaltBg rounded-full filter blur-[40px] -z-10"></div>
-            
             <div class="flex justify-between items-center mb-6">
               <h2 class="font-serif italic text-2xl text-textMain">Drive Resource</h2>
-              <button onclick="fetchGasFiles()" class="text-xs bg-white border border-[#EDE8E0] px-4 py-2 rounded-xl font-bold hover:bg-gray-50 transition-colors flex items-center gap-2">
-                <i data-lucide="refresh-cw" class="w-3 h-3"></i>重新掃描
-              </button>
+              <button onclick="fetchGasFiles()" class="text-xs bg-white border border-[#EDE8E0] px-4 py-2 rounded-xl font-bold hover:bg-gray-50 flex items-center gap-2"><i data-lucide="refresh-cw" class="w-3 h-3"></i>重新掃描</button>
             </div>
-            
-            <div id="gasList" class="space-y-2 overflow-y-auto pr-2 flex-1">
-              <p class="text-center mt-20 text-sm font-semibold text-textMuted">系統就緒，點擊重新掃描讀取雲端檔案...</p>
-            </div>
+            <div id="gasList" class="space-y-2 overflow-y-auto pr-2 flex-1"><p class="text-center mt-20 text-sm font-semibold text-textMuted">讀取雲端檔案...</p></div>
           </div>
         </div>
 
         <div class="lg:col-span-5 flex flex-col gap-6">
           <div class="glass-card p-8">
             <h2 class="font-serif italic text-2xl mb-6">Publish Settings</h2>
-            
             <div class="flex gap-2 mb-6 p-1 bg-gray-50 rounded-xl border border-[#EDE8E0]">
               <button id="btn-answers" onclick="setDataType('answers')" class="flex-1 py-3 bg-white shadow-sm rounded-lg font-bold text-sm text-textMain transition-all">解答庫</button>
               <button id="btn-textbooks" onclick="setDataType('textbooks')" class="flex-1 py-3 rounded-lg font-bold text-sm text-textMuted hover:text-textMain transition-all">課本庫</button>
             </div>
-            
             <div class="space-y-4 mb-6">
               <input type="text" id="subject" class="themed-input w-full p-4 text-sm font-bold" placeholder="歸屬科目 (如: 國文)">
               <input type="text" id="title" class="themed-input w-full p-4 text-sm font-bold" placeholder="按鈕顯示標題">
+              <!-- 動態身分組下拉選單 -->
+              <div class="relative">
+                <select id="publishGroup" class="themed-input w-full p-4 text-sm font-bold text-textBody appearance-none cursor-pointer">
+                  <option value="全體">載入身分組中...</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-textMuted"><i data-lucide="chevron-down" class="w-4 h-4"></i></div>
+              </div>
               <input type="url" id="url" readonly class="w-full p-4 rounded-xl bg-gray-50 border border-dashed border-[#EDE8E0] text-textMuted text-xs font-mono outline-none" placeholder="雲端網址 (點擊左側自動帶入)">
             </div>
             <button id="submitBtn" onclick="bindFile()" class="w-full btn-primary py-4 text-sm font-bold tracking-wider uppercase">發佈至系統 Publish</button>
           </div>
 
           <div class="glass-card p-8 border-l-4 border-l-accentTerra">
-            <div class="flex items-center gap-2 mb-6">
-              <i data-lucide="trash-2" class="w-5 h-5 text-accentTerra"></i>
-              <h2 class="font-serif italic text-xl text-textMain">Remove Items</h2>
-            </div>
+            <div class="flex items-center gap-2 mb-6"><i data-lucide="trash-2" class="w-5 h-5 text-accentTerra"></i><h2 class="font-serif italic text-xl text-textMain">Remove Items</h2></div>
             <div class="grid grid-cols-2 gap-3 mb-4">
-              <select id="delType" onchange="renderDelSelects()" class="themed-input p-4 text-sm font-bold">
-                <option value="answers">解答庫</option>
-                <option value="textbooks">課本庫</option>
-              </select>
-              <select id="delSubject" onchange="onSubjChange()" class="themed-input p-4 text-sm font-bold">
-                <option value="">選擇科目...</option>
-              </select>
+              <select id="delType" onchange="renderDelSelects()" class="themed-input p-4 text-sm font-bold"><option value="answers">解答庫</option><option value="textbooks">課本庫</option></select>
+              <select id="delSubject" onchange="onSubjChange()" class="themed-input p-4 text-sm font-bold"><option value="">選擇科目...</option></select>
             </div>
-            <select id="delItem" class="themed-input w-full p-4 text-sm font-bold mb-6">
-              <option value="">選擇檔案 (留空刪除整科)</option>
-            </select>
+            <select id="delItem" class="themed-input w-full p-4 text-sm font-bold mb-6"><option value="">選擇檔案 (留空刪除整科)</option></select>
             <button onclick="executeDelete()" class="w-full bg-terraBg text-accentTerra hover:bg-[#F5C4B5] font-bold py-4 rounded-xl transition-colors tracking-wide">執行刪除 Remove</button>
           </div>
         </div>
       </div>
 
+      <!-- ================= 頁籤 2：學生戰情室 ================= -->
       <div id="tab-student" class="hidden fade-up stagger-1 space-y-6">
-        
         <div class="glass-card p-6 md:p-8 flex flex-col lg:flex-row justify-between items-center gap-6">
           <div class="flex flex-col md:flex-row gap-4 items-center w-full lg:w-auto flex-1">
             <h2 class="font-serif italic text-2xl mr-4 whitespace-nowrap">Student Roster</h2>
@@ -178,17 +139,33 @@
             <button id="addStudentBtn" onclick="addStudent()" class="w-full md:w-auto btn-primary px-8 py-3.5 text-sm font-bold tracking-wide">建檔 Add</button>
           </div>
           <div class="flex gap-3 w-full lg:w-auto">
-            <button onclick="clearAllLogs()" class="flex-1 lg:flex-none bg-terraBg text-accentTerra px-5 py-3 rounded-xl text-xs font-bold transition-all hover:scale-105 flex items-center justify-center gap-2">
-              <i data-lucide="bomb" class="w-4 h-4"></i>清空全班紀錄
-            </button>
-            <button onclick="loadAllStudentData()" class="flex-1 lg:flex-none bg-white border border-[#EDE8E0] px-5 py-3 rounded-xl text-xs font-bold transition-all hover:scale-105 flex items-center justify-center gap-2">
-              <i data-lucide="refresh-ccw" class="w-4 h-4"></i>刷新戰情
-            </button>
+            <button onclick="clearAllLogs()" class="flex-1 lg:flex-none bg-terraBg text-accentTerra px-5 py-3 rounded-xl text-xs font-bold transition-all hover:scale-105 flex items-center justify-center gap-2"><i data-lucide="bomb" class="w-4 h-4"></i>清空紀錄</button>
+            <button onclick="loadAllData()" class="flex-1 lg:flex-none bg-white border border-[#EDE8E0] px-5 py-3 rounded-xl text-xs font-bold transition-all hover:scale-105 flex items-center justify-center gap-2"><i data-lucide="refresh-ccw" class="w-4 h-4"></i>刷新戰情</button>
           </div>
         </div>
+        <div id="studentCardsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+      </div>
 
-        <div id="studentCardsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <div class="p-10 text-center font-semibold text-textMuted col-span-full">資料載入中...</div>
+      <!-- ================= 頁籤 3：身分組管理 ================= -->
+      <div id="tab-group" class="hidden fade-up stagger-1 space-y-6">
+        <div class="glass-card p-8 max-w-3xl mx-auto">
+          <div class="flex items-center gap-3 mb-8">
+            <div class="p-2.5 bg-cobaltBg rounded-xl"><i data-lucide="users" class="w-6 h-6 text-accentCobalt"></i></div>
+            <div>
+              <h2 class="font-serif italic text-2xl text-textMain">Identity Groups</h2>
+              <p class="text-xs text-textMuted mt-1">管理權限群組，並於「戰情室」的學生卡片中進行指派</p>
+            </div>
+          </div>
+          
+          <div class="flex flex-col md:flex-row gap-3 mb-10">
+            <input type="text" id="newGroupNameInput" class="themed-input flex-1 p-4 text-sm font-bold" placeholder="輸入新身分組名稱 (例如: 衝刺A班)">
+            <button onclick="createNewGroup()" class="btn-primary px-8 py-4 text-sm font-bold tracking-wide whitespace-nowrap">建立身分組 Create</button>
+          </div>
+
+          <h3 class="text-sm font-bold text-textMuted mb-4 tracking-wide uppercase">目前身分組列表</h3>
+          <div class="space-y-3" id="groupListContainer">
+             <!-- 身分組列表渲染區 -->
+          </div>
         </div>
       </div>
 
@@ -199,53 +176,33 @@
     lucide.createIcons();
     let auth;
 
-    // ⚠️ 請填寫您的管理員信箱
+    // ⚠️ 填寫您的管理員信箱與 GAS_URL
     const ADMIN_WHITELIST = ['terrylie0215@gmail.com']; 
-    // ⚠️ 填寫您的 GAS URL
-    var GAS_URL = "https://script.google.com/macros/s/AKfycbxB_QrqsHTpyVjihAevLxkfNEMKqpL45WZ1o0veow5IbTMr5bpoFqMdGLdvkPPdqrfw8Q/exec"; 
+    var GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec"; 
 
-    // 安全撈取 Vercel env
-    fetch('/api/config')
-      .then(res => {
-        if (!res.ok) throw new Error('Vercel API 讀取失敗');
-        return res.json();
-      })
-      .then(config => {
+    fetch('/api/config').then(res => res.json()).then(config => {
         if (!firebase.apps.length) firebase.initializeApp(config);
         auth = firebase.auth();
-
         auth.onAuthStateChanged(user => {
-          if (!user) {
-            window.location.href = '/login.html';
-          } else if (!ADMIN_WHITELIST.includes(user.email)) {
-            alert('⚠️ 存取違規！您無權檢視此中樞控制台。');
-            auth.signOut().then(() => { window.location.href = '/login.html'; });
-          } else {
-            document.getElementById('mainContent').classList.add('ready');
-            switchTab('tab-resource');
-          }
+          if (!user) window.location.href = '/login.html';
+          else if (!ADMIN_WHITELIST.includes(user.email)) { alert('⚠️ 無權檢視'); auth.signOut().then(() => { window.location.href = '/login.html'; }); } 
+          else { document.getElementById('mainContent').classList.add('ready'); switchTab('tab-resource'); }
         });
-      })
-      .catch(err => {
-        console.error(err);
-        window.location.href = '/login.html';
-      });
+    }).catch(err => { window.location.href = '/login.html'; });
 
     function logout() { if (auth) auth.signOut(); }
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW 註冊失敗', err)));
-    }
+    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/sw.js?v=' + Date.now()); }); }
 
     var currentDataType = 'answers';
     var boundUrls = new Set();
     var fbData = { answers: {}, textbooks: {} };
     var globalStudents = {};
     var globalLogs = [];
+    var globalGroups = []; // 儲存動態身分組
 
     function switchTab(tabId) {
-      ['tab-resource', 'tab-student'].forEach(id => document.getElementById(id).classList.add('hidden'));
-      ['btn-resource', 'btn-student'].forEach(id => {
+      ['tab-resource', 'tab-student', 'tab-group'].forEach(id => document.getElementById(id).classList.add('hidden'));
+      ['btn-resource', 'btn-student', 'btn-group'].forEach(id => {
         document.getElementById(id).classList.remove('active', 'bg-white', 'shadow-sm');
         document.getElementById(id).classList.add('text-textMuted');
       });
@@ -254,8 +211,9 @@
       btn.classList.add('active', 'bg-white', 'shadow-sm');
       btn.classList.remove('text-textMuted');
       
-      if (tabId === 'tab-resource') fetchGasFiles();
-      if (tabId === 'tab-student') loadAllStudentData();
+      if (tabId === 'tab-resource') { fetchGasFiles(); loadAllData(false); }
+      if (tabId === 'tab-student') loadAllData(true);
+      if (tabId === 'tab-group') loadAllData(true);
     }
 
     function setDataType(type) {
@@ -266,74 +224,89 @@
       inactiveBtn.className = 'flex-1 py-3 rounded-lg font-bold text-sm text-textMuted hover:text-textMain transition-all';
     }
 
-    function loadBoundData() {
-      return fetch('/api/admin-answers?action=list').then(res => res.json()).then(data => {
-        if (data.success) {
-          fbData = data; boundUrls.clear();
-          ['answers', 'textbooks'].forEach(t => { 
-            for(var s in data[t]) for(var k in data[t][s]) if(data[t][s][k].url) boundUrls.add(data[t][s][k].url);
-          }); renderDelSelects();
+    // --- 核心：一次性讀取所有資料 (學生、紀錄、身分組) ---
+    function loadAllData(renderCards = true) {
+      if(renderCards) document.getElementById('studentCardsContainer').innerHTML = '<div class="p-10 text-center font-semibold text-textMuted col-span-full">資料庫同步中...</div>';
+      
+      Promise.all([
+        fetch('/api/admin-students?action=list').then(res => res.ok ? res.json() : {success: false}),
+        fetch('/api/admin-logs').then(res => res.ok ? res.json() : {success: false}),
+        fetch('/api/admin-groups').then(res => res.ok ? res.json() : {success: false})
+      ]).then(function(results) {
+        if (results[0].success) globalStudents = results[0].students || {};
+        if (results[1].success) globalLogs = results[1].logs || [];
+        
+        globalGroups = [];
+        if (results[2] && results[2].success && results[2].groups) {
+          globalGroups = Object.keys(results[2].groups);
+        }
+
+        renderPublishGroupSelect(); // 更新發佈區塊的下拉選單
+        if(renderCards) {
+          renderStudentCards(); // 更新戰情室卡片
+          renderGroupList();    // 更新身分組列表
         }
       });
     }
 
+    // --- 發佈資源區塊 ---
     function fetchGasFiles() {
       var list = document.getElementById('gasList');
       if (!GAS_URL || GAS_URL.includes("YOUR_GAS_URL")) { list.innerHTML = "<p class='text-center mt-20 text-accentTerra font-bold'>請先配置 GAS_URL 變數</p>"; return; }
-      list.innerHTML = `<p class='text-center mt-20 text-sm font-semibold text-textMuted'>掃描雲端硬碟中...</p>`;
-      
-      loadBoundData().then(() => fetch(GAS_URL)).then(res => res.json()).then(data => {
+      fetch('/api/admin-answers?action=list').then(res => res.json()).then(data => {
+        if (data.success) { fbData = data; boundUrls.clear(); ['answers', 'textbooks'].forEach(t => { for(var s in data[t]) for(var k in data[t][s]) if(data[t][s][k].url) boundUrls.add(data[t][s][k].url); }); renderDelSelects(); }
+        return fetch(GAS_URL);
+      }).then(res => res.json()).then(data => {
         if(data.error) throw new Error(data.error);
         var html = '';
-        data.forEach(f => {
-          if (!boundUrls.has(f.url)) {
-            html += `<div class="p-4 rounded-xl mb-3 cursor-pointer transition-all flex justify-between items-center bg-white border border-[#EDE8E0] hover:-translate-y-0.5 hover:shadow-sm" onclick="autoFill('${f.name}','${f.url}')">
-              <span class="text-sm font-bold truncate pr-4 text-textMain">${f.name}</span>
-              <span class="text-[10px] px-3 py-1.5 rounded-lg font-bold bg-sageBg text-accentSage tracking-wide uppercase">Select</span>
-            </div>`;
-          }
-        });
+        data.forEach(f => { if (!boundUrls.has(f.url)) { html += `<div class="p-4 rounded-xl mb-3 cursor-pointer transition-all flex justify-between items-center bg-white border border-[#EDE8E0] hover:-translate-y-0.5 hover:shadow-sm" onclick="autoFill('${f.name}','${f.url}')"><span class="text-sm font-bold truncate pr-4 text-textMain">${f.name}</span><span class="text-[10px] px-3 py-1.5 rounded-lg font-bold bg-sageBg text-accentSage tracking-wide uppercase">Select</span></div>`; } });
         list.innerHTML = html || `<p class='text-center mt-16 font-bold text-textMuted'>檔案皆已發佈完畢 ✨</p>`;
-      }).catch(() => { list.innerHTML = `<p class='text-center mt-10 text-accentTerra font-bold'>讀取失敗，請確認 GAS 部署狀態</p>`; });
+      });
+    }
+    function autoFill(n, u) { document.getElementById('title').value = n; document.getElementById('url').value = u; }
+    
+    function renderPublishGroupSelect() {
+      var select = document.getElementById('publishGroup');
+      select.innerHTML = '<option value="全體">開放範圍：全體學生 (預設)</option>';
+      globalGroups.forEach(g => { select.innerHTML += `<option value="${g}">特定限制：${g}</option>`; });
     }
 
-    function autoFill(n, u) { document.getElementById('title').value = n; document.getElementById('url').value = u; }
-
     function bindFile() {
-      var s = document.getElementById('subject').value.trim(), t = document.getElementById('title').value.trim(), u = document.getElementById('url').value.trim();
+      var s = document.getElementById('subject').value.trim(), t = document.getElementById('title').value.trim(), u = document.getElementById('url').value.trim(), g = document.getElementById('publishGroup').value;
       var btn = document.getElementById('submitBtn'); if (!s || !t || !u) return alert('請完整填寫發佈欄位');
       btn.innerText = '處理中...'; btn.disabled = true;
-      fetch('/api/bind-answer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: currentDataType, subject: s, title: t, url: u }) })
+      fetch('/api/bind-answer', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: currentDataType, subject: s, title: t, url: u, group: g }) })
       .then(res => res.json()).then(data => { if (data.success) { document.getElementById('title').value = ''; document.getElementById('url').value = ''; fetchGasFiles(); } else alert('失敗：' + data.message); }).finally(() => { btn.innerText = '發佈至系統 Publish'; btn.disabled = false; });
     }
 
-    function renderDelSelects() {
-      var t = document.getElementById('delType').value, sSelect = document.getElementById('delSubject');
-      sSelect.innerHTML = '<option value="">選擇科目...</option>';
-      for (var s in fbData[t]) sSelect.innerHTML += `<option value="${s}">${s}</option>`;
-    }
-    function onSubjChange() {
-      var t = document.getElementById('delType').value, s = document.getElementById('delSubject').value, iSelect = document.getElementById('delItem');
-      iSelect.innerHTML = '<option value="">選擇檔案 (留空刪除整科)</option>'; if (!s) return;
-      for (var k in fbData[t][s]) if (fbData[t][s][k].title) iSelect.innerHTML += `<option value="${k}">${fbData[t][s][k].title}</option>`;
-    }
-    function executeDelete() {
-      var t = document.getElementById('delType').value, s = document.getElementById('delSubject').value, k = document.getElementById('delItem').value;
-      if (!s) return alert('請選擇科目'); if (!confirm('確定要執行刪除下架？')) return;
-      fetch('/api/admin-answers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type: t, subject: s, key: k }) }).then(res => res.json()).then(data => { if(data.success) fetchGasFiles(); });
-    }
-
-    function loadAllStudentData() {
-      var container = document.getElementById('studentCardsContainer');
-      container.innerHTML = '<div class="p-10 text-center font-semibold text-textMuted col-span-full">資料載入中...</div>';
-      Promise.all([fetch('/api/admin-students?action=list').then(res => res.json()), fetch('/api/admin-logs').then(res => res.json())])
-      .then(function(results) {
-        if (results[0].success) globalStudents = results[0].students || {};
-        if (results[1].success) globalLogs = results[1].logs || [];
-        renderStudentCards();
+    // --- 身分組專區邏輯 ---
+    function renderGroupList() {
+      var list = document.getElementById('groupListContainer');
+      if (globalGroups.length === 0) { list.innerHTML = '<p class="text-sm text-textMuted font-bold text-center py-6 bg-white/50 border border-[#EDE8E0] rounded-xl border-dashed">目前無自訂身分組，系統預設為全體通用。</p>'; return; }
+      var html = '';
+      globalGroups.forEach(g => {
+        html += `<div class="flex justify-between items-center bg-white border border-[#EDE8E0] p-4 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+                  <div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-accentCobalt"></div><span class="font-bold text-textMain text-sm">${g}</span></div>
+                  <button onclick="deleteGroup('${g}')" class="text-textMuted hover:text-accentTerra hover:bg-terraBg p-2 rounded-lg transition-colors" title="刪除此身分組"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                 </div>`;
       });
+      list.innerHTML = html; lucide.createIcons();
+    }
+    
+    function createNewGroup() {
+      var name = document.getElementById('newGroupNameInput').value.trim();
+      if (!name) return alert('請輸入身分組名稱');
+      fetch('/api/admin-groups', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action: 'add', groupName: name})})
+      .then(res => res.json()).then(data => { if (data.success) { document.getElementById('newGroupNameInput').value = ''; loadAllData(); } else alert('建立失敗'); });
     }
 
+    function deleteGroup(name) {
+      if (!confirm(`確定要刪除 [${name}] 嗎？\n(注意：隸屬於此身分組的學生將會自動退回全體狀態)`)) return;
+      fetch('/api/admin-groups', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action: 'delete', groupName: name})})
+      .then(res => res.json()).then(data => { if (data.success) loadAllData(); });
+    }
+
+    // --- 戰情室卡片與指派邏輯 ---
     function renderStudentCards() {
       var container = document.getElementById('studentCardsContainer'), html = '', count = 0, logsBySeat = {};
       globalLogs.forEach(l => { if (l.seat && l.seat !== '未綁定') { if (!logsBySeat[l.seat]) logsBySeat[l.seat] = []; logsBySeat[l.seat].push(l); } });
@@ -341,26 +314,19 @@
       for (var seat in globalStudents) {
         var stu = globalStudents[seat]; if (!stu) continue; count++;
         var isBound = !!stu.lineId, myLogs = logsBySeat[seat] || [];
-        
-        var avatarRender = stu.avatarUrl ? `<img src="${stu.avatarUrl}" class="w-full h-full object-cover rounded-full shadow-sm">` : `<span class="text-sm font-black text-textMuted">${(stu.name || '未').charAt(0)}</span>`;
+        var avatarRender = stu.avatarUrl ? `<img src="${stu.avatarUrl}" onerror="this.style.display='none'; this.nextElementSibling.style.setProperty('display', 'flex', 'important');" class="w-full h-full object-cover rounded-full shadow-sm"><span class="hidden text-sm font-black text-textMuted w-full h-full items-center justify-center">${(stu.name || '未').charAt(0)}</span>` : `<span class="text-sm font-black text-textMuted">${(stu.name || '未').charAt(0)}</span>`;
         var statusBadge = isBound ? `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase bg-sageBg text-accentSage">已綁定</span>` : `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase bg-gray-100 text-textMuted">未綁定</span>`;
         var unbindBtn = isBound ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-accentTerra hover:bg-terraBg p-1.5 rounded-lg transition-colors" title="解除綁定"><i data-lucide="unlink" class="w-4 h-4"></i></button>` : '';
+
+        // 🏆 動態生成此學生的身分組下拉選項
+        var groupOptions = `<option value="全體">一般 (全體)</option>`;
+        globalGroups.forEach(g => { groupOptions += `<option value="${g}" ${stu.group === g ? 'selected' : ''}>${g}</option>`; });
 
         var logHtml = '';
         if (myLogs.length > 0) {
           myLogs.forEach(function(l) {
             var shortTime = l.time.split(' ')[1] ? l.time.split(' ')[1].substring(0, 5) : l.time;
-            logHtml += `
-              <div class="flex items-center justify-between py-2.5 border-b border-[#EDE8E0] last:border-0 hover:bg-white/50 transition-colors px-1 group">
-                <div class="flex items-center gap-3 min-w-0 flex-1">
-                  <span class="text-[10px] font-mono text-textMuted w-8">${shortTime}</span>
-                  <div class="w-1 h-4 rounded-full ${l.type === '解答' ? 'bg-accentTerra' : 'bg-accentCobalt'}"></div>
-                  <p class="text-xs font-bold truncate pr-2 text-textMain" title="${l.fileTitle}">${l.fileTitle}</p>
-                </div>
-                <button onclick="deleteSingleLog('${l.id}')" class="text-[#EDE8E0] group-hover:text-accentTerra text-xs px-2 transition-colors">
-                  <i data-lucide="x" class="w-3.5 h-3.5"></i>
-                </button>
-              </div>`;
+            logHtml += `<div class="flex items-center justify-between py-2.5 border-b border-[#EDE8E0] last:border-0 hover:bg-white/50 transition-colors px-1 group"><div class="flex items-center gap-3 min-w-0 flex-1"><span class="text-[10px] font-mono text-textMuted w-8">${shortTime}</span><div class="w-1 h-4 rounded-full ${l.type === '解答' ? 'bg-accentTerra' : 'bg-accentCobalt'}"></div><p class="text-xs font-bold truncate pr-2 text-textMain" title="${l.fileTitle}">${l.fileTitle}</p></div><button onclick="deleteSingleLog('${l.id}')" class="text-[#EDE8E0] group-hover:text-accentTerra text-xs px-2 transition-colors"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></div>`;
           });
         } else { logHtml = `<div class="flex items-center justify-center h-full text-[11px] font-bold py-6 text-textMuted opacity-60">無足跡紀錄</div>`; }
 
@@ -371,16 +337,18 @@
                 <div class="w-12 h-12 rounded-full border border-[#EDE8E0] bg-white flex items-center justify-center overflow-hidden shrink-0">${avatarRender}</div>
                 <div class="min-w-0">
                   <h3 class="font-bold text-lg text-textMain truncate">${stu.name || '未知'}</h3>
-                  <p class="text-xs font-mono text-textMuted">${seat}</p>
+                  <div class="flex items-center gap-2 mt-1">
+                    <p class="text-[11px] font-mono text-textMuted">${seat}</p>
+                    <select onchange="assignStudentGroup('${seat}', this.value)" class="text-[10px] font-bold bg-[#F5F2EB] border border-[#EDE8E0] rounded-md px-1.5 py-0.5 outline-none text-textBody cursor-pointer hover:bg-[#EDE8E0] transition-colors">
+                      ${groupOptions}
+                    </select>
+                  </div>
                 </div>
               </div>
               <div class="flex flex-col items-end gap-2 shrink-0">${statusBadge}${unbindBtn}</div>
             </div>
             <div class="flex-1 p-5 overflow-y-auto">
-              <div class="mb-4 pl-1 flex items-center gap-2">
-                <i data-lucide="activity" class="w-3.5 h-3.5 text-accentSaffron"></i>
-                <h4 class="text-[10px] font-bold uppercase tracking-widest text-textMuted">Recent Activity</h4>
-              </div>
+              <div class="mb-4 pl-1 flex items-center gap-2"><i data-lucide="activity" class="w-3.5 h-3.5 text-accentSaffron"></i><h4 class="text-[10px] font-bold uppercase tracking-widest text-textMuted">Recent Activity</h4></div>
               ${logHtml}
             </div>
           </div>`;
@@ -389,16 +357,20 @@
       lucide.createIcons();
     }
 
-    function addStudent() {
-      var s = document.getElementById('newSeat').value.trim(), n = document.getElementById('newName').value.trim(), btn = document.getElementById('addStudentBtn');
-      if (!s || !n) return alert('請填寫完整名單資訊'); btn.innerText = '處理中...'; btn.disabled = true;
-      fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', seat: s, name: n }) })
-      .then(res => res.json()).then(data => { if (data.success) { document.getElementById('newSeat').value = ''; document.getElementById('newName').value = ''; loadAllStudentData(); } else alert('失敗：' + data.message); }).finally(() => { btn.innerText = '建檔 Add'; btn.disabled = false; });
+    function assignStudentGroup(seat, groupName) {
+      fetch('/api/admin-groups', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action: 'assign', seat: seat, groupName: groupName}) })
+      .then(res => res.json()).then(data => { if (!data.success) { alert('身分變更失敗'); loadAllData(); } }); // 失敗才重新整理，成功則無縫切換
     }
 
-    function unbindStudent(s, l) { if (!confirm(`確定要強行解除座號 ${s} 的裝置綁定狀態嗎？`)) return; fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unbind', seat: s, lineId: l }) }).then(res => res.json()).then(data => { if (data.success) loadAllStudentData(); }); }
-    function clearAllLogs() { if (!confirm("⚠️ 核心警告：確定要永久刪除班級內所有人的足跡紀錄嗎？")) return; fetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearAll' }) }).then(res => res.json()).then(data => { if (data.success) loadAllStudentData(); }); }
-    function deleteSingleLog(logId) { if (!confirm("確定要抹除本條特定的點擊紀錄嗎？")) return; fetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearSingle', logId: logId }) }).then(res => res.json()).then(data => { if (data.success) loadAllStudentData(); }); }
+    function addStudent() { var s = document.getElementById('newSeat').value.trim(), n = document.getElementById('newName').value.trim(), btn = document.getElementById('addStudentBtn'); if (!s || !n) return alert('請填寫完整名單資訊'); btn.innerText = '處理中...'; btn.disabled = true; fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', seat: s, name: n }) }).then(res => res.json()).then(data => { if (data.success) { document.getElementById('newSeat').value = ''; document.getElementById('newName').value = ''; loadAllData(); } else alert('失敗：' + data.message); }).finally(() => { btn.innerText = '建檔 Add'; btn.disabled = false; }); }
+    function unbindStudent(s, l) { if (!confirm(`確定要強行解除座號 ${s} 的裝置綁定狀態嗎？`)) return; fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unbind', seat: s, lineId: l }) }).then(res => res.json()).then(data => { if (data.success) loadAllData(); }); }
+    function clearAllLogs() { if (!confirm("⚠️ 確定要永久刪除全班足跡紀錄嗎？")) return; fetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearAll' }) }).then(res => res.json()).then(data => { if (data.success) loadAllData(); }); }
+    function deleteSingleLog(logId) { if (!confirm("確定要抹除本條點擊紀錄嗎？")) return; fetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearSingle', logId: logId }) }).then(res => res.json()).then(data => { if (data.success) loadAllData(); }); }
+    
+    // 下架邏輯
+    function renderDelSelects() { var t = document.getElementById('delType').value, sSelect = document.getElementById('delSubject'); sSelect.innerHTML = '<option value="">選擇科目...</option>'; for (var s in fbData[t]) sSelect.innerHTML += `<option value="${s}">${s}</option>`; }
+    function onSubjChange() { var t = document.getElementById('delType').value, s = document.getElementById('delSubject').value, iSelect = document.getElementById('delItem'); iSelect.innerHTML = '<option value="">選擇檔案 (留空刪除整科)</option>'; if (!s) return; for (var k in fbData[t][s]) if (fbData[t][s][k].title) iSelect.innerHTML += `<option value="${k}">${fbData[t][s][k].title}</option>`; }
+    function executeDelete() { var t = document.getElementById('delType').value, s = document.getElementById('delSubject').value, k = document.getElementById('delItem').value; if (!s) return alert('請選擇科目'); if (!confirm('確定要執行刪除下架？')) return; fetch('/api/admin-answers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type: t, subject: s, key: k }) }).then(res => res.json()).then(data => { if(data.success) fetchGasFiles(); }); }
   </script>
 </body>
 </html>
