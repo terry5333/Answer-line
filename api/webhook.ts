@@ -59,14 +59,9 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
             if (snapshot.exists()) {
               const dataList = Object.values(snapshot.val());
               
-              // 🛡️ 升級版：多重權限聯集交叉比對過濾器
               const allowedDataList = dataList.filter((item: any) => {
-                // 相容舊資料：優先讀取新版 groups 陣列，若無則將舊版單一字串包成陣列解析
                 const itemGroups: string[] = Array.isArray(item.groups) ? item.groups : [item.group || '全體'];
-                
-                if (itemGroups.includes('全體')) return true; // 1. 只要包含全體開放，直接放行
-                
-                // 2. 使用 .some() 交叉比對：只要學生的多重身分組與解答要求的任一身分組吻合，即判定有權檢視！
+                if (itemGroups.includes('全體')) return true; 
                 return itemGroups.some((g: string) => studentGroups[g] === true);
               });
 
@@ -75,6 +70,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
               }
 
               const prefix = dbNode === 'textbooks' ? '課本' : '解答';
+              // 呼叫全新的美化版 Flex Message
               return sendFlexMessage(replyToken, LINE_TOKEN, `${subject}${prefix}專區`, allowedDataList, userId, host, subject, logType);
             } else {
               return replyText(replyToken, LINE_TOKEN, `目前資料庫還沒有「${text}」的檔案喔！`);
@@ -96,28 +92,65 @@ function switchRichMenu(userId: string, menuId: string, token: string | undefine
   return axios.post(`https://api.line.me/v2/bot/user/${userId}/richmenu/${menuId}`, {}, { headers: { Authorization: `Bearer ${token}` } }).then(function() { return Promise.resolve(); }).catch(function() { return Promise.resolve(); });
 }
 
+// 🏆 徹底翻新的極簡現代版 Flex Message (Clean UI)
 function sendFlexMessage(replyToken: string, token: string | undefined, titleText: string, items: any[], userId: string, host: string, subject: string, logType: string) {
   const listItems = items.map(function(item: any) {
     const proxyUrl = `https://${host}/api/view?uid=${userId}&subj=${encodeURIComponent(subject)}&type=${encodeURIComponent(logType)}&title=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.url)}`;
     return {
-      type: "box", layout: "horizontal", spacing: "md", paddingAll: "16px", cornerRadius: "16px", backgroundColor: "#f8fafc",
+      type: "box", 
+      layout: "horizontal", 
+      spacing: "md", 
+      paddingAll: "16px", 
+      cornerRadius: "20px", // 圓潤的大圓角設計
+      backgroundColor: "#FFFFFF", 
+      alignItems: "center",
       action: { type: "uri", label: "開啟檔案", uri: proxyUrl },
       contents: [
-        { type: "text", text: "📄", flex: 0, size: "md", gravity: "center" },
-        { type: "text", text: item.title, weight: "bold", color: "#111111", size: "sm", gravity: "center", wrap: true }
+        { type: "box", layout: "vertical", width: "4px", backgroundColor: "#4A8B6F", cornerRadius: "full" }, // 質感左側綠色修飾線
+        { type: "text", text: "📄", flex: 0, size: "md" },
+        { type: "text", text: item.title, weight: "bold", color: "#334155", size: "sm", gravity: "center", wrap: true, flex: 1 },
+        { type: "box", layout: "vertical", backgroundColor: "#EDF5F1", paddingAll: "6px", cornerRadius: "8px", flex: 0, contents: [
+          { type: "text", text: "開啟", color: "#4A8B6F", size: "xxs", weight: "bold", align: "center" }
+        ]}
       ]
     };
   });
 
   const flexMessage = {
-    type: "flex", altText: titleText,
+    type: "flex", 
+    altText: titleText,
     contents: {
-      type: "bubble", size: "mega",
+      type: "bubble", 
+      size: "mega",
       body: {
-        type: "box", layout: "vertical", paddingAll: "0px",
+        type: "box", 
+        layout: "vertical", 
+        paddingAll: "0px", 
+        backgroundColor: "#F4F7F6", // 柔和的淺灰底色
         contents: [
-          { type: "box", layout: "vertical", backgroundColor: "#000000", paddingAll: "24px", contents: [{ type: "text", text: "Smart Education", color: "#888888", size: "xs", weight: "bold" }, { type: "text", text: titleText, color: "#ffffff", size: "xl", weight: "bold", margin: "sm" }] },
-          { type: "box", layout: "vertical", paddingAll: "24px", spacing: "md", contents: listItems.length > 0 ? listItems : [{ type: "text", text: "此分類暫無檔案", color: "#94a3b8", size: "sm", align: "center" }] }
+          // 頂部高雅的白底標題區塊
+          { 
+            type: "box", 
+            layout: "vertical", 
+            paddingAll: "24px", 
+            backgroundColor: "#FFFFFF",
+            contents: [
+              { type: "box", layout: "horizontal", contents: [
+                { type: "text", text: "✦ Smart Education", color: "#4A8B6F", size: "xs", weight: "bold" },
+                { type: "text", text: logType, color: "#D4654A", size: "xs", weight: "bold", align: "end" }
+              ]},
+              { type: "text", text: titleText, color: "#1E293B", size: "xxl", weight: "bold", margin: "md" },
+              { type: "text", text: "點擊下方卡片即可查看或下載內容", color: "#94A3B8", size: "xs", margin: "sm" }
+            ] 
+          },
+          // 下方漂浮感卡片列表
+          { 
+            type: "box", 
+            layout: "vertical", 
+            paddingAll: "24px", 
+            spacing: "lg", 
+            contents: listItems.length > 0 ? listItems : [{ type: "text", text: "此分類暫無檔案", color: "#94a3b8", size: "sm", align: "center" }] 
+          }
         ]
       }
     }
