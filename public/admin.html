@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartEdu | 系統中樞</title>
   
-  <link rel="manifest" href="/manifest.json?v=4">
+  <link rel="manifest" href="/manifest.json?v=5">
   <meta name="theme-color" content="#FAF8F4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -40,28 +40,21 @@
   <style>
     body { background-color: #FAF8F4; color: #1A1209; min-height: 100vh; overflow-x: hidden; }
     .glass-card { background: rgba(255, 253, 249, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(237, 232, 224, 0.8); border-radius: 20px; box-shadow: 0 8px 32px rgba(26, 18, 9, 0.03); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-    .glass-card:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(26, 18, 9, 0.06); }
     .themed-input { background: #FFFFFF; border: 1px solid rgba(237, 232, 224, 0.8); color: #1A1209; transition: all 0.3s; border-radius: 12px; }
     .themed-input:focus { border-color: #D4654A; outline: none; box-shadow: 0 0 0 3px #FDF0EC; }
     .btn-primary { background: #1A1209; color: #FFFFFF; border-radius: 12px; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
     .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26, 18, 9, 0.15); }
-    .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
     .tab-btn { color: #8C7D6B; transition: all 0.3s; }
     .tab-btn.active { color: #3A5FC4; background: #EDF1FB; font-weight: 700; }
-    .glow-circle { position: absolute; border-radius: 50%; filter: blur(60px); z-index: -1; opacity: 0.6; pointer-events: none; }
-    .glow-saffron { background: #F8D4A3; width: 300px; height: 300px; top: -50px; left: -50px; }
-    .glow-sage { background: #B3D8C6; width: 400px; height: 400px; bottom: -100px; right: -50px; }
+    .group-item-btn { transition: all 0.2s; }
+    .group-item-btn.active { background: #1A1209 !important; color: #FFFFFF !important; }
     .fade-up { animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(20px); }
     @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
-    .stagger-1 { animation-delay: 0.1s; }
     ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #EDE8E0; border-radius: 10px; }
     #mainContent { opacity: 0; transition: opacity 0.4s ease; pointer-events: none; } #mainContent.ready { opacity: 1; pointer-events: auto; }
   </style>
 </head>
 <body class="relative font-sans antialiased">
-
-  <div class="glow-circle glow-saffron"></div>
-  <div class="glow-circle glow-sage fixed"></div>
 
   <div id="mainContent" class="max-w-[1500px] mx-auto">
     
@@ -83,11 +76,9 @@
 
     <main class="px-8 pb-20">
       
-      <!-- ================= 頁籤 1：資源管理 ================= -->
-      <div id="tab-resource" class="grid grid-cols-1 lg:grid-cols-12 gap-6 fade-up stagger-1">
+      <div id="tab-resource" class="grid grid-cols-1 lg:grid-cols-12 gap-6 fade-up">
         <div class="lg:col-span-7 flex flex-col gap-6">
-          <div class="glass-card p-8 flex flex-col min-h-[500px] relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-cobaltBg rounded-full filter blur-[40px] -z-10"></div>
+          <div class="glass-card p-8 flex flex-col min-h-[540px] relative overflow-hidden">
             <div class="flex justify-between items-center mb-6">
               <h2 class="font-serif italic text-2xl text-textMain">Drive Resource</h2>
               <button onclick="fetchGasFiles()" class="text-xs bg-white border border-[#EDE8E0] px-4 py-2 rounded-xl font-bold hover:bg-gray-50 flex items-center gap-2"><i data-lucide="refresh-cw" class="w-3 h-3"></i>重新掃描</button>
@@ -106,7 +97,6 @@
             <div class="space-y-4 mb-6">
               <input type="text" id="subject" class="themed-input w-full p-4 text-sm font-bold" placeholder="歸屬科目 (如: 國文)">
               <input type="text" id="title" class="themed-input w-full p-4 text-sm font-bold" placeholder="按鈕顯示標題">
-              <!-- 動態身分組下拉選單 (單選，決定這份解答要給誰看) -->
               <div class="relative">
                 <select id="publishGroup" class="themed-input w-full p-4 text-sm font-bold text-textBody appearance-none cursor-pointer">
                   <option value="全體">開放範圍：全體學生可見</option>
@@ -118,20 +108,20 @@
             <button id="submitBtn" onclick="bindFile()" class="w-full btn-primary py-4 text-sm font-bold tracking-wider uppercase">發佈至系統 Publish</button>
           </div>
 
-          <div class="glass-card p-8 border-l-4 border-l-accentTerra">
-            <div class="flex items-center gap-2 mb-6"><i data-lucide="trash-2" class="w-5 h-5 text-accentTerra"></i><h2 class="font-serif italic text-xl text-textMain">Remove Items</h2></div>
+          <div class="glass-card p-8 border-l-4 border-l-accentTerra flex flex-col min-h-[320px]">
+            <div class="flex items-center gap-2 mb-6"><i data-lucide="sliders" class="w-5 h-5 text-accentTerra"></i><h2 class="font-serif italic text-xl text-textMain">已發佈資源維護</h2></div>
             <div class="grid grid-cols-2 gap-3 mb-4">
-              <select id="delType" onchange="renderDelSelects()" class="themed-input p-4 text-sm font-bold"><option value="answers">解答庫</option><option value="textbooks">課本庫</option></select>
-              <select id="delSubject" onchange="onSubjChange()" class="themed-input p-4 text-sm font-bold"><option value="">選擇科目...</option></select>
+              <select id="delType" onchange="renderDelSelects()" class="themed-input p-3.5 text-xs font-bold"><option value="answers">解答庫</option><option value="textbooks">課本庫</option></select>
+              <select id="delSubject" onchange="onSubjChange()" class="themed-input p-3.5 text-xs font-bold"><option value="">選擇科目...</option></select>
             </div>
-            <select id="delItem" class="themed-input w-full p-4 text-sm font-bold mb-6"><option value="">選擇檔案 (留空刪除整科)</option></select>
-            <button onclick="executeDelete()" class="w-full bg-terraBg text-accentTerra hover:bg-[#F5C4B5] font-bold py-4 rounded-xl transition-colors tracking-wide">執行刪除 Remove</button>
+            <div id="publishedItemsContainer" class="space-y-3 overflow-y-auto max-h-[220px] pr-1 flex-1">
+              <p class="text-center text-xs text-textMuted py-8">請先選擇上方科目以管理現有解答...</p>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- ================= 頁籤 2：學生戰情室 ================= -->
-      <div id="tab-student" class="hidden fade-up stagger-1 space-y-6">
+      <div id="tab-student" class="hidden fade-up space-y-6">
         <div class="glass-card p-6 md:p-8 flex flex-col lg:flex-row justify-between items-center gap-6">
           <div class="flex flex-col md:flex-row gap-4 items-center w-full lg:w-auto flex-1">
             <h2 class="font-serif italic text-2xl mr-4 whitespace-nowrap">Student Roster</h2>
@@ -147,26 +137,34 @@
         <div id="studentCardsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
       </div>
 
-      <!-- ================= 頁籤 3：身分組管理 ================= -->
-      <div id="tab-group" class="hidden fade-up stagger-1 space-y-6">
-        <div class="glass-card p-8 max-w-3xl mx-auto">
-          <div class="flex items-center gap-3 mb-8">
-            <div class="p-2.5 bg-cobaltBg rounded-xl"><i data-lucide="users" class="w-6 h-6 text-accentCobalt"></i></div>
-            <div>
-              <h2 class="font-serif italic text-2xl text-textMain">Identity Groups</h2>
-              <p class="text-xs text-textMuted mt-1">建立各式權限標籤，可於戰情室賦予學生多重身分</p>
-            </div>
-          </div>
+      <div id="tab-group" class="hidden fade-up">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          <div class="flex flex-col md:flex-row gap-3 mb-10">
-            <input type="text" id="newGroupNameInput" class="themed-input flex-1 p-4 text-sm font-bold" placeholder="輸入新身分組名稱 (例如: 衝刺A班)">
-            <button id="btnCreateGroup" onclick="createNewGroup()" class="btn-primary px-8 py-4 text-sm font-bold tracking-wide whitespace-nowrap">建立身分組 Create</button>
+          <div class="lg:col-span-5 glass-card p-8">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="p-2 bg-cobaltBg rounded-xl"><i data-lucide="users" class="w-5 h-5 text-accentCobalt"></i></div>
+              <h2 class="font-serif italic text-xl text-textMain">身分組清單</h2>
+            </div>
+            <div class="flex gap-2 mb-6">
+              <input type="text" id="newGroupNameInput" class="themed-input flex-1 p-3 text-xs font-bold" placeholder="新群組名稱 (如: 衝刺A班)">
+              <button id="btnCreateGroup" onclick="createNewGroup()" class="btn-primary px-5 py-3 text-xs font-bold tracking-wide whitespace-nowrap">建立</button>
+            </div>
+            <div class="space-y-2 overflow-y-auto max-h-[400px] pr-1" id="groupListContainer"></div>
           </div>
 
-          <h3 class="text-sm font-bold text-textMuted mb-4 tracking-wide uppercase">目前身分組列表</h3>
-          <div class="space-y-3" id="groupListContainer">
-             <!-- 身分組列表渲染區 -->
+          <div class="lg:col-span-7 glass-card p-8 min-h-[480px] flex flex-col">
+            <div id="groupMembersHeader" class="border-b border-[#EDE8E0] pb-4 mb-4 flex justify-between items-center">
+              <div>
+                <h3 class="font-serif italic text-xl text-textMain" id="selectedGroupNameTitle">請選擇身分組</h3>
+                <p class="text-[11px] text-textMuted mt-1">點擊左側身分組後，在此直接「勾選」或「取消」全班成員權限</p>
+              </div>
+              <span id="memberCountBadge" class="hidden bg-gray-100 text-textBody font-mono text-xs px-3 py-1 rounded-full font-bold"></span>
+            </div>
+            <div id="membersCheckboxContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto max-h-[420px] flex-1 pr-1">
+              <div class="text-center font-semibold text-textMuted col-span-full py-20 italic">← 請先點擊左側任何一個身分組來配置成員</div>
+            </div>
           </div>
+
         </div>
       </div>
 
@@ -174,12 +172,10 @@
   </div>
 
   <script>
-    lucide.createIcons();
     let auth;
-
     // ⚠️ 填寫您的管理員信箱與 GAS_URL
     const ADMIN_WHITELIST = ['terrylie0215@gmail.com']; 
-    var GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec"; 
+    var GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/execL"; 
 
     fetch('/api/config').then(res => res.json()).then(config => {
         if (!firebase.apps.length) firebase.initializeApp(config);
@@ -199,7 +195,8 @@
     var fbData = { answers: {}, textbooks: {} };
     var globalStudents = {};
     var globalLogs = [];
-    var globalGroups = []; // 儲存動態身分組
+    var globalGroups = []; 
+    var activeAdminGroup = ''; // 當前選中要勾選成員的身分組
 
     function switchTab(tabId) {
       ['tab-resource', 'tab-student', 'tab-group'].forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -209,7 +206,7 @@
       });
       document.getElementById(tabId).classList.remove('hidden');
       var btn = document.getElementById('btn-' + tabId.replace('tab-', ''));
-      btn.classList.add('active', 'bg-white', 'shadow-sm');
+      btn.classList.add('active', 'bg-white', 'shadow-sm').trim();
       btn.classList.remove('text-textMuted');
       
       if (tabId === 'tab-resource') { fetchGasFiles(); loadAllData(false); }
@@ -225,32 +222,29 @@
       inactiveBtn.className = 'flex-1 py-3 rounded-lg font-bold text-sm text-textMuted hover:text-textMain transition-all';
     }
 
-    // --- 核心：一次性讀取所有資料 ---
     function loadAllData(renderCards = true) {
-      if(renderCards) document.getElementById('studentCardsContainer').innerHTML = '<div class="p-10 text-center font-semibold text-textMuted col-span-full">資料庫同步中...</div>';
-      
-      Promise.all([
-        fetch('/api/admin-students?action=list').then(res => res.ok ? res.json() : {success: false}),
-        fetch('/api/admin-logs').then(res => res.ok ? res.json() : {success: false}),
-        fetch('/api/admin-groups').then(res => res.ok ? res.json() : {success: false})
+      if(renderCards && globalGroups.length === 0) {
+        document.getElementById('studentCardsContainer').innerHTML = '<div class="p-10 text-center font-semibold text-textMuted col-span-full">資料庫同步中...</div>';
+      }
+      return Promise.all([
+        fetch('/api/admin-students?action=list').then(res => res.json()),
+        fetch('/api/admin-logs').then(res => res.json()),
+        fetch('/api/admin-groups').then(res => res.json())
       ]).then(function(results) {
         if (results[0].success) globalStudents = results[0].students || {};
         if (results[1].success) globalLogs = results[1].logs || [];
-        
-        globalGroups = [];
-        if (results[2] && results[2].success && results[2].groups) {
-          globalGroups = Object.keys(results[2].groups);
-        }
+        globalGroups = results[2].success && results[2].groups ? Object.keys(results[2].groups) : [];
 
         renderPublishGroupSelect(); 
         if(renderCards) {
           renderStudentCards(); 
           renderGroupList();    
+          if(activeAdminGroup) selectGroupForMembers(activeAdminGroup); // 保持選中狀態與右側勾選列表
         }
       });
     }
 
-    // --- 發佈資源區塊 ---
+    // --- 頁籤 1：資源雲端硬碟自動填入與發佈 ---
     function fetchGasFiles() {
       var list = document.getElementById('gasList');
       if (!GAS_URL || GAS_URL.includes("YOUR_GAS_URL")) { list.innerHTML = "<p class='text-center mt-20 text-accentTerra font-bold'>請先配置 GAS_URL 變數</p>"; return; }
@@ -258,7 +252,6 @@
         if (data.success) { fbData = data; boundUrls.clear(); ['answers', 'textbooks'].forEach(t => { for(var s in data[t]) for(var k in data[t][s]) if(data[t][s][k].url) boundUrls.add(data[t][s][k].url); }); renderDelSelects(); }
         return fetch(GAS_URL);
       }).then(res => res.json()).then(data => {
-        if(data.error) throw new Error(data.error);
         var html = '';
         data.forEach(f => { if (!boundUrls.has(f.url)) { html += `<div class="p-4 rounded-xl mb-3 cursor-pointer transition-all flex justify-between items-center bg-white border border-[#EDE8E0] hover:-translate-y-0.5 hover:shadow-sm" onclick="autoFill('${f.name}','${f.url}')"><span class="text-sm font-bold truncate pr-4 text-textMain">${f.name}</span><span class="text-[10px] px-3 py-1.5 rounded-lg font-bold bg-sageBg text-accentSage tracking-wide uppercase">Select</span></div>`; } });
         list.innerHTML = html || `<p class='text-center mt-16 font-bold text-textMuted'>檔案皆已發佈完畢 ✨</p>`;
@@ -280,43 +273,60 @@
       .then(res => res.json()).then(data => { if (data.success) { document.getElementById('title').value = ''; document.getElementById('url').value = ''; fetchGasFiles(); } else alert('失敗：' + data.message); }).finally(() => { btn.innerText = '發佈至系統 Publish'; btn.disabled = false; });
     }
 
-    // --- 身分組專區邏輯 ---
-    function renderGroupList() {
-      var list = document.getElementById('groupListContainer');
-      if (globalGroups.length === 0) { list.innerHTML = '<p class="text-sm text-textMuted font-bold text-center py-6 bg-white/50 border border-[#EDE8E0] rounded-xl border-dashed">目前無自訂身分組，系統預設為全體通用。</p>'; return; }
-      var html = '';
-      globalGroups.forEach(g => {
-        html += `<div class="flex justify-between items-center bg-white border border-[#EDE8E0] p-4 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
-                  <div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-accentCobalt"></div><span class="font-bold text-textMain text-sm">${g}</span></div>
-                  <button onclick="deleteGroup('${g}')" class="text-textMuted hover:text-accentTerra hover:bg-terraBg p-2 rounded-lg transition-colors" title="刪除此身分組"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                 </div>`;
-      });
-      list.innerHTML = html; lucide.createIcons();
+    // 🏆 升級功能：渲染已發佈資源，提供「即時更變以前解答身分組」與下架功能
+    function renderDelSelects() {
+      var t = document.getElementById('delType').value, sSelect = document.getElementById('delSubject');
+      sSelect.innerHTML = '<option value="">選擇科目...</option>';
+      for (var s in fbData[t]) sSelect.innerHTML += `<option value="${s}">${s}</option>`;
+      document.getElementById('publishedItemsContainer').innerHTML = '<p class="text-center text-xs text-textMuted py-8">請先選擇上方科目以管理現有解答...</p>';
     }
     
-    function createNewGroup() {
-      var name = document.getElementById('newGroupNameInput').value.trim();
-      if (!name) return alert('請輸入身分組名稱');
+    function onSubjChange() {
+      var t = document.getElementById('delType').value, s = document.getElementById('delSubject').value, container = document.getElementById('publishedItemsContainer');
+      if (!s) { container.innerHTML = '<p class="text-center text-xs text-textMuted py-8">請先選擇上方科目以管理現有解答...</p>'; return; }
       
-      var btn = document.getElementById('btnCreateGroup');
-      btn.innerText = '建立中...'; btn.disabled = true;
+      var items = fbData[t][s] || {};
+      var html = '';
+      for (var key in items) {
+        var item = items[key];
+        var currentGroup = item.group || '全體';
+        
+        // 生成給以前解答更換身分組的下拉選單
+        var optHtml = `<option value="全體" ${currentGroup==='全體'?'selected':''}>全體可見</option>`;
+        globalGroups.forEach(g => { optHtml += `<option value="${g}" ${currentGroup===g?'selected':''}>限 ${g}</option>`; });
 
-      fetch('/api/admin-groups', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action: 'add', groupName: name})})
-      .then(res => res.json()).then(data => { 
-        if (data.success) { document.getElementById('newGroupNameInput').value = ''; loadAllData(); } 
-        else { alert('建立失敗：' + (data.message || '未知錯誤')); } 
-      })
-      .catch(err => alert('系統連線錯誤，請確認 api 檔案已正確部署。'))
-      .finally(() => { btn.innerText = '建立身分組 Create'; btn.disabled = false; });
+        html += `<div class="bg-white border border-[#EDE8E0] p-3 rounded-xl flex items-center justify-between gap-2 shadow-sm">
+          <div class="min-w-0 flex-1"><p class="text-xs font-bold text-textMain truncate" title="${item.title}">${item.title}</p></div>
+          <div class="flex items-center gap-2 shrink-0">
+            <select onchange="updatePreviousAnswerGroup('${t}','${s}','${key}',this.value)" class="text-[10px] font-bold bg-gray-50 border border-[#EDE8E0] rounded p-1 outline-none text-textBody cursor-pointer">
+              ${optHtml}
+            </select>
+            <button onclick="deletePublishedItem('${t}','${s}','${key}')" class="text-textMuted hover:text-accentTerra p-1 rounded transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+          </div>
+        </div>`;
+      }
+      container.innerHTML = html || '<p class="text-center text-xs text-textMuted py-8">該科目下無任何發佈資源。</p>';
+      lucide.createIcons();
     }
 
-    function deleteGroup(name) {
-      if (!confirm(`確定要刪除 [${name}] 嗎？\n(注意：學生的此標籤也將會失效)`)) return;
-      fetch('/api/admin-groups', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action: 'delete', groupName: name})})
-      .then(res => res.json()).then(data => { if (data.success) loadAllData(); });
+    function updatePreviousAnswerGroup(type, subject, key, newGroup) {
+      fetch('/api/admin-answers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateGroup', type: type, subject: subject, key: key, group: newGroup })
+      }).then(res => res.json()).then(data => { if (!data.success) alert('更變身分組失敗'); });
     }
 
-    // --- 戰情室卡片與指派邏輯 (多重標籤) ---
+    function deletePublishedItem(type, subject, key) {
+      if (!confirm('確定要將此資源從學生端下架刪除嗎？')) return;
+      fetch('/api/admin-answers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', type: type, subject: subject, key: key })
+      }).then(res => res.json()).then(data => { if (data.success) fetchGasFiles(); });
+    }
+
+    // --- 頁籤 2：學生戰情室 (🏆 僅做「顯示」不在此處管理群組) ---
     function renderStudentCards() {
       var container = document.getElementById('studentCardsContainer'), html = '', count = 0, logsBySeat = {};
       globalLogs.forEach(l => { if (l.seat && l.seat !== '未綁定') { if (!logsBySeat[l.seat]) logsBySeat[l.seat] = []; logsBySeat[l.seat].push(l); } });
@@ -328,28 +338,13 @@
         var statusBadge = isBound ? `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase bg-sageBg text-accentSage">已綁定</span>` : `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase bg-gray-100 text-textMuted">未綁定</span>`;
         var unbindBtn = isBound ? `<button onclick="unbindStudent('${seat}', '${stu.lineId}')" class="text-accentTerra hover:bg-terraBg p-1.5 rounded-lg transition-colors" title="解除綁定"><i data-lucide="unlink" class="w-4 h-4"></i></button>` : '';
 
-        // 🏆 提取學生目前擁有的多重身分組標籤
+        // 🏆 只顯示身分組標籤，剔除修改下拉選單
         var studentGroups = stu.groups ? Object.keys(stu.groups) : [];
         var groupBadges = '';
         studentGroups.forEach(g => {
-            groupBadges += `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-accentCobalt bg-cobaltBg text-accentCobalt text-[10px] font-bold shadow-sm">
-                ${g}
-                <button onclick="unassignStudentGroup('${seat}', '${g}')" class="hover:text-accentTerra transition-colors" title="移除此身分"><i data-lucide="x" class="w-3 h-3"></i></button>
-            </span>`;
+            groupBadges += `<span class="px-2 py-0.5 rounded bg-cobaltBg border border-accentCobalt text-accentCobalt text-[10px] font-bold shadow-sm">${g}</span>`;
         });
-
-        // 🏆 動態計算「還可以加入」的身分組下拉選單
-        var availableGroups = globalGroups.filter(g => !studentGroups.includes(g));
-        var addGroupSelector = '';
-        if (availableGroups.length > 0) {
-            var options = '<option value="">+ 加入身分組</option>';
-            availableGroups.forEach(g => { options += `<option value="${g}">${g}</option>`; });
-            addGroupSelector = `<select onchange="if(this.value) assignStudentGroup('${seat}', this.value)" class="text-[10px] font-bold bg-[#F5F2EB] border border-[#EDE8E0] rounded px-1 py-0.5 outline-none text-textBody cursor-pointer hover:bg-[#EDE8E0] transition-colors">
-                ${options}
-            </select>`;
-        } else if (globalGroups.length === 0) {
-            addGroupSelector = `<span class="text-[10px] text-textMuted italic">無自訂身分組</span>`;
-        }
+        if (studentGroups.length === 0) groupBadges = `<span class="text-[10px] text-textMuted italic">一般全體</span>`;
 
         var logHtml = '';
         if (myLogs.length > 0) {
@@ -364,12 +359,11 @@
             <div class="p-6 border-b border-[#EDE8E0] bg-white/40 flex items-center justify-between">
               <div class="flex items-center gap-4 w-full">
                 <div class="w-12 h-12 rounded-full border border-[#EDE8E0] bg-white flex items-center justify-center overflow-hidden shrink-0">${avatarRender}</div>
-                <div class="min-w-0 flex-1 pr-2">
+                <div class="min-w-0 flex-1">
                   <h3 class="font-bold text-lg text-textMain truncate">${stu.name || '未知'}</h3>
                   <div class="flex flex-wrap items-center gap-1.5 mt-1.5">
                     <p class="text-[11px] font-mono text-textMuted mr-1">${seat}</p>
                     ${groupBadges}
-                    ${addGroupSelector}
                   </div>
                 </div>
               </div>
@@ -385,27 +379,104 @@
       lucide.createIcons();
     }
 
-    // 🏆 新增身分組給學生
-    function assignStudentGroup(seat, groupName) {
-      fetch('/api/admin-groups', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action: 'assign', seat: seat, groupName: groupName}) })
-      .then(res => res.json()).then(data => { if (!data.success) alert('指派失敗: ' + data.message); loadAllData(); }); 
+    // --- 頁籤 3：身分組管理 (🏆 左右雙面板名冊勾選核心邏輯) ---
+    function renderGroupList() {
+      var list = document.getElementById('groupListContainer');
+      if (globalGroups.length === 0) { list.innerHTML = '<p class="text-xs text-textMuted text-center py-6">請在上方建立第一個群組</p>'; return; }
+      var html = '';
+      globalGroups.forEach(g => {
+        var activeClass = (g === activeAdminGroup) ? 'active' : '';
+        html += `<div onclick="selectGroupForMembers('${g}')" class="group-item-btn ${activeClass} flex justify-between items-center bg-white border border-[#EDE8E0] p-3.5 rounded-xl shadow-sm cursor-pointer hover:bg-gray-50 transition-all">
+                  <div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-accentCobalt"></div><span class="font-bold text-sm">${g}</span></div>
+                  <button onclick="event.stopPropagation(); deleteGroup('${g}')" class="text-textMuted hover:text-accentTerra p-1.5 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                 </div>`;
+      });
+      list.innerHTML = html; lucide.createIcons();
     }
 
-    // 🏆 拔除學生的身分組
-    function unassignStudentGroup(seat, groupName) {
-      fetch('/api/admin-groups', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action: 'unassign', seat: seat, groupName: groupName}) })
-      .then(res => res.json()).then(data => { if (!data.success) alert('移除失敗: ' + data.message); loadAllData(); }); 
+    // 🏆 點擊左邊身分組，右邊立刻浮現全班學生進行「勾選配置」
+    function selectGroupForMembers(groupName) {
+      activeAdminGroup = groupName;
+      
+      // 亮色高亮左側選中的群組
+      document.querySelectorAll('.group-item-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.innerText.includes(groupName)) btn.classList.add('active');
+      });
+
+      document.getElementById('selectedGroupNameTitle').innerText = `成員配置：限【${groupName}】`;
+      var container = document.getElementById('membersCheckboxContainer');
+      
+      var html = '';
+      var memberCount = 0;
+
+      // 排序座號依序渲染
+      var sortedSeats = Object.keys(globalStudents).sort();
+      sortedSeats.forEach(seat => {
+        var stu = globalStudents[seat];
+        var isMember = stu.groups && stu.groups[groupName] === true;
+        if (isMember) memberCount++;
+
+        html += `<label class="bg-white border border-[#EDE8E0] p-3 rounded-xl flex items-center gap-3 cursor-pointer select-none hover:bg-gray-50 transition-colors shadow-sm relative">
+          <input type="checkbox" ${isMember ? 'checked' : ''} onchange="toggleStudentCheckbox('${seat}', '${groupName}', this.checked)" class="w-4 h-4 rounded text-accentCobalt focus:ring-accentCobalt border-gray-300 cursor-pointer">
+          <div class="min-w-0">
+            <span class="text-xs font-mono text-textMuted mr-1">[${seat}]</span>
+            <span class="text-sm font-bold text-textMain">${stu.name || '未知'}</span>
+          </div>
+        </label>`;
+      });
+
+      container.innerHTML = html || '<p class="text-center text-xs text-textMuted col-span-full py-10">目前尚無學生註冊，請先前往戰情室建檔。</p>';
+      
+      var badge = document.getElementById('memberCountBadge');
+      badge.innerText = `成員總數: ${memberCount} 人`;
+      badge.classList.remove('hidden');
     }
 
-    function addStudent() { var s = document.getElementById('newSeat').value.trim(), n = document.getElementById('newName').value.trim(), btn = document.getElementById('addStudentBtn'); if (!s || !n) return alert('請填寫完整名單資訊'); btn.innerText = '處理中...'; btn.disabled = true; fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', seat: s, name: n }) }).then(res => res.json()).then(data => { if (data.success) { document.getElementById('newSeat').value = ''; document.getElementById('newName').value = ''; loadAllData(); } else alert('失敗：' + data.message); }).finally(() => { btn.innerText = '建檔 Add'; btn.disabled = false; }); }
+    // 🏆 當勾選狀態改變時，後台秒速同步
+    function toggleStudentCheckbox(seat, groupName, isChecked) {
+      var action = isChecked ? 'assign' : 'unassign';
+      
+      // 本地快取即時更新 (防止重新讀取造成畫面閃爍，提供極致流暢操作)
+      if (!globalStudents[seat].groups) globalStudents[seat].groups = {};
+      if (isChecked) globalStudents[seat].groups[groupName] = true;
+      else delete globalStudents[seat].groups[groupName];
+      
+      fetch('/api/admin-groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: action, seat: seat, groupName: groupName })
+      }).then(res => res.json()).then(data => {
+        if (!data.success) { alert('同步失敗，重新整理中'); loadAllData(); } 
+        else {
+          // 動態計算成員總數
+          var count = 0;
+          for(var s in globalStudents) { if(globalStudents[s].groups && globalStudents[s].groups[groupName]) count++; }
+          document.getElementById('memberCountBadge').innerText = `成員總數: ${count} 人`;
+        }
+      });
+    }
+
+    function createNewGroup() {
+      var name = document.getElementById('newGroupNameInput').value.trim();
+      if (!name) return alert('請輸入身分組名稱');
+      var btn = document.getElementById('btnCreateGroup'); btn.innerText = '..'; btn.disabled = true;
+      fetch('/api/admin-groups', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action: 'add', groupName: name})})
+      .then(res => res.json()).then(data => { if (data.success) { document.getElementById('newGroupNameInput').value = ''; activeAdminGroup = data.groupName; loadAllData(); } })
+      .finally(() => { btn.innerText = '建立'; btn.disabled = false; });
+    }
+
+    function deleteGroup(name) {
+      if (!confirm(`確定要永久刪除 [${name}] 身分組嗎？`)) return;
+      if (activeAdminGroup === name) activeAdminGroup = '';
+      fetch('/api/admin-groups', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({action: 'delete', groupName: name})})
+      .then(res => res.json()).then(data => { if (data.success) loadAllData(); });
+    }
+
+    function addStudent() { var s = document.getElementById('newSeat').value.trim(), n = document.getElementById('newName').value.trim(), btn = document.getElementById('addStudentBtn'); if (!s || !n) return alert('請填寫完整名單資訊'); btn.innerText = '..'; btn.disabled = true; fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'add', seat: s, name: n }) }).then(res => res.json()).then(data => { if (data.success) { document.getElementById('newSeat').value = ''; document.getElementById('newName').value = ''; loadAllData(); } }).finally(() => { btn.innerText = '建檔 Add'; btn.disabled = false; }); }
     function unbindStudent(s, l) { if (!confirm(`確定要強行解除座號 ${s} 的裝置綁定狀態嗎？`)) return; fetch('/api/admin-students', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'unbind', seat: s, lineId: l }) }).then(res => res.json()).then(data => { if (data.success) loadAllData(); }); }
     function clearAllLogs() { if (!confirm("⚠️ 確定要永久刪除全班足跡紀錄嗎？")) return; fetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearAll' }) }).then(res => res.json()).then(data => { if (data.success) loadAllData(); }); }
     function deleteSingleLog(logId) { if (!confirm("確定要抹除本條點擊紀錄嗎？")) return; fetch('/api/admin-logs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'clearSingle', logId: logId }) }).then(res => res.json()).then(data => { if (data.success) loadAllData(); }); }
-    
-    // 下架邏輯
-    function renderDelSelects() { var t = document.getElementById('delType').value, sSelect = document.getElementById('delSubject'); sSelect.innerHTML = '<option value="">選擇科目...</option>'; for (var s in fbData[t]) sSelect.innerHTML += `<option value="${s}">${s}</option>`; }
-    function onSubjChange() { var t = document.getElementById('delType').value, s = document.getElementById('delSubject').value, iSelect = document.getElementById('delItem'); iSelect.innerHTML = '<option value="">選擇檔案 (留空刪除整科)</option>'; if (!s) return; for (var k in fbData[t][s]) if (fbData[t][s][k].title) iSelect.innerHTML += `<option value="${k}">${fbData[t][s][k].title}</option>`; }
-    function executeDelete() { var t = document.getElementById('delType').value, s = document.getElementById('delSubject').value, k = document.getElementById('delItem').value; if (!s) return alert('請選擇科目'); if (!confirm('確定要執行刪除下架？')) return; fetch('/api/admin-answers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', type: t, subject: s, key: k }) }).then(res => res.json()).then(data => { if(data.success) fetchGasFiles(); }); }
   </script>
 </body>
 </html>
