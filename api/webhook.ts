@@ -30,10 +30,24 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
       } 
       else {
         // 🏆 擋修機制：查詢前先驗證身分
-        return db.ref(`users/${userId}`).once('value').then(function(userSnap) {
+        // 加上 async 關鍵字，讓我們可以在裡面使用 await 撈取身分組
+        return db.ref(`users/${userId}`).once('value').then(async function(userSnap) {
           if (!userSnap.exists()) {
             // 沒有綁定，直接退回
             return replyText(replyToken, LINE_TOKEN, '⚠️ 權限不足\n您尚未綁定系統，請先點擊選單的「身分認證」進行綁定喔！');
+          }
+
+          // 🏆 取得學生的座號，藉此去 students 節點拿取最新的「身分組標籤」
+          const userData = userSnap.val();
+          const seat = userData.seat;
+          let studentGroups: any = {};
+          
+          if (seat) {
+            const studentSnap = await db.ref(`students/${seat}`).once('value');
+            if (studentSnap.exists()) {
+              // 把學生身上的標籤抓下來，例如 { "補習班": true, "A組": true }
+              studentGroups = studentSnap.val().groups || {};
+            }
           }
 
           // 已綁定，繼續處理解答邏輯
@@ -50,8 +64,22 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
           return db.ref(`${dbNode}/${subject}`).once('value').then(function(snapshot) {
             if (snapshot.exists()) {
               const dataList = Object.values(snapshot.val());
+              
+              // 🛡️ 終極權限過濾器：檢查身分證！
+              const allowedDataList = dataList.filter((item: any) => {
+                const reqGroup = item.group || '全體';
+                if (reqGroup === '全體') return true; // 1. 全體開放，直接放行
+                if (studentGroups[reqGroup] === true) return true; // 2. 學生身上有專屬標籤，放行
+                return false; // 3. 權限不符，擋下剃除！
+              });
+
+              // 如果剃除完之後，發現這科他一份解答都沒資格看
+              if (allowedDataList.length === 0) {
+                return replyText(replyToken, LINE_TOKEN, `⚠️ 權限受限\n目前「${text}」分類中，沒有開放給您所屬身分組的專屬資源喔！`);
+              }
+
               const prefix = dbNode === 'textbooks' ? '課本' : '解答';
-              return sendFlexMessage(replyToken, LINE_TOKEN, `${subject}${prefix}專區`, dataList, userId, host, subject, logType);
+              return sendFlexMessage(replyToken, LINE_TOKEN, `${subject}${prefix}專區`, allowedDataList, userId, host, subject, logType);
             } else {
               return replyText(replyToken, LINE_TOKEN, `目前資料庫還沒有「${text}」的檔案喔！`);
             }
