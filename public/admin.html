@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SmartEdu | 系統中樞</title>
   
-  <link rel="manifest" href="/manifest.json?v=7">
+  <link rel="manifest" href="/manifest.json?v=8">
   <meta name="theme-color" content="#FAF8F4">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -178,7 +178,6 @@
     const ADMIN_WHITELIST = ['terrylie0215@gmail.com']; 
     var GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec"; 
 
-    // 安全防禦核心：阻絕 API 連線崩潰中斷網頁渲染
     async function safeFetch(url, options = {}) {
       try {
         const res = await fetch(url, options);
@@ -188,11 +187,9 @@
           if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
           return data;
         } catch (e) {
-          console.error(`🔴 [後端回傳無效 JSON] 網址: ${url}`, text);
-          return { success: false, message: `伺服器處理異常 (${res.status})` };
+          return { success: false, message: `伺服器異常 (${res.status})` };
         }
       } catch (err) {
-        console.error(`🔴 [連線異常] 網址: ${url}`, err);
         return { success: false, message: err.message };
       }
     }
@@ -218,16 +215,20 @@
     var globalGroups = []; 
     var activeAdminGroup = ''; 
 
-    // 🏆 【終極 Bug 修正】移除了導致 JS 執行緒完全卡死崩潰的錯誤 .trim()
     function switchTab(tabId) {
-      ['tab-resource', 'tab-student', 'tab-group'].forEach(id => document.getElementById(id).classList.add('hidden'));
-      ['btn-resource', 'btn-student', 'btn-group'].forEach(id => {
-        document.getElementById(id).classList.remove('active', 'bg-white', 'shadow-sm');
-        document.getElementById(id).classList.add('text-textMuted');
+      ['tab-resource', 'tab-student', 'tab-group'].forEach(id => {
+        var el = document.getElementById(id);
+        if(el) el.classList.add('hidden');
       });
-      document.getElementById(tabId).classList.remove('hidden');
+      ['btn-resource', 'btn-student', 'btn-group'].forEach(id => {
+        var el = document.getElementById(id);
+        if(el) { el.classList.remove('active', 'bg-white', 'shadow-sm'); el.classList.add('text-textMuted'); }
+      });
+      var targetTab = document.getElementById(tabId);
+      if(targetTab) targetTab.classList.remove('hidden');
+      
       var btn = document.getElementById('btn-' + tabId.replace('tab-', ''));
-      btn.classList.add('active', 'bg-white', 'shadow-sm');
+      if(btn) btn.classList.add('active', 'bg-white', 'shadow-sm');
       
       if (tabId === 'tab-resource') { fetchGasFiles(); loadAllData(false); }
       if (tabId === 'tab-student') loadAllData(true);
@@ -253,10 +254,6 @@
         safeFetch('/api/admin-groups')
       ]).then(function(results) {
         var stuRes = results[0], logRes = results[1], grpRes = results[2];
-
-        if (!stuRes.success) console.error("❌ 學生名單同步失敗:", stuRes.message);
-        if (!logRes.success) console.error("❌ 點擊足跡同步失敗:", logRes.message);
-        if (!grpRes.success) console.error("❌ 身分組同步失敗:", grpRes.message);
 
         globalStudents = stuRes.success ? (stuRes.students || {}) : {};
         globalLogs = logRes.success && logRes.logs ? (Array.isArray(logRes.logs) ? logRes.logs : Object.values(logRes.logs)) : [];
@@ -359,7 +356,10 @@
       globalLogs.forEach(l => { if (l.seat && l.seat !== '未綁定') { if (!logsBySeat[l.seat]) logsBySeat[l.seat] = []; logsBySeat[l.seat].push(l); } });
 
       for (var seat in globalStudents) {
-        var stu = globalStudents[seat]; if (!stu) continue; count++;
+        var stu = globalStudents[seat]; 
+        if (!stu) continue; // 防禦幽靈陣列
+        count++;
+        
         var isBound = !!stu.lineId, myLogs = logsBySeat[seat] || [];
         var avatarRender = stu.avatarUrl ? `<img src="${stu.avatarUrl}" onerror="this.style.display='none'; this.nextElementSibling.style.setProperty('display', 'flex', 'important');" class="w-full h-full object-cover rounded-full shadow-sm"><span class="hidden text-sm font-black text-textMuted w-full h-full items-center justify-center">${(stu.name || '未').charAt(0)}</span>` : `<span class="text-sm font-black text-textMuted">${(stu.name || '未').charAt(0)}</span>`;
         var statusBadge = isBound ? `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase bg-sageBg text-accentSage">已綁定</span>` : `<span class="px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-widest uppercase bg-gray-100 text-textMuted">未綁定</span>`;
@@ -409,7 +409,7 @@
       var html = '';
       globalGroups.forEach(g => {
         var activeClass = (g === activeAdminGroup) ? 'active' : '';
-        html += `<div onclick="selectGroupForMembers('${g}')" class="group-item-btn ${activeClass} flex justify-between items-center bg-white border border-[#EDE8E0] p-3.5 rounded-xl shadow-sm cursor-pointer hover:bg-gray-50 transition-all">
+        html += `<div onclick="selectGroupForMembers('${g}')" data-group="${g}" class="group-item-btn ${activeClass} flex justify-between items-center bg-white border border-[#EDE8E0] p-3.5 rounded-xl shadow-sm cursor-pointer hover:bg-gray-50 transition-all">
                   <div class="flex items-center gap-3"><div class="w-2 h-2 rounded-full bg-accentCobalt"></div><span class="font-bold text-sm">${g}</span></div>
                   <button onclick="event.stopPropagation(); deleteGroup('${g}')" class="text-textMuted hover:text-accentTerra p-1.5 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
                  </div>`;
@@ -417,20 +417,25 @@
       list.innerHTML = html; lucide.createIcons();
     }
 
-    // 🏆 【點擊觸發復活】因為前面 switchTab 活過來了，現在點擊將能順暢撈取名冊
+    // 🏆 【破解 Firebase 幽靈陣列陷阱】加入 if(!stu) return 攔截當機點！
     function selectGroupForMembers(groupName) {
       activeAdminGroup = groupName;
       document.querySelectorAll('.group-item-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.innerText.includes(groupName)) btn.classList.add('active');
+        if (btn.getAttribute('data-group') === groupName) btn.classList.add('active');
+        else btn.classList.remove('active');
       });
 
       document.getElementById('selectedGroupNameTitle').innerText = `成員配置：限【${groupName}】`;
       var container = document.getElementById('membersCheckboxContainer');
       var html = ''; var memberCount = 0;
       var sortedSeats = Object.keys(globalStudents).sort();
+      
       sortedSeats.forEach(seat => {
         var stu = globalStudents[seat];
+        
+        // 🔥 就是這裡！阻擋 Firebase 製造的幽靈 0 號空位導致當機！
+        if (!stu) return; 
+        
         var isMember = stu.groups && stu.groups[groupName] === true;
         if (isMember) memberCount++;
         html += `<label class="bg-white border border-[#EDE8E0] p-3 rounded-xl flex items-center gap-3 cursor-pointer select-none hover:bg-gray-50 transition-colors shadow-sm relative">
@@ -454,7 +459,11 @@
       }).then(data => {
         if (!data.success) { alert('同步失敗，重新整理中'); loadAllData(); } 
         else {
-          var count = 0; for(var s in globalStudents) { if(globalStudents[s].groups && globalStudents[s].groups[groupName]) count++; }
+          var count = 0; 
+          for(var s in globalStudents) { 
+            // 🔥 同步修復：計算人數時也防禦幽靈空位
+            if(globalStudents[s] && globalStudents[s].groups && globalStudents[s].groups[groupName]) count++; 
+          }
           document.getElementById('memberCountBadge').innerText = `成員總數: ${count} 人`;
         }
       });
