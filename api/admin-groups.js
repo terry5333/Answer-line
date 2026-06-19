@@ -1,5 +1,6 @@
 const admin = require('firebase-admin');
 
+// 確保 Firebase 只初始化一次，且加入環境變數安全網
 if (!admin.apps.length) {
   try {
     admin.initializeApp({
@@ -18,48 +19,69 @@ if (!admin.apps.length) {
 const db = admin.database();
 
 module.exports = async function(req, res) {
+  // 設定 CORS 跨網域存取權限
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
   
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
   try {
-    // 【讀取清單】
+    // 【讀取】取得目前所有身分組清單
     if (req.method === 'GET') {
-      const answersSnap = await db.ref('answers').once('value');
-      const textbooksSnap = await db.ref('textbooks').once('value');
-      return res.status(200).json({ 
-        success: true, 
-        answers: answersSnap.val() || {}, 
-        textbooks: textbooksSnap.val() || {} 
-      });
+      const snap = await db.ref('groups').once('value');
+      return res.status(200).json({ success: true, groups: snap.val() || {} });
     }
 
     if (req.method === 'POST') {
-      const { action, type, subject, key, group } = req.body;
+      const { action, groupName, seat } = req.body;
       
-      // 【刪除資源】
-      if (action === 'delete') {
-        if (!type || !subject) throw new Error('缺少必要參數');
-        if (key) {
-          await db.ref(`${type}/${subject}/${key}`).remove();
-        } else {
-          await db.ref(`${type}/${subject}`).remove();
+      // [功能：新增身分組]
+      if (action === 'add') {
+        if (!groupName) return res.status(400).json({ success: false, message: '請輸入身分組名稱' });
+        
+        // 自動濾除 Firebase 資料庫禁用的特殊符號
+        const safeName = groupName.replace(/[.#$\[\]]/g, '').trim();
+        if (!safeName) return res.status(400).json({ success: false, message: '名稱包含無效字元' });
+        
+        // 檢查是否已經存在同名身分組
+        const existCheck = await db.ref(`groups/${safeName}`).once('value');
+        if (existCheck.exists()) {
+          return res.status(400).json({ success: false, message: '此身分組名稱已存在' });
         }
+        
+        await db.ref(`groups/${safeName}`).set({ createdAt: Date.now() });
+        return res.status(200).json({ success: true, groupName: safeName });
+      }
+      
+      // [功能：刪除身分組]
+      if (action === 'delete') {
+        if (!groupName) return res.status(400).json({ success: false, message: '缺少身分組名稱' });
+        await db.ref(`groups/${groupName}`).remove();
         return res.status(200).json({ success: true });
       }
       
-      // 🏆 【新增功能：變更以前解答的身分組】
-      if (action === 'updateGroup') {
-        if (!type || !subject || !key || !group) throw new Error('缺少必要修改參數');
-        await db.ref(`${type}/${subject}/${key}/group`).set(group);
+      // [功能：勾選指派身分組給學生]
+      if (action === 'assign') {
+        if (!seat || !groupName) return res.status(400).json({ success: false, message: '缺少座號或身分組名稱' });
+        await db.ref(`students/${seat}/groups/${groupName}`).set(true);
+        return res.status(200).json({ success: true });
+      }
+
+      // [功能：取消勾選，拔除學生身分組]
+      if (action === 'unassign') {
+        if (!seat || !groupName) return res.status(400).json({ success: false, message: '缺少座號或身分組名稱' });
+        await db.ref(`students/${seat}/groups/${groupName}`).remove();
         return res.status(200).json({ success: true });
       }
     }
     
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
   } catch (error) {
+    console.error("API 執行崩潰:", error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
