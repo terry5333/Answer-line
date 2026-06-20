@@ -37,42 +37,51 @@
   </div>
   
   <script>
-    // ⚠️ 替換為你的會員卡 LIFF ID
     const LIFF_ID = "2010239383-XzCM9Wc0"; 
     
-    liff.init({ liffId: LIFF_ID }).then(() => {
+    liff.init({ liffId: LIFF_ID }).then(async () => {
       if(!liff.isLoggedIn()) { liff.login(); return; }
       
-      const uid = liff.getContext().userId;
-      fetch('/api/member?uid=' + uid).then(r=>r.json()).then(data => {
-        document.getElementById('loading').style.display = 'none';
-        const card = document.getElementById('card');
-        card.classList.remove('hidden');
+      try {
+        // 🏆 關鍵：自動獲取使用者的 LINE 頭像與 UID
+        const profile = await liff.getProfile();
+        const uid = profile.userId;
+        const avatarUrl = profile.pictureUrl || '';
         
-        // 浮現動畫
-        setTimeout(() => { card.classList.remove('scale-95', 'opacity-0'); }, 50);
+        // 改用 POST 將頭像網址一併送給後端自動更新
+        fetch('/api/member', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid: uid, avatarUrl: avatarUrl })
+        }).then(r=>r.json()).then(data => {
+          document.getElementById('loading').style.display = 'none';
+          const card = document.getElementById('card');
+          card.classList.remove('hidden');
+          setTimeout(() => { card.classList.remove('scale-95', 'opacity-0'); }, 50);
 
-        if(!data.success) { card.innerHTML = `<p class="p-10 text-center text-red-500 font-bold">${data.message}</p>`; return; }
-        
-        document.getElementById('name').innerText = data.student.name || '未知';
-        document.getElementById('seat').innerText = 'SEAT: ' + data.seat;
-        if(data.student.avatarUrl) document.getElementById('avatar').src = data.student.avatarUrl;
-        
-        const groups = data.student.groups ? Object.keys(data.student.groups) : [];
-        const groupEl = document.getElementById('groups');
-        if(groups.length === 0) {
-          groupEl.innerHTML = '<span class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">一般全體</span>';
-        } else {
-          groups.forEach(g => {
-            groupEl.innerHTML += `<span class="bg-[#EDF1FB] text-[#3A5FC4] px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">${g}</span>`;
+          if(!data.success) { card.innerHTML = `<p class="p-10 text-center text-red-500 font-bold">${data.message}</p>`; return; }
+          
+          document.getElementById('name').innerText = data.student.name || '未知';
+          document.getElementById('seat').innerText = 'SEAT: ' + data.seat;
+          if(data.student.avatarUrl) document.getElementById('avatar').src = data.student.avatarUrl;
+          
+          const groups = data.student.groups ? Object.keys(data.student.groups) : [];
+          const groupEl = document.getElementById('groups');
+          if(groups.length === 0) {
+            groupEl.innerHTML = '<span class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">一般全體</span>';
+          } else {
+            groups.forEach(g => {
+              groupEl.innerHTML += `<span class="bg-[#EDF1FB] text-[#3A5FC4] px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">${g}</span>`;
+            });
+          }
+          
+          new QRCode(document.getElementById("qrcode"), {
+            text: data.seat, width: 160, height: 160, colorDark: "#1E293B", colorLight: "#f9fafb", correctLevel: QRCode.CorrectLevel.H
           });
-        }
-        
-        // 生成 QR Code (內容即為學生的座號字串)
-        new QRCode(document.getElementById("qrcode"), {
-          text: data.seat, width: 160, height: 160, colorDark: "#1E293B", colorLight: "#f9fafb", correctLevel: QRCode.CorrectLevel.H
         });
-      });
+      } catch (err) {
+        alert('取得個人資料失敗');
+      }
     }).catch(err => alert('LIFF 載入失敗'));
   </script>
 </body>
