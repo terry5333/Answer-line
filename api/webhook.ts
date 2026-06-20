@@ -70,7 +70,6 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
               }
 
               const prefix = dbNode === 'textbooks' ? '課本' : '解答';
-              // 🏆 關鍵傳遞：將學生的 studentGroups 注入渲染函式
               return sendFlexMessage(replyToken, LINE_TOKEN, `${subject}${prefix}專區`, allowedDataList, userId, host, subject, logType, studentGroups);
             } else {
               return replyText(replyToken, LINE_TOKEN, `目前資料庫還沒有「${text}」的檔案喔！`);
@@ -108,7 +107,6 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
       contents: [
         { type: "box", layout: "vertical", width: "4px", backgroundColor: "#4A8B6F", cornerRadius: "md", contents: [{ type: "filler" }] }, 
         { type: "text", text: "📄", flex: 0, size: "md" },
-        // 🏆 下方卡片列表回歸最純粹簡潔的 Clean UI，不再贅述解答所屬組別
         { 
           type: "box", layout: "vertical", flex: 1, spacing: "xs",
           contents: [
@@ -122,15 +120,16 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
     };
   });
 
-  // 🏆 功能 1：在圖文訊息頂部，精準橫向拼裝出「學生目前身上擁有的身份組膠囊徽章」
   const myGroupNames = Object.keys(studentGroups || {});
+  
+  // 🔥 關鍵修正：將膠囊標籤裡的 flex 屬性徹底拔除，解決 wrap 衝突！
   const studentBadgeContents = myGroupNames.length > 0 
     ? myGroupNames.map((g: string) => ({
-        type: "box", layout: "vertical", backgroundColor: "#3A5FC4", paddingStart: "6px", paddingEnd: "6px", paddingTop: "2px", paddingBottom: "2px", cornerRadius: "4px", flex: 0,
+        type: "box", layout: "vertical", backgroundColor: "#3A5FC4", paddingStart: "6px", paddingEnd: "6px", paddingTop: "2px", paddingBottom: "2px", cornerRadius: "4px",
         contents: [{ type: "text", text: g, color: "#FFFFFF", size: "xxs", weight: "bold" }]
       }))
     : [{
-        type: "box", layout: "vertical", backgroundColor: "#64748B", paddingStart: "6px", paddingEnd: "6px", paddingTop: "2px", paddingBottom: "2px", cornerRadius: "4px", flex: 0,
+        type: "box", layout: "vertical", backgroundColor: "#64748B", paddingStart: "6px", paddingEnd: "6px", paddingTop: "2px", paddingBottom: "2px", cornerRadius: "4px",
         contents: [{ type: "text", text: "一般全體", color: "#FFFFFF", size: "xxs", weight: "bold" }]
       }];
 
@@ -157,8 +156,6 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
                 { type: "text", text: logType, color: "#D4654A", size: "xs", weight: "bold", align: "end" }
               ]},
               { type: "text", text: titleText, color: "#1E293B", size: "xxl", weight: "bold", margin: "md" },
-              
-              // 🏆 頂部徽章整合：讓學生一眼看見自己在系統中目前擁有的身份組權限
               { 
                 type: "box", layout: "horizontal", spacing: "xs", margin: "md", alignItems: "center",
                 contents: [
