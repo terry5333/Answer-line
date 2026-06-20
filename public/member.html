@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>數位會員卡</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    body { background: #F4F7F6; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.6); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+    #qrcode img { margin: auto; border-radius: 12px; }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-6">
+  
+  <div id="loading" class="text-gray-400 font-bold tracking-widest animate-pulse">連線認證中...</div>
+
+  <div id="card" class="glass-card rounded-[32px] w-full max-w-sm overflow-hidden hidden transform transition-all duration-500 scale-95 opacity-0">
+    <div class="bg-gradient-to-br from-[#3A5FC4] to-[#203D8A] p-8 text-center text-white relative">
+       <div class="absolute top-4 left-4 text-[10px] font-bold tracking-widest opacity-60 uppercase">SmartEdu ID</div>
+       <img id="avatar" src="https://via.placeholder.com/150" class="w-24 h-24 rounded-full mx-auto border-4 border-white/20 shadow-lg object-cover mt-4">
+       <h2 id="name" class="text-3xl font-black mt-4 tracking-wide">載入中</h2>
+       <p id="seat" class="text-sm opacity-80 mt-1 font-mono tracking-wider"></p>
+    </div>
+    
+    <div class="p-8 text-center bg-white">
+       <p class="text-[10px] text-gray-400 font-bold mb-3 uppercase tracking-widest">目前擁有的身分組權限</p>
+       <div id="groups" class="flex flex-wrap justify-center gap-2 mb-8"></div>
+       
+       <div class="bg-gray-50 p-4 rounded-3xl inline-block border border-gray-100 shadow-inner">
+         <div id="qrcode"></div>
+       </div>
+       <p class="text-[10px] text-gray-400 mt-4 font-bold tracking-wider">請向管理員出示此條碼進行核銷</p>
+    </div>
+  </div>
+  
+  <script>
+    // ⚠️ 替換為你的會員卡 LIFF ID
+    const LIFF_ID = "2010239383-XzCM9Wc0"; 
+    
+    liff.init({ liffId: LIFF_ID }).then(() => {
+      if(!liff.isLoggedIn()) { liff.login(); return; }
+      
+      const uid = liff.getContext().userId;
+      fetch('/api/member?uid=' + uid).then(r=>r.json()).then(data => {
+        document.getElementById('loading').style.display = 'none';
+        const card = document.getElementById('card');
+        card.classList.remove('hidden');
+        
+        // 浮現動畫
+        setTimeout(() => { card.classList.remove('scale-95', 'opacity-0'); }, 50);
+
+        if(!data.success) { card.innerHTML = `<p class="p-10 text-center text-red-500 font-bold">${data.message}</p>`; return; }
+        
+        document.getElementById('name').innerText = data.student.name || '未知';
+        document.getElementById('seat').innerText = 'SEAT: ' + data.seat;
+        if(data.student.avatarUrl) document.getElementById('avatar').src = data.student.avatarUrl;
+        
+        const groups = data.student.groups ? Object.keys(data.student.groups) : [];
+        const groupEl = document.getElementById('groups');
+        if(groups.length === 0) {
+          groupEl.innerHTML = '<span class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">一般全體</span>';
+        } else {
+          groups.forEach(g => {
+            groupEl.innerHTML += `<span class="bg-[#EDF1FB] text-[#3A5FC4] px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">${g}</span>`;
+          });
+        }
+        
+        // 生成 QR Code (內容即為學生的座號字串)
+        new QRCode(document.getElementById("qrcode"), {
+          text: data.seat, width: 160, height: 160, colorDark: "#1E293B", colorLight: "#f9fafb", correctLevel: QRCode.CorrectLevel.H
+        });
+      });
+    }).catch(err => alert('LIFF 載入失敗'));
+  </script>
+</body>
+</html>
