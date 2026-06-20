@@ -70,6 +70,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
               }
 
               const prefix = dbNode === 'textbooks' ? '課本' : '解答';
+              // 🏆 將認證權限 studentGroups 無縫帶入全新的美學渲染大腦
               return sendFlexMessage(replyToken, LINE_TOKEN, `${subject}${prefix}專區`, allowedDataList, userId, host, subject, logType, studentGroups);
             } else {
               return replyText(replyToken, LINE_TOKEN, `目前資料庫還沒有「${text}」的檔案喔！`);
@@ -91,7 +92,10 @@ function switchRichMenu(userId: string, menuId: string, token: string | undefine
   return axios.post(`https://api.line.me/v2/bot/user/${userId}/richmenu/${menuId}`, {}, { headers: { Authorization: `Bearer ${token}` } }).then(function() { return Promise.resolve(); }).catch(function() { return Promise.resolve(); });
 }
 
+// 🏆 【極簡美學完全體】精心雕琢的 Clean UI 檔案清單 Flex Message
 function sendFlexMessage(replyToken: string, token: string | undefined, titleText: string, items: any[], userId: string, host: string, subject: string, logType: string, studentGroups: any) {
+  
+  // 下方列表：渲染出極具空氣感的精緻白色懸浮卡片
   const listItems = items.map(function(item: any) {
     const proxyUrl = `https://${host}/api/view?uid=${userId}&subj=${encodeURIComponent(subject)}&type=${encodeURIComponent(logType)}&title=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.url)}`;
     
@@ -99,37 +103,41 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
       type: "box", 
       layout: "horizontal", 
       spacing: "md", 
-      paddingAll: "16px", 
-      cornerRadius: "20px", 
-      backgroundColor: "#FFFFFF", 
+      paddingAll: "18px", 
+      cornerRadius: "20px", // 大圓角極簡卡片
+      backgroundColor: "#FFFFFF", // 純白卡片本體
       alignItems: "center",
       action: { type: "uri", label: "開啟檔案", uri: proxyUrl },
       contents: [
+        // 左側高雅的質感綠色定位線
         { type: "box", layout: "vertical", width: "4px", backgroundColor: "#4A8B6F", cornerRadius: "md", contents: [{ type: "filler" }] }, 
-        { type: "text", text: "📄", flex: 0, size: "md" },
+        { type: "text", text: "📄", flex: 0, size: "md", gravity: "center" },
         { 
-          type: "box", layout: "vertical", flex: 1, spacing: "xs",
+          type: "box", layout: "vertical", flex: 1,
           contents: [
             { type: "text", text: item.title, weight: "bold", color: "#334155", size: "sm", wrap: true }
           ]
         },
-        { type: "box", layout: "vertical", backgroundColor: "#EDF5F1", paddingAll: "6px", cornerRadius: "8px", flex: 0, contents: [
-          { type: "text", text: "開啟", color: "#4A8B6F", size: "xxs", weight: "bold", align: "center" }
-        ]}
+        // 右側精心設計的莫蘭迪綠膠囊按鈕
+        { 
+          type: "box", layout: "vertical", backgroundColor: "#EDF5F1", paddingStart: "12px", paddingEnd: "10px", paddingTop: "6px", paddingBottom: "6px", cornerRadius: "10px", flex: 0, 
+          contents: [
+            { type: "text", text: "開啟", color: "#4A8B6F", size: "xs", weight: "bold", align: "center" }
+          ]
+        }
       ]
     };
   });
 
+  // 頂部狀態列：動態抽離出學生自己當前擁有的身份組標籤
   const myGroupNames = Object.keys(studentGroups || {});
-  
-  // 🔥 究極防彈破解：徹底移除 LINE 的 wrap 地雷，改回最單純的 horizontal 盒子與 4px 內距
   const studentBadgeContents = myGroupNames.length > 0 
     ? myGroupNames.map((g: string) => ({
-        type: "box", layout: "horizontal", backgroundColor: "#3A5FC4", paddingAll: "4px", cornerRadius: "sm",
+        type: "box", layout: "horizontal", backgroundColor: "#3A5FC4", paddingStart: "8px", paddingEnd: "8px", paddingTop: "3px", paddingBottom: "3px", cornerRadius: "6px",
         contents: [{ type: "text", text: g, color: "#FFFFFF", size: "xxs", weight: "bold", align: "center" }]
       }))
     : [{
-        type: "box", layout: "horizontal", backgroundColor: "#64748B", paddingAll: "4px", cornerRadius: "sm",
+        type: "box", layout: "horizontal", backgroundColor: "#64748B", paddingStart: "8px", paddingEnd: "8px", paddingTop: "3px", paddingBottom: "3px", cornerRadius: "6px",
         contents: [{ type: "text", text: "一般全體", color: "#FFFFFF", size: "xxs", weight: "bold", align: "center" }]
       }];
 
@@ -143,8 +151,9 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
         type: "box", 
         layout: "vertical", 
         paddingAll: "0px", 
-        backgroundColor: "#F4F7F6",
+        backgroundColor: "#F4F7F6", // 高級淺微灰底色，襯托出上方卡片的懸浮感
         contents: [
+          // ─── 頂部高階純白資訊中樞 ───
           { 
             type: "box", 
             layout: "vertical", 
@@ -155,23 +164,24 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
                 { type: "text", text: "✦ Smart Education", color: "#4A8B6F", size: "xs", weight: "bold" },
                 { type: "text", text: logType, color: "#D4654A", size: "xs", weight: "bold", align: "end" }
               ]},
-              { type: "text", text: titleText, color: "#1E293B", size: "xxl", weight: "bold", margin: "md" },
-              { type: "text", text: "點擊下方卡片即可查看或下載內容", color: "#94A3B8", size: "xs", margin: "sm" },
+              { type: "text", text: titleText, color: "#0F172A", size: "xxl", weight: "bold", margin: "md" },
+              
+              // 👤 獨立封裝的「學生當前身份認證標籤區塊」，採用 iOS 式圓角背板
               { 
-                type: "box", layout: "horizontal", spacing: "sm", margin: "md", alignItems: "center",
+                type: "box", layout: "vertical", backgroundColor: "#F8FAFC", paddingAll: "12px", cornerRadius: "14px", margin: "lg", spacing: "sm",
                 contents: [
-                  { type: "text", text: "您的身分組：", color: "#64748B", size: "xs", flex: 0 },
-                  // 移除 wrap: true，讓 LINE 的伺服器完全找不到退貨的理由！
-                  { type: "box", layout: "horizontal", spacing: "sm", flex: 1, contents: studentBadgeContents }
+                  { type: "text", text: "👤 目前已認證的身分權限：", color: "#64748B", size: "xxs", weight: "bold" },
+                  { type: "box", layout: "horizontal", spacing: "sm", contents: studentBadgeContents }
                 ]
               }
             ] 
           },
+          // ─── 下方高級懸浮卡片容器 ───
           { 
             type: "box", 
             layout: "vertical", 
-            paddingAll: "24px", 
-            spacing: "lg", 
+            paddingAll: "20px", 
+            spacing: "md", 
             contents: listItems.length > 0 ? listItems : [{ type: "text", text: "此分類暫無檔案", color: "#94a3b8", size: "sm", align: "center" }] 
           }
         ]
