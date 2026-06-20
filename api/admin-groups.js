@@ -1,5 +1,5 @@
 const admin = require('firebase-admin');
-const axios = require('axios'); // 引入 axios 來發送 LINE 推播
+const axios = require('axios');
 
 // 確保 Firebase 只初始化一次
 if (!admin.apps.length) {
@@ -29,7 +29,6 @@ module.exports = async function(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    // 取得所有身分組清單
     if (req.method === 'GET') {
       const snap = await db.ref('groups').once('value');
       return res.status(200).json({ success: true, groups: snap.val() || {} });
@@ -65,27 +64,41 @@ module.exports = async function(req, res) {
         return res.status(200).json({ success: true });
       }
       
-      // 🏆 加入身分組，並發送 LINE 推播通知
+      // 🏆 新增身分組 ➔ 發送極簡藍調 Flex 推播卡片
       if (action === 'assign') {
         if (!seat || !groupName) return res.status(400).json({ success: false, message: '缺少座號或身分組' });
         await db.ref(`students/${seat}/groups/${groupName}`).set(true);
         
-        // 異步撈取學生綁定的 LINE 裝置 ID
         const studentSnap = await db.ref(`students/${seat}`).once('value');
         if (studentSnap.exists()) {
           const studentData = studentSnap.val();
           if (studentData.lineId) {
-            await sendPushMessage(
-              studentData.lineId, 
-              `✨ 系統權限異動通知\n管理員已將您加入【${groupName}】身分組。您現在可以點擊主選單查看此組別的專屬資源囉！`, 
-              LINE_TOKEN
-            );
+            const assignFlex = {
+              type: "bubble",
+              size: "mega",
+              body: {
+                type: "box", layout: "vertical", paddingAll: "24px", backgroundColor: "#FFFFFF",
+                contents: [
+                  { type: "text", text: "✨ SmartEdu 系統通知", color: "#3A5FC4", size: "xs", weight: "bold" },
+                  { type: "text", text: "已獲取新權限識別", color: "#0F172A", size: "xl", weight: "bold", margin: "md" },
+                  {
+                    type: "box", layout: "vertical", backgroundColor: "#EDF1FB", paddingAll: "16px", cornerRadius: "14px", margin: "lg",
+                    contents: [
+                      { type: "text", text: "新增身分組", color: "#3A5FC4", size: "xxs", weight: "bold" },
+                      { type: "text", text: `【${groupName}】`, color: "#1E293B", size: "md", weight: "bold", margin: "xs" }
+                    ]
+                  },
+                  { type: "text", text: "您現在可以點擊 LINE 主選單查看該組別的專屬解答與學習資源囉！", color: "#64748B", size: "xs", margin: "md", wrap: true }
+                ]
+              }
+            };
+            await sendFlexPushMessage(studentData.lineId, "✨ 獲取新身分組通知", assignFlex, LINE_TOKEN);
           }
         }
         return res.status(200).json({ success: true });
       }
 
-      // 🏆 移除身分組，並發送 LINE 推播通知
+      // 🏆 移除身分組 ➔ 發送莫蘭迪橘 Flex 推播卡片
       if (action === 'unassign') {
         if (!seat || !groupName) return res.status(400).json({ success: false, message: '缺少座號或身分組' });
         await db.ref(`students/${seat}/groups/${groupName}`).remove();
@@ -94,11 +107,26 @@ module.exports = async function(req, res) {
         if (studentSnap.exists()) {
           const studentData = studentSnap.val();
           if (studentData.lineId) {
-            await sendPushMessage(
-              studentData.lineId, 
-              `📌 系統權限異動通知\n管理員已將您從【${groupName}】身分組中移除。`, 
-              LINE_TOKEN
-            );
+            const unassignFlex = {
+              type: "bubble",
+              size: "mega",
+              body: {
+                type: "box", layout: "vertical", paddingAll: "24px", backgroundColor: "#FFFFFF",
+                contents: [
+                  { type: "text", text: "📌 SmartEdu 系統通知", color: "#D4654A", size: "xs", weight: "bold" },
+                  { type: "text", text: "權限範圍異動異動", color: "#0F172A", size: "xl", weight: "bold", margin: "md" },
+                  {
+                    type: "box", layout: "vertical", backgroundColor: "#FDF0EC", paddingAll: "16px", cornerRadius: "14px", margin: "lg",
+                    contents: [
+                      { type: "text", text: "移除身分組", color: "#D4654A", size: "xxs", weight: "bold" },
+                      { type: "text", text: `【${groupName}】`, color: "#1E293B", size: "md", weight: "bold", margin: "xs" }
+                    ]
+                  },
+                  { type: "text", text: "管理員已將您自該身分組中移除，如有學習權限配置疑問，請洽詢課程負責教師。", color: "#64748B", size: "xs", margin: "md", wrap: true }
+                ]
+              }
+            };
+            await sendFlexPushMessage(studentData.lineId, "📌 身分組移除通知", unassignFlex, LINE_TOKEN);
           }
         }
         return res.status(200).json({ success: true });
@@ -111,17 +139,21 @@ module.exports = async function(req, res) {
   }
 };
 
-// 封裝 LINE Push 核心主動推播函式
-async function sendPushMessage(to, text, token) {
+// 🏆 封裝 LINE 主動推播 Flex 訊息專用函式
+async function sendFlexPushMessage(to, altText, flexContents, token) {
   if (!token) return;
   try {
     await axios.post('https://api.line.me/v2/bot/message/push', {
       to: to,
-      messages: [{ type: 'text', text: text }]
+      messages: [{
+        type: "flex",
+        altText: altText,
+        contents: flexContents
+      }]
     }, {
       headers: { Authorization: `Bearer ${token}` }
     });
   } catch (err) {
-    console.error('🔴 LINE Push 通知發送失敗:', err);
+    console.error('🔴 LINE Flex Push 通知發送失敗:', err.response ? err.response.data : err.message);
   }
 }
