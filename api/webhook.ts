@@ -95,7 +95,7 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
   const listItems = items.map(function(item: any) {
     const proxyUrl = `https://${host}/api/view?uid=${userId}&subj=${encodeURIComponent(subject)}&type=${encodeURIComponent(logType)}&title=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.url)}`;
     
-    // 🏆 功能 1：取得目前解答所屬的所有身分組，並封裝成小標籤
+    // 🏆 取出身分組，生成小膠囊標籤
     const itemGroups: string[] = Array.isArray(item.groups) ? item.groups : [item.group || '全體'];
     const tagBadges = itemGroups.map((g: string) => {
       return {
@@ -103,7 +103,8 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
         backgroundColor: g === '全體' ? "#f1f5f9" : "#edf2f7",
         paddingStart: "6px", paddingEnd: "6px", paddingTop: "2px", paddingBottom: "2px", cornerRadius: "4px", flex: 0,
         contents: [
-          { type: "text", text: g, color: g === '全體' ? "#64748b" : "#3a5fc4", size: "xxxxs", weight: "bold" }
+          // 🔥 致命錯誤修正：把 xxxxs 修正回 LINE 的官方最小尺寸 xxs
+          { type: "text", text: g, color: g === '全體' ? "#64748b" : "#3a5fc4", size: "xxs", weight: "bold" }
         ]
       };
     });
@@ -120,7 +121,6 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
       contents: [
         { type: "box", layout: "vertical", width: "4px", backgroundColor: "#4A8B6F", cornerRadius: "md", contents: [{ type: "filler" }] }, 
         { type: "text", text: "📄", flex: 0, size: "md" },
-        // 🏆 垂直複合排版：上方檔名，下方無縫塞入該解答目前「所有擁有的身份組標籤」
         { 
           type: "box", layout: "vertical", flex: 1, spacing: "xs",
           contents: [
