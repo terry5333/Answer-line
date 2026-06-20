@@ -1,7 +1,7 @@
-import { VercelRequest, VercelResponse } from '@vercel/node';
-import * as admin from 'firebase-admin';
-import axios from 'axios';
+const admin = require('firebase-admin');
+const axios = require('axios'); // 引入 axios 來發送 LINE 推播
 
+// 確保 Firebase 只初始化一次
 if (!admin.apps.length) {
   try {
     admin.initializeApp({
@@ -19,7 +19,8 @@ if (!admin.apps.length) {
 
 const db = admin.database();
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+module.exports = async function(req, res) {
+  // 設定 CORS 跨網域存取權限
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
@@ -28,6 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
+    // 取得所有身分組清單
     if (req.method === 'GET') {
       const snap = await db.ref('groups').once('value');
       return res.status(200).json({ success: true, groups: snap.val() || {} });
@@ -43,6 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const { action, groupName, seat } = body || {};
       const LINE_TOKEN = process.env.LINE_ACCESS_TOKEN;
       
+      // 新增身分組
       if (action === 'add') {
         if (!groupName) return res.status(400).json({ success: false, message: '請輸入身分組名稱' });
         const safeName = groupName.replace(/[.#$\[\]]/g, '').trim();
@@ -55,13 +58,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({ success: true, groupName: safeName });
       }
       
+      // 刪除身分組
       if (action === 'delete') {
         if (!groupName) return res.status(400).json({ success: false, message: '缺少身分組名稱' });
         await db.ref(`groups/${groupName}`).remove();
         return res.status(200).json({ success: true });
       }
       
-      // 🏆 功能 2：被新增身分組時，發送 LINE 通知給學生
+      // 🏆 加入身分組，並發送 LINE 推播通知
       if (action === 'assign') {
         if (!seat || !groupName) return res.status(400).json({ success: false, message: '缺少座號或身分組' });
         await db.ref(`students/${seat}/groups/${groupName}`).set(true);
@@ -81,7 +85,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({ success: true });
       }
 
-      // 🏆 功能 2：被移除身分組時，發送 LINE 通知給學生
+      // 🏆 移除身分組，並發送 LINE 推播通知
       if (action === 'unassign') {
         if (!seat || !groupName) return res.status(400).json({ success: false, message: '缺少座號或身分組' });
         await db.ref(`students/${seat}/groups/${groupName}`).remove();
@@ -103,12 +107,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
   } catch (error) {
-    return res.status(500).json({ success: false, message: (error as Error).message });
+    return res.status(500).json({ success: false, message: error.message });
   }
-}
+};
 
-// 🏆 封裝 LINE Push 核心主動推播函式
-async function sendPushMessage(to: string, text: string, token: string | undefined) {
+// 封裝 LINE Push 核心主動推播函式
+async function sendPushMessage(to, text, token) {
   if (!token) return;
   try {
     await axios.post('https://api.line.me/v2/bot/message/push', {
