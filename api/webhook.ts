@@ -122,14 +122,14 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
 
   const myGroupNames = Object.keys(studentGroups || {});
   
-  // 🔥 關鍵修正：將膠囊標籤裡的 flex 屬性徹底拔除，解決 wrap 衝突！
+  // 🔥 關鍵破解：將膠囊的 layout 從 vertical 強制改為 LINE 規定的 baseline，完美相容自動換行！
   const studentBadgeContents = myGroupNames.length > 0 
     ? myGroupNames.map((g: string) => ({
-        type: "box", layout: "vertical", backgroundColor: "#3A5FC4", paddingStart: "6px", paddingEnd: "6px", paddingTop: "2px", paddingBottom: "2px", cornerRadius: "4px",
+        type: "box", layout: "baseline", backgroundColor: "#3A5FC4", paddingStart: "8px", paddingEnd: "8px", paddingTop: "4px", paddingBottom: "4px", cornerRadius: "md",
         contents: [{ type: "text", text: g, color: "#FFFFFF", size: "xxs", weight: "bold" }]
       }))
     : [{
-        type: "box", layout: "vertical", backgroundColor: "#64748B", paddingStart: "6px", paddingEnd: "6px", paddingTop: "2px", paddingBottom: "2px", cornerRadius: "4px",
+        type: "box", layout: "baseline", backgroundColor: "#64748B", paddingStart: "8px", paddingEnd: "8px", paddingTop: "4px", paddingBottom: "4px", cornerRadius: "md",
         contents: [{ type: "text", text: "一般全體", color: "#FFFFFF", size: "xxs", weight: "bold" }]
       }];
 
@@ -157,10 +157,11 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
               ]},
               { type: "text", text: titleText, color: "#1E293B", size: "xxl", weight: "bold", margin: "md" },
               { 
-                type: "box", layout: "horizontal", spacing: "xs", margin: "md", alignItems: "center",
+                type: "box", layout: "horizontal", spacing: "sm", margin: "md", alignItems: "center",
                 contents: [
                   { type: "text", text: "您的身分組：", color: "#64748B", size: "xs", flex: 0 },
-                  { type: "box", layout: "horizontal", spacing: "xs", flex: 1, wrap: true, contents: studentBadgeContents }
+                  // 外框設定 wrap: true，裡面的標籤現在已改為 baseline，符合 LINE 嚴格審查！
+                  { type: "box", layout: "horizontal", spacing: "sm", flex: 1, wrap: true, contents: studentBadgeContents }
                 ]
               }
             ] 
