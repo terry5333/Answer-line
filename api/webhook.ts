@@ -122,15 +122,15 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
 
   const myGroupNames = Object.keys(studentGroups || {});
   
-  // 🔥 關鍵破解：將膠囊的 layout 從 vertical 強制改為 LINE 規定的 baseline，完美相容自動換行！
+  // 🔥 究極防彈破解：徹底移除 LINE 的 wrap 地雷，改回最單純的 horizontal 盒子與 4px 內距
   const studentBadgeContents = myGroupNames.length > 0 
     ? myGroupNames.map((g: string) => ({
-        type: "box", layout: "baseline", backgroundColor: "#3A5FC4", paddingStart: "8px", paddingEnd: "8px", paddingTop: "4px", paddingBottom: "4px", cornerRadius: "md",
-        contents: [{ type: "text", text: g, color: "#FFFFFF", size: "xxs", weight: "bold" }]
+        type: "box", layout: "horizontal", backgroundColor: "#3A5FC4", paddingAll: "4px", cornerRadius: "sm",
+        contents: [{ type: "text", text: g, color: "#FFFFFF", size: "xxs", weight: "bold", align: "center" }]
       }))
     : [{
-        type: "box", layout: "baseline", backgroundColor: "#64748B", paddingStart: "8px", paddingEnd: "8px", paddingTop: "4px", paddingBottom: "4px", cornerRadius: "md",
-        contents: [{ type: "text", text: "一般全體", color: "#FFFFFF", size: "xxs", weight: "bold" }]
+        type: "box", layout: "horizontal", backgroundColor: "#64748B", paddingAll: "4px", cornerRadius: "sm",
+        contents: [{ type: "text", text: "一般全體", color: "#FFFFFF", size: "xxs", weight: "bold", align: "center" }]
       }];
 
   const flexMessage = {
@@ -156,12 +156,13 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
                 { type: "text", text: logType, color: "#D4654A", size: "xs", weight: "bold", align: "end" }
               ]},
               { type: "text", text: titleText, color: "#1E293B", size: "xxl", weight: "bold", margin: "md" },
+              { type: "text", text: "點擊下方卡片即可查看或下載內容", color: "#94A3B8", size: "xs", margin: "sm" },
               { 
                 type: "box", layout: "horizontal", spacing: "sm", margin: "md", alignItems: "center",
                 contents: [
                   { type: "text", text: "您的身分組：", color: "#64748B", size: "xs", flex: 0 },
-                  // 外框設定 wrap: true，裡面的標籤現在已改為 baseline，符合 LINE 嚴格審查！
-                  { type: "box", layout: "horizontal", spacing: "sm", flex: 1, wrap: true, contents: studentBadgeContents }
+                  // 移除 wrap: true，讓 LINE 的伺服器完全找不到退貨的理由！
+                  { type: "box", layout: "horizontal", spacing: "sm", flex: 1, contents: studentBadgeContents }
                 ]
               }
             ] 
