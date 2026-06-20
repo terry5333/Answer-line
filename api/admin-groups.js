@@ -1,6 +1,7 @@
-const admin = require('firebase-admin');
+import { VercelRequest, VercelResponse } from '@vercel/node';
+import * as admin from 'firebase-admin';
+import axios from 'axios';
 
-// 確保 Firebase 只初始化一次，且加入環境變數安全網
 if (!admin.apps.length) {
   try {
     admin.initializeApp({
@@ -18,70 +19,105 @@ if (!admin.apps.length) {
 
 const db = admin.database();
 
-module.exports = async function(req, res) {
-  // 設定 CORS 跨網域存取權限
-  res.setHeader('Access-Control-Allow-Credentials', true);
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
   res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
   
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    // 【讀取】取得目前所有身分組清單
     if (req.method === 'GET') {
       const snap = await db.ref('groups').once('value');
       return res.status(200).json({ success: true, groups: snap.val() || {} });
     }
 
     if (req.method === 'POST') {
-      const { action, groupName, seat } = req.body;
+      let body = req.body;
+      if (Buffer.isBuffer(body)) body = body.toString('utf8');
+      if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch(e) {}
+      }
+
+      const { action, groupName, seat } = body || {};
+      const LINE_TOKEN = process.env.LINE_ACCESS_TOKEN;
       
-      // [功能：新增身分組]
       if (action === 'add') {
         if (!groupName) return res.status(400).json({ success: false, message: '請輸入身分組名稱' });
-        
-        // 自動濾除 Firebase 資料庫禁用的特殊符號
         const safeName = groupName.replace(/[.#$\[\]]/g, '').trim();
         if (!safeName) return res.status(400).json({ success: false, message: '名稱包含無效字元' });
         
-        // 檢查是否已經存在同名身分組
         const existCheck = await db.ref(`groups/${safeName}`).once('value');
-        if (existCheck.exists()) {
-          return res.status(400).json({ success: false, message: '此身分組名稱已存在' });
-        }
+        if (existCheck.exists()) return res.status(400).json({ success: false, message: '此身分組名稱已存在' });
         
         await db.ref(`groups/${safeName}`).set({ createdAt: Date.now() });
         return res.status(200).json({ success: true, groupName: safeName });
       }
       
-      // [功能：刪除身分組]
       if (action === 'delete') {
         if (!groupName) return res.status(400).json({ success: false, message: '缺少身分組名稱' });
         await db.ref(`groups/${groupName}`).remove();
         return res.status(200).json({ success: true });
       }
       
-      // [功能：勾選指派身分組給學生]
+      // 🏆 功能 2：被新增身分組時，發送 LINE 通知給學生
       if (action === 'assign') {
-        if (!seat || !groupName) return res.status(400).json({ success: false, message: '缺少座號或身分組名稱' });
+        if (!seat || !groupName) return res.status(400).json({ success: false, message: '缺少座號或身分組' });
         await db.ref(`students/${seat}/groups/${groupName}`).set(true);
+        
+        // 異步撈取學生綁定的 LINE 裝置 ID
+        const studentSnap = await db.ref(`students/${seat}`).once('value');
+        if (studentSnap.exists()) {
+          const studentData = studentSnap.val();
+          if (studentData.lineId) {
+            await sendPushMessage(
+              studentData.lineId, 
+              `✨ 系統權限異動通知\n管理員已將您加入【${groupName}】身分組。您現在可以點擊主選單查看此組別的專屬資源囉！`, 
+              LINE_TOKEN
+            );
+          }
+        }
         return res.status(200).json({ success: true });
       }
 
-      // [功能：取消勾選，拔除學生身分組]
+      // 🏆 功能 2：被移除身分組時，發送 LINE 通知給學生
       if (action === 'unassign') {
-        if (!seat || !groupName) return res.status(400).json({ success: false, message: '缺少座號或身分組名稱' });
+        if (!seat || !groupName) return res.status(400).json({ success: false, message: '缺少座號或身分組' });
         await db.ref(`students/${seat}/groups/${groupName}`).remove();
+        
+        const studentSnap = await db.ref(`students/${seat}`).once('value');
+        if (studentSnap.exists()) {
+          const studentData = studentSnap.val();
+          if (studentData.lineId) {
+            await sendPushMessage(
+              studentData.lineId, 
+              `📌 系統權限異動通知\n管理員已將您從【${groupName}】身分組中移除。`, 
+              LINE_TOKEN
+            );
+          }
+        }
         return res.status(200).json({ success: true });
       }
     }
     
     return res.status(405).json({ success: false, message: 'Method Not Allowed' });
   } catch (error) {
-    console.error("API 執行崩潰:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    return res.status(500).json({ success: false, message: (error as Error).message });
   }
-};
+}
+
+// 🏆 封裝 LINE Push 核心主動推播函式
+async function sendPushMessage(to: string, text: string, token: string | undefined) {
+  if (!token) return;
+  try {
+    await axios.post('https://api.line.me/v2/bot/message/push', {
+      to: to,
+      messages: [{ type: 'text', text: text }]
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  } catch (err) {
+    console.error('🔴 LINE Push 通知發送失敗:', err);
+  }
+}
