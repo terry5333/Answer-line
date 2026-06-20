@@ -17,7 +17,7 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
     if (event.type === 'message' && event.message.type === 'text') {
       const text = event.message.text.trim();
 
-      // 🏆 新增：攔截「會員」關鍵字，彈出數位會員卡開啟按鈕
+      // 🏆 攔截「會員」關鍵字，彈出數位會員卡開啟按鈕
       if (text === '會員') {
         const LIFF_MEMBER_URL = process.env.LIFF_MEMBER_URL || `https://liff.line.me/請填寫您的會員LIFF_ID`;
         const flexMessage = {
@@ -122,7 +122,12 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
           { type: "box", layout: "vertical", paddingAll: "24px", backgroundColor: "#FFFFFF", contents: [
               { type: "box", layout: "horizontal", contents: [{ type: "text", text: "✦ Smart Education", color: "#4A8B6F", size: "xs", weight: "bold" }, { type: "text", text: logType, color: "#D4654A", size: "xs", weight: "bold", align: "end" }] },
               { type: "text", text: titleText, color: "#0F172A", size: "xxl", weight: "bold", margin: "md" },
-              { type: "box", layout: "vertical", backgroundColor: "#F8FAFC", paddingAll: "12px", cornerRadius: "14px", margin: "lg", spacing: "sm", contents: [{ type: "text", text: "👤 目前已認證的身分權限：", color: "#64748B", size: "xxs", weight: "bold" }, { type: "box", layout: "horizontal", spacing: "sm", wrap: true, contents: studentBadgeContents }] }
+              { type: "box", layout: "vertical", backgroundColor: "#F8FAFC", paddingAll: "12px", cornerRadius: "14px", margin: "lg", spacing: "sm", contents: [
+                  { type: "text", text: "👤 目前已認證的身分權限：", color: "#64748B", size: "xxs", weight: "bold" }, 
+                  // 🔥 核心防禦：已經徹底拿掉這裡的 wrap: true，絕對不會再報錯了！
+                  { type: "box", layout: "horizontal", spacing: "sm", contents: studentBadgeContents }
+                ] 
+              }
             ] 
           },
           { type: "box", layout: "vertical", paddingAll: "20px", spacing: "md", contents: listItems.length > 0 ? listItems : [{ type: "text", text: "此分類暫無檔案", color: "#94a3b8", size: "sm", align: "center" }] }
