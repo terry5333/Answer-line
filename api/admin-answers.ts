@@ -38,7 +38,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (req.method === 'POST') {
-      // 🏆 極限防禦：相容 Vercel 的 Buffer 與字串型 Body 解析
       let body = req.body;
       if (Buffer.isBuffer(body)) body = body.toString('utf8');
       if (typeof body === 'string') {
@@ -58,11 +57,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       
       if (action === 'updateGroup') {
-        // 🏆 終極除錯：如果少了任何一個參數，精準回報到底少了誰！
         if (!type || !subject || !key || !group) {
             throw new Error(`缺少修改參數! 類型:${type}, 科目:${subject}, 檔案鍵值:${key}, 身分組:${group}`);
         }
-        await db.ref(`${type}/${subject}/${key}/group`).set(group);
+        
+        // 🏆 關鍵修復：用 .update 同步覆蓋字串與陣列，徹底消除「全體」的殘留陷阱！
+        await db.ref(`${type}/${subject}/${key}`).update({
+            group: group,
+            groups: [group]
+        });
+        
         return res.status(200).json({ success: true });
       }
 
