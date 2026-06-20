@@ -91,10 +91,23 @@ function switchRichMenu(userId: string, menuId: string, token: string | undefine
   return axios.post(`https://api.line.me/v2/bot/user/${userId}/richmenu/${menuId}`, {}, { headers: { Authorization: `Bearer ${token}` } }).then(function() { return Promise.resolve(); }).catch(function() { return Promise.resolve(); });
 }
 
-// 🏆 修正版：嚴格符合 LINE API 標準的極簡質感 Flex Message
 function sendFlexMessage(replyToken: string, token: string | undefined, titleText: string, items: any[], userId: string, host: string, subject: string, logType: string) {
   const listItems = items.map(function(item: any) {
     const proxyUrl = `https://${host}/api/view?uid=${userId}&subj=${encodeURIComponent(subject)}&type=${encodeURIComponent(logType)}&title=${encodeURIComponent(item.title)}&url=${encodeURIComponent(item.url)}`;
+    
+    // 🏆 功能 1：取得目前解答所屬的所有身分組，並封裝成小標籤
+    const itemGroups: string[] = Array.isArray(item.groups) ? item.groups : [item.group || '全體'];
+    const tagBadges = itemGroups.map((g: string) => {
+      return {
+        type: "box", layout: "vertical",
+        backgroundColor: g === '全體' ? "#f1f5f9" : "#edf2f7",
+        paddingStart: "6px", paddingEnd: "6px", paddingTop: "2px", paddingBottom: "2px", cornerRadius: "4px", flex: 0,
+        contents: [
+          { type: "text", text: g, color: g === '全體' ? "#64748b" : "#3a5fc4", size: "xxxxs", weight: "bold" }
+        ]
+      };
+    });
+
     return {
       type: "box", 
       layout: "horizontal", 
@@ -105,10 +118,16 @@ function sendFlexMessage(replyToken: string, token: string | undefined, titleTex
       alignItems: "center",
       action: { type: "uri", label: "開啟檔案", uri: proxyUrl },
       contents: [
-        // 🔥 關鍵修復：補上 LINE 強制要求的 contents 陣列，並將圓角改為標準的 "md"
         { type: "box", layout: "vertical", width: "4px", backgroundColor: "#4A8B6F", cornerRadius: "md", contents: [{ type: "filler" }] }, 
         { type: "text", text: "📄", flex: 0, size: "md" },
-        { type: "text", text: item.title, weight: "bold", color: "#334155", size: "sm", gravity: "center", wrap: true, flex: 1 },
+        // 🏆 垂直複合排版：上方檔名，下方無縫塞入該解答目前「所有擁有的身份組標籤」
+        { 
+          type: "box", layout: "vertical", flex: 1, spacing: "xs",
+          contents: [
+            { type: "text", text: item.title, weight: "bold", color: "#334155", size: "sm", wrap: true },
+            { type: "box", layout: "horizontal", spacing: "xs", flex: 0, contents: tagBadges }
+          ]
+        },
         { type: "box", layout: "vertical", backgroundColor: "#EDF5F1", paddingAll: "6px", cornerRadius: "8px", flex: 0, contents: [
           { type: "text", text: "開啟", color: "#4A8B6F", size: "xxs", weight: "bold", align: "center" }
         ]}
