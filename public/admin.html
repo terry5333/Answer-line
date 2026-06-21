@@ -58,6 +58,7 @@
 
     <main class="px-8 pb-20">
       
+      <!-- ================= 🏆 大數據戰情儀表板 (Data Analysis) ================= -->
       <div id="tab-analysis" class="hidden fade-up space-y-6">
         <div class="glass-card p-6 md:p-8 flex flex-col lg:flex-row justify-between items-center gap-6">
           <div>
@@ -71,33 +72,25 @@
           <div class="glass-card p-8 lg:col-span-4 flex flex-col">
             <div class="flex items-center gap-2 mb-6"><i data-lucide="award" class="w-6 h-6 text-accentSaffron"></i><h3 class="font-serif italic text-2xl text-textMain">勤學排行榜 Top 5</h3></div>
             <p class="text-[11px] text-textMuted font-bold mb-4">統計開啟解答次數最多的活躍學生</p>
-            <div id="topStudentsContainer" class="flex-1 space-y-3">
-              <div class="p-10 text-center font-bold text-gray-400">數據載入中...</div>
-            </div>
+            <div id="topStudentsContainer" class="flex-1 space-y-3"><div class="p-10 text-center font-bold text-gray-400">數據載入中...</div></div>
           </div>
 
           <div class="glass-card p-8 lg:col-span-8 flex flex-col">
             <div class="flex items-center gap-2 mb-6"><i data-lucide="bar-chart-2" class="w-6 h-6 text-accentCobalt"></i><h3 class="font-serif italic text-2xl text-textMain">熱門點擊檔案 Top 5</h3></div>
             <p class="text-[11px] text-textMuted font-bold mb-4">系統中開啟率最高的單一講義或解答</p>
-            <div class="relative flex-1 w-full min-h-[300px]">
-              <canvas id="filesChart"></canvas>
-            </div>
+            <div class="relative flex-1 w-full min-h-[300px]"><canvas id="filesChart"></canvas></div>
           </div>
           
           <div class="glass-card p-8 lg:col-span-4 flex flex-col">
             <div class="flex items-center gap-2 mb-6"><i data-lucide="pie-chart" class="w-6 h-6 text-accentSage"></i><h3 class="font-serif italic text-2xl text-textMain">資源開啟類型佔比</h3></div>
             <p class="text-[11px] text-textMuted font-bold mb-4">比對學生查閱解答與課本的比例</p>
-            <div class="relative flex-1 w-full min-h-[250px] flex justify-center items-center">
-              <canvas id="typeChart"></canvas>
-            </div>
+            <div class="relative flex-1 w-full min-h-[250px] flex justify-center items-center"><canvas id="typeChart"></canvas></div>
           </div>
 
           <div class="glass-card p-8 lg:col-span-4 flex flex-col">
             <div class="flex items-center gap-2 mb-6"><i data-lucide="book-open" class="w-6 h-6 text-accentTerra"></i><h3 class="font-serif italic text-2xl text-textMain">熱門科目排行</h3></div>
             <p class="text-[11px] text-textMuted font-bold mb-4">系統中查閱次數最高的科目分類</p>
-            <div id="topSubjectsContainer" class="flex-1 space-y-3">
-              <div class="p-10 text-center font-bold text-gray-400">數據載入中...</div>
-            </div>
+            <div id="topSubjectsContainer" class="flex-1 space-y-3"><div class="p-10 text-center font-bold text-gray-400">數據載入中...</div></div>
           </div>
 
           <div class="glass-card p-8 lg:col-span-4 flex flex-col justify-center">
@@ -115,6 +108,7 @@
         </div>
       </div>
 
+      <!-- ================= 掃描核銷頁籤 ================= -->
       <div id="tab-scan" class="hidden fade-up flex flex-col items-center">
         <div class="glass-card p-10 w-full max-w-xl text-center flex flex-col items-center">
           <div class="bg-[#EDF1FB] text-accentCobalt p-4 rounded-full mb-4 shadow-sm"><i data-lucide="scan" class="w-8 h-8"></i></div>
@@ -126,6 +120,7 @@
         </div>
       </div>
 
+      <!-- ================= 頁籤 1：資源管理 ================= -->
       <div id="tab-resource" class="grid grid-cols-1 lg:grid-cols-12 gap-6 fade-up">
         <div class="lg:col-span-7 flex flex-col gap-6">
           <div class="glass-card p-8 flex flex-col min-h-[540px] relative overflow-hidden">
@@ -153,6 +148,7 @@
         </div>
       </div>
 
+      <!-- ================= 頁籤 2：學生戰情室 ================= -->
       <div id="tab-student" class="hidden fade-up space-y-6">
         <div class="glass-card p-6 md:p-8 flex flex-col lg:flex-row justify-between items-center gap-6">
           <div class="flex flex-col md:flex-row gap-4 items-center w-full lg:w-auto flex-1">
@@ -168,6 +164,7 @@
         <div id="studentCardsContainer" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
       </div>
 
+      <!-- ================= 頁籤 3：身分組管理 ================= -->
       <div id="tab-group" class="hidden fade-up">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           <div class="lg:col-span-5 glass-card p-8">
@@ -187,6 +184,7 @@
     </main>
   </div>
 
+  <!-- 🏆 掃描核銷管理彈出面板 Modal -->
   <div id="scanModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
     <div class="bg-white rounded-[32px] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl relative transform transition-all duration-300 scale-95 opacity-0" id="scanModalCard">
       <div class="p-8 border-b border-gray-100 flex justify-between items-start bg-gradient-to-br from-gray-50 to-white relative">
@@ -219,7 +217,6 @@
     const ADMIN_WHITELIST = ['terrylie0215@gmail.com']; 
     var GAS_URL = "https://script.google.com/macros/s/AKfycbygibovMu_M60vb67idUpFTibjBGSQknsm6XOyx-_wY7WXZGfDMeKuopLjfdysVEAuS/exec"; 
 
-    // Chart.js 全局變數
     Chart.defaults.font.family = '"Instrument Sans", "Noto Sans TC", sans-serif';
     let filesChartInstance = null;
     let typeChartInstance = null;
@@ -230,7 +227,7 @@
         auth.onAuthStateChanged(user => {
           if (!user) window.location.href = '/login.html';
           else if (!ADMIN_WHITELIST.includes(user.email)) { alert('⚠️ 無權檢視'); auth.signOut().then(() => { window.location.href = '/login.html'; }); } 
-          else { document.getElementById('mainContent').classList.add('ready'); switchTab('tab-analysis'); } // 預設開啟數據戰情
+          else { document.getElementById('mainContent').classList.add('ready'); switchTab('tab-analysis'); }
         });
     }).catch(err => { window.location.href = '/login.html'; });
 
@@ -253,60 +250,79 @@
       var btn = document.getElementById('btn-' + tabId.replace('tab-', '')); if(btn) btn.classList.add('active', 'bg-white', 'shadow-sm');
       
       if (tabId === 'tab-resource') fetchGasFiles(); 
-      loadAllData(tabId !== 'tab-resource'); // 重新載入數據
+      loadAllData(tabId !== 'tab-resource'); 
       if (tabId !== 'tab-scan') stopScanner();
     }
 
     function setDataType(type) { currentDataType = type; var activeBtn = document.getElementById(type === 'answers' ? 'btn-answers' : 'btn-textbooks'); var inactiveBtn = document.getElementById(type === 'answers' ? 'btn-textbooks' : 'btn-answers'); activeBtn.className = 'flex-1 py-3 bg-white shadow-sm rounded-lg font-bold text-sm text-textMain transition-all'; inactiveBtn.className = 'flex-1 py-3 rounded-lg font-bold text-sm text-textMuted hover:text-textMain transition-all'; }
 
+    // 🏆 修改點 1：將 /api/admin-answers 加進來，把所有題庫抓下來當作「反查字典」
     function loadAllData(renderCards = true) {
       if(renderCards && globalGroups.length === 0) {
         var cc = document.getElementById('studentCardsContainer');
         if(cc) cc.innerHTML = '<div class="p-10 text-center font-semibold text-textMuted col-span-full">資料庫同步中...</div>';
       }
-      return Promise.all([safeFetch('/api/admin-students?action=list'), safeFetch('/api/admin-logs'), safeFetch('/api/admin-groups')]).then(function(results) {
-        var stuRes = results[0], logRes = results[1], grpRes = results[2];
+      return Promise.all([
+        safeFetch('/api/admin-students?action=list'), 
+        safeFetch('/api/admin-logs'), 
+        safeFetch('/api/admin-groups'),
+        safeFetch('/api/admin-answers?action=list') 
+      ]).then(function(results) {
+        var stuRes = results[0], logRes = results[1], grpRes = results[2], ansRes = results[3];
         globalStudents = stuRes.success ? (stuRes.students || {}) : {};
         globalLogs = logRes.success && logRes.logs ? (Array.isArray(logRes.logs) ? logRes.logs : Object.values(logRes.logs)) : [];
         globalGroups = grpRes.success && grpRes.groups ? Object.keys(grpRes.groups) : [];
+        
+        // 更新全域題庫，供給反查機制使用
+        if(ansRes.success) fbData = ansRes;
+
         renderPublishGroupSelect(); 
         if(renderCards) { renderStudentCards(); renderGroupList(); if(activeAdminGroup) selectGroupForMembers(activeAdminGroup); }
-        renderAnalytics(); // 🏆 呼叫數據儀表板渲染
+        renderAnalytics();
       });
     }
 
     // ================= 🏆 數據分析引擎 (Analytics Engine) =================
     function renderAnalytics() {
+      // 🏆 神級修復：建立「檔案名稱 -> 所屬科目」的反查字典
+      let titleToSubject = {};
+      ['answers', 'textbooks'].forEach(type => {
+        if(fbData[type]) {
+          for(let subj in fbData[type]) {
+            for(let key in fbData[type][subj]) {
+              titleToSubject[fbData[type][subj][key].title] = subj;
+            }
+          }
+        }
+      });
+
       let studentCounts = {};
       let fileCounts = {};
       let typeCounts = {};
-      let subjectCounts = {}; // 🏆 新增：追蹤科目點擊次數
+      let subjectCounts = {}; 
       let activeSet = new Set();
       
       globalLogs.forEach(log => {
-        // 學生人數計算
         if(log.seat && log.seat !== '未綁定') {
           studentCounts[log.seat] = (studentCounts[log.seat] || 0) + 1;
           activeSet.add(log.seat);
         }
-        // 檔案次數計算
         let title = log.fileTitle || '未知檔案';
         fileCounts[title] = (fileCounts[title] || 0) + 1;
-        // 類型次數計算
+        
         let type = log.type || '其他';
         typeCounts[type] = (typeCounts[type] || 0) + 1;
-        // 🏆 科目次數計算 (自動抓取 log 裡的 subject 屬性，若無則歸為未分類)
-        let subj = log.subject || '未分類';
+        
+        // 🏆 優先讀取紀錄裡的 subject，如果沒有，就丟進字典反查！徹底消滅「未分類」！
+        let subj = log.subject || titleToSubject[title] || '未分類';
         subjectCounts[subj] = (subjectCounts[subj] || 0) + 1;
       });
 
-      // 總指標更新
       const statTotalClicks = document.getElementById('statTotalClicks');
       const statActiveStudents = document.getElementById('statActiveStudents');
       if(statTotalClicks) statTotalClicks.innerText = globalLogs.length;
       if(statActiveStudents) statActiveStudents.innerText = activeSet.size;
 
-      // 渲染 Top 5 學生
       let topStudents = Object.keys(studentCounts).map(seat => ({
         seat: seat, name: globalStudents[seat] ? globalStudents[seat].name : '未知', count: studentCounts[seat], avatar: globalStudents[seat] ? globalStudents[seat].avatarUrl : ''
       })).sort((a,b) => b.count - a.count).slice(0, 5);
@@ -319,7 +335,6 @@
       const topStudentsContainer = document.getElementById('topStudentsContainer');
       if(topStudentsContainer) topStudentsContainer.innerHTML = stuHtml || '<p class="text-sm text-textMuted text-center py-10">目前尚無點擊數據</p>';
 
-      // 🏆 渲染 Top 5 科目
       let topSubjects = Object.keys(subjectCounts)
         .map(s => ({ name: s, count: subjectCounts[s] }))
         .sort((a,b) => b.count - a.count)
@@ -328,14 +343,13 @@
       const subjColors = ['bg-blue-100 text-blue-600', 'bg-green-100 text-green-600', 'bg-orange-100 text-orange-600', 'bg-purple-100 text-purple-600', 'bg-red-100 text-red-600'];
       let subjHtml = '';
       topSubjects.forEach((subj, index) => {
-        if(subj.name === '未分類' && topSubjects.length > 1) return; // 若有正常資料，自動隱藏未分類
+        if(subj.name === '未分類' && topSubjects.length > 1) return; // 隱藏偶發未分類
         let colorClass = subjColors[index % subjColors.length];
         subjHtml += `<div class="bg-white/80 border border-white p-3 rounded-xl flex items-center justify-between shadow-sm hover:-translate-y-0.5 transition-transform"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg ${colorClass} flex items-center justify-center font-black shadow-inner">${index + 1}</div><span class="text-sm font-bold text-textMain">${subj.name}</span></div><div class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-lg text-xs font-black shadow-sm">${subj.count} 次</div></div>`;
       });
       const topSubjectsContainer = document.getElementById('topSubjectsContainer');
       if(topSubjectsContainer) topSubjectsContainer.innerHTML = subjHtml || '<p class="text-sm text-textMuted text-center py-10">目前尚無科目數據</p>';
 
-      // 渲染 Top 5 檔案圖表 (Bar Chart)
       let topFiles = Object.keys(fileCounts).map(title => ({ title: title, count: fileCounts[title] })).sort((a,b) => b.count - a.count).slice(0, 5);
       const ctxFiles = document.getElementById('filesChart');
       if(ctxFiles) {
@@ -347,7 +361,6 @@
         });
       }
 
-      // 渲染資源類型佔比圖表 (Doughnut Chart)
       const ctxType = document.getElementById('typeChart');
       if(ctxType) {
         if(typeChartInstance) typeChartInstance.destroy();
