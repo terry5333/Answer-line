@@ -76,7 +76,8 @@ export default function handler(req: VercelRequest, res: VercelResponse) {
               const prefix = dbNode === 'textbooks' ? '課本' : '解答';
               return sendFlexMessage(replyToken, LINE_TOKEN, `${subject}${prefix}專區`, allowedDataList, userId, host, subject, logType, studentGroups);
             } else {
-              return replyText(replyToken, LINE_TOKEN, `目前資料庫還沒有「${text}」的檔案喔！`);
+              // 只變動這一行：資料庫比對後，如果找不到這個科目/檔案，直接不理他
+              return Promise.resolve();
             }
           });
         }).catch((error) => Promise.resolve());
